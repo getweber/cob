@@ -6,7 +6,10 @@ with open(os.path.join(os.path.dirname(__file__), "weber", "__version__.py")) as
 
 _INSTALL_REQUIRES = [
     'click',
+    'Flask',
+    'gossip',
     'Logbook',
+    'PyYAML',
     'virtualenv',
 ]
 

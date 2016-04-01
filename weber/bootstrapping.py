@@ -5,14 +5,15 @@ import sys
 import logbook
 import virtualenv
 
+from .defs import WEBER_CONFIG_FILE_NAME
+
 _logger = logbook.Logger(__name__)
 
-_WEBER_CONFIG_FILE_PATH = '.weber.yml'
 _PREVENT_REENTRY_ENV_VAR = 'WEBER_NO_REENTRY'
 _VIRTUALENV_PATH = '.weber-env'
 
 def ensure_project_bootstrapped():
-    if not os.path.isfile(_WEBER_CONFIG_FILE_PATH):
+    if not os.path.isfile(WEBER_CONFIG_FILE_NAME):
         _logger.trace('Project is not a weber project')
         return
     if _PREVENT_REENTRY_ENV_VAR in os.environ:
