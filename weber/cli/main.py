@@ -15,6 +15,11 @@ def main(verbose, quiet):
     logbook.StreamHandler(sys.stderr, level=logbook.WARNING-verbose+quiet, bubble=False).push_application()
     ensure_project_bootstrapped()
 
+@main.add_command
+@click.command()
+def bootstrap():
+    pass
+
 
 def _add_all_subcommands():
     for name in [

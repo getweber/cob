@@ -1,13 +1,19 @@
+import os
 import socket
 import subprocess
 import sys
 import time
-from urlobject import URLObject
 from contextlib import contextmanager
+
+import jinja2
+
+from urlobject import URLObject
 
 
 @contextmanager
 def server_context(project):
+    with end_killing(run_weber(project, ['bootstrap'])):
+        pass
     with end_killing(run_weber(project, ['testserver'])) as p:
         wait_for_server(process=p)
         yield URLObject('http://127.0.0.1:5000')
@@ -44,3 +50,8 @@ def wait_for_server(port=5000, timeout_seconds=5, process=None):
             break
     else:
         raise RuntimeError('Could not connect')
+
+def write_template(fileobj, name, args):
+    with open(os.path.join(os.path.dirname(__file__), '_templates', name)) as f:
+        template = jinja2.Template(f.read())
+    fileobj.write(template.render(**args))

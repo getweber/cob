@@ -1,0 +1,7 @@
+from flask import jsonify, Blueprint
+
+blueprint = Blueprint({{name}}, __name__)
+
+@blueprint.route('/')
+def index():
+    return jsonify({'result': '{{name}}'})

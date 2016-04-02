@@ -1,1 +1,1 @@
-WEBER_CONFIG_FILE_NAME = '.weber.yml'
+WEBER_CONFIG_FILE_NAME = '.weber-project.yml'

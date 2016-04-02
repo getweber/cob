@@ -23,6 +23,9 @@ def ensure_project_bootstrapped():
     _reenter()
 
 def _ensure_virtualenv():
+    if os.path.exists(os.path.join(_VIRTUALENV_PATH)):
+        _logger.trace('Virtualenv already seems bootstrapped. Skipping...')
+        return
     _logger.trace('Creating virtualenv in {}', _VIRTUALENV_PATH)
     virtualenv.create_environment(_VIRTUALENV_PATH)
     _virtualenv_pip_install(['-e', os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))])
