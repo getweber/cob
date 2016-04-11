@@ -1,6 +1,6 @@
 import os
 
-import py
+import emport
 
 
 class Subsystem(object):
@@ -30,5 +30,5 @@ class BlueprintSubsystem(Subsystem):
         filename = os.path.join(self.path, module_name)
         if not filename.endswith('.py'):
             filename += '.py'
-        mod = py.path.local(filename).pyimport()
+        mod = emport.import_file(filename)
         yield mountpoint, getattr(mod, symbol)

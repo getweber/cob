@@ -1,10 +1,17 @@
 import os
 from uuid import uuid4
 
+import logbook
+
 import pytest
 import yaml
 
 from .utils import write_template
+
+
+@pytest.fixture(scope='session', autouse=True)
+def setup_logging():
+    logbook.StderrHandler(level=logbook.TRACE).push_application()
 
 
 @pytest.fixture

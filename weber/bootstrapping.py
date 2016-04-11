@@ -23,7 +23,7 @@ def ensure_project_bootstrapped():
     _reenter()
 
 def _ensure_virtualenv():
-    if os.path.exists(os.path.join(_VIRTUALENV_PATH)):
+    if os.path.exists(os.path.join(_VIRTUALENV_PATH, 'bin', 'python')):
         _logger.trace('Virtualenv already seems bootstrapped. Skipping...')
         return
     _logger.trace('Creating virtualenv in {}', _VIRTUALENV_PATH)
@@ -36,6 +36,14 @@ def _virtualenv_pip_install(argv):
 
 def _reenter():
     argv = sys.argv[:]
-    argv[:1] = [os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'weber.cli.main']
+    argv[:1] = [os.path.abspath(os.path.join(_VIRTUALENV_PATH, 'bin', 'python')), '-m', 'weber.cli.main']
     _logger.trace('Running in {}: {}...', _VIRTUALENV_PATH, argv)
     os.execve(argv[0], argv, {_PREVENT_REENTRY_ENV_VAR: 'true', **os.environ})
+
+def _which(bin):
+    for directory in os.environ['PATH'].split(':'):
+        full_path = os.path.join(directory, bin)
+        if os.path.isfile(full_path):
+            return full_path
+
+    raise ValueError('Could not find a python interpreter named {}'.format(bin))
