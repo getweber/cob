@@ -12,17 +12,19 @@ from ..bootstrapping import ensure_project_bootstrapped
 @click.option("-q", "--quiet", count=True)
 def main(verbose, quiet):
     logbook.NullHandler().push_application()
-    logbook.StreamHandler(sys.stderr, level=logbook.WARNING-verbose+quiet, bubble=False).push_application()
-    ensure_project_bootstrapped()
+    logbook.StreamHandler(sys.stderr, level=logbook.WARNING -
+                          verbose + quiet, bubble=False).push_application()
+
 
 @main.add_command
 @click.command()
 def bootstrap():
-    pass
+    ensure_project_bootstrapped()
 
 
 def _add_all_subcommands():
     for name in [
+            'generate',
             'testserver',
     ]:
         mod = __import__('weber.cli.{}'.format(name), fromlist=[''])
@@ -32,6 +34,5 @@ def _add_all_subcommands():
 _add_all_subcommands()
 
 
-
 if __name__ == "__main__":
-    main() # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter
