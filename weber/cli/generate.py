@@ -33,7 +33,8 @@ def project(path, project_name=None):
 @click.argument('mountpoint')
 def blueprint(name, mountpoint):
     _generate('blueprint', name, {
-        'mountpoint': mountpoint
+        'name': name,
+        'mountpoint': mountpoint,
     })
 
 

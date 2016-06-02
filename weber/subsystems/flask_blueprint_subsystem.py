@@ -1,6 +1,10 @@
+import logbook
+
 import gossip
+
 from .base import SubsystemBase
 
+_logger = logbook.Logger(__name__)
 
 class FlaskBlueprintSubsystem(SubsystemBase):
 
@@ -8,13 +12,12 @@ class FlaskBlueprintSubsystem(SubsystemBase):
 
     def activate(self):
         super(FlaskBlueprintSubsystem, self).activate()
-
-        for module in self.modules:
-            for blueprint_config in module.config.get('blueprints', ()):
-                bp = module.load_python_symbol_by_name(blueprint_config['blueprint'])
-                print('blueprint', bp, 'in', blueprint_config['mountpoint'])
-
         gossip.register(self.configure_app, 'weber.configure_flask_app')
 
     def configure_app(self, app):
-        pass
+        for blueprint_module in self.modules:
+            _logger.trace('Found blueprint: {[blueprint]}', blueprint_module.config)
+            bp = blueprint_module.load_python_symbol_by_name(
+                blueprint_module.config['blueprint'])
+            _logger.trace('registering under {.url_prefix}', bp)
+            app.register_blueprint(bp)

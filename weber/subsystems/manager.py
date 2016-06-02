@@ -1,8 +1,11 @@
 import os
 
 import yaml
+import logbook
 
 from .base import SubsystemBase
+
+_logger = logbook.Logger(__name__)
 
 
 class SubsystemsManager(object):
@@ -21,10 +24,13 @@ class SubsystemsManager(object):
                 continue
             with open(yml) as f:
                 config = yaml.load(f.read())
+            _logger.debug(
+                'Detected module in {} (subsystem: {[type]}', directory, config)
             subsystem_cls = self._get_subsystem_by_module_type(config['type'])
-            subsystem = self._subsystems.get(subsystem_cls)
+            subsystem = self._subsystems.get(subsystem_cls.NAME)
             if subsystem is None:
-                subsystem = self._subsystems[subsystem_cls.NAME] = subsystem_cls(self)
+                subsystem = self._subsystems[
+                    subsystem_cls.NAME] = subsystem_cls(self)
             subsystem.add_module(path, config)
 
     def _get_subsystem_by_module_type(self, module_type):
@@ -35,6 +41,6 @@ class SubsystemsManager(object):
             subsystem.activate()
 
 
-################################################################################
-## import all known subsystems to ensure registration
-from . import flask_blueprint_subsystem # pylint: disable=unused-import
+##########################################################################
+# import all known subsystems to ensure registration
+from . import flask_blueprint_subsystem  # pylint: disable=unused-import

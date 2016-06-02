@@ -42,6 +42,8 @@ class LoadedModule(object):
         filename, symbol = symbol.rsplit(':', 1)
         assert not os.path.isabs(filename)
         filename = os.path.join(self.path, filename)
+        if not os.path.isfile(filename) and not filename.endswith('.py'):
+            filename += '.py'
         if not os.path.isfile(filename):
             raise RuntimeError('File does not exist: {!r}'.format(filename))
         module = emport.import_file(filename)

@@ -1,7 +1,6 @@
-import pytest
 import requests
 
-@pytest.mark.skip
+
 def test_blueprints(empty_project):
     proj = empty_project
     names = ['bp1', 'bp2']
@@ -9,8 +8,10 @@ def test_blueprints(empty_project):
 
     for name, expected_value in zip(names, expected_values):
         proj.generate_blueprint(name)
-        proj.append_template('{}/blueprint.py', 'echo_route', {'value': expected_value, 'path': 'test'})
+        proj.append_template('{}/blueprint.py'.format(name),
+                             'echo_route', {'value': expected_value, 'path': 'test'})
 
     with proj.server_context() as url:
         for name, expected_value in zip(names, expected_values):
-            assert requests.get(url.add_path(name).add_path('test')).content == name
+            assert requests.get(url.add_path(name).add_path('test')).content.decode(
+                'utf-8') == 'this is {}'.format(name)
