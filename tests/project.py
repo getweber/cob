@@ -26,22 +26,22 @@ class Project(object):
     def __init__(self, projdir, projname):
         super(Project, self).__init__()
         self._parent_dir = projdir
-        self._path = projdir.join(projname)
+        self.path = projdir.join(projname)
         self._name = projname
 
     def generate_project(self):
-        assert not self._path.exists()
+        assert not self.path.exists()
         with chdir_context(self._parent_dir):
             _generate_project.callback(self._name)
 
     def generate_blueprint(self, name):
-        with chdir_context(self._path):
+        with chdir_context(self.path):
             _generate_blueprint.callback(
                 name=name, mountpoint='/{}'.format(name))
 
     def append_template(self, relpath, template_name, template_vars):
         template = template_env.get_template(template_name + '.j2')
-        with self._path.join(relpath).open("a") as f:
+        with self.path.join(relpath).open("a") as f:
             f.write("\n")
             f.write(template.render(template_vars))
 
@@ -55,10 +55,10 @@ class Project(object):
             yield URLObject('http://127.0.0.1:5000')
 
     def _run_weber(self, argv):
-        _logger.debug('Running weber on {}...', self._path)
+        _logger.debug('Running weber on {}...', self.path)
         return subprocess.Popen(
             ' '.join([sys.executable, '-m', 'weber.cli.main', '-vvvvv', *argv]),
-            cwd=str(self._path),
+            cwd=str(self.path),
             shell=True,
         )
 
