@@ -1,3 +1,4 @@
+import os
 from uuid import uuid4
 
 import logbook
@@ -5,11 +6,17 @@ import logbook
 import pytest
 
 from .project import Project
+from weber.bootstrapping import _PREVENT_REENTRY_ENV_VAR
 
 
 @pytest.fixture(scope='session', autouse=True)
 def setup_logging():
     logbook.StderrHandler(level=logbook.TRACE).push_application()
+
+
+@pytest.fixture(scope='session', autouse=True)
+def prevent_bootstrapping():
+    os.environ[_PREVENT_REENTRY_ENV_VAR] = 'true'
 
 
 @pytest.fixture
