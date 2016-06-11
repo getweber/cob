@@ -37,7 +37,15 @@ def blueprint(name, mountpoint):
         'mountpoint': mountpoint,
     })
 
-
+@generate.command()
+@click.argument('name')
+@click.argument('mountpoint', default='/static')
+def static_dir(name, mountpoint):
+    _generate('static_dir', name, {
+        'name': name,
+        'mountpoint': mountpoint,
+    })
+    os.mkdir(os.path.join(name, 'root'))
 
 def _generate(skeleton_name, dest_path, ctx):
     s = load_skeleton(skeleton_name)

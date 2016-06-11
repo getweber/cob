@@ -37,10 +37,14 @@ class SubsystemsManager(object):
         return SubsystemBase.SUBSYSTEM_BY_NAME[module_type]
 
     def activate(self):
-        for subsystem in self._subsystems.values():
+        for subsystem in self:
             subsystem.activate()
+
+    def __iter__(self):
+        return iter(self._subsystems.values())
 
 
 ##########################################################################
 # import all known subsystems to ensure registration
 from . import flask_blueprint_subsystem  # pylint: disable=unused-import
+from . import static_subsystem  # pylint: disable=unused-import

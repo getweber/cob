@@ -30,6 +30,9 @@ class SubsystemBase(metaclass=SubsystemMeta):
         for index, (path, config) in enumerate(self.modules):
             self.modules[index] = LoadedModule(path, config)
 
+    def configure_app(self, flask_app):
+        raise NotImplementedError() # pragma: no cover
+
 
 class LoadedModule(object):
 

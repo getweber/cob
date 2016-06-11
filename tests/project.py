@@ -11,6 +11,7 @@ from jinja2 import Environment as TemplateEnvironment, FileSystemLoader
 from urlobject import URLObject
 from weber.cli.generate import blueprint as _generate_blueprint
 from weber.cli.generate import project as _generate_project
+from weber.cli.generate import static_dir as _generate_static_dir
 
 from .utils import chdir_context
 
@@ -38,6 +39,11 @@ class Project(object):
         with chdir_context(self.path):
             _generate_blueprint.callback(
                 name=name, mountpoint='/{}'.format(name))
+
+    def generate_static_dir(self, name, **kw):
+        with chdir_context(self.path):
+            _generate_static_dir.callback(
+                name=name, **kw)
 
     def append_template(self, relpath, template_name, template_vars):
         template = template_env.get_template(template_name + '.j2')

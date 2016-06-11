@@ -10,10 +10,6 @@ class FlaskBlueprintSubsystem(SubsystemBase):
 
     NAME = 'blueprint'
 
-    def activate(self):
-        super(FlaskBlueprintSubsystem, self).activate()
-        gossip.register(self.configure_app, 'weber.configure_flask_app')
-
     def configure_app(self, app):
         for blueprint_module in self.modules:
             _logger.trace('Found blueprint: {[blueprint]}', blueprint_module.config)

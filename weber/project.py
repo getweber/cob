@@ -17,6 +17,10 @@ class Project(object):
         self.name = yaml_config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
 
+    def configure_app(self, app):
+        for subsystem in self.subsystems:
+            subsystem.configure_app(app)
+
 
 
 
