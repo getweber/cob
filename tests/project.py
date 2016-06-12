@@ -39,6 +39,7 @@ class Project(object):
         with chdir_context(self.path):
             _generate_blueprint.callback(
                 name=name, mountpoint='/{}'.format(name))
+        return TemplateContainer(self, self.path.join(name).join('blueprint.py'))
 
     def generate_static_dir(self, name, **kw):
         with chdir_context(self.path):
@@ -47,7 +48,7 @@ class Project(object):
 
     def append_template(self, relpath, template_name, template_vars):
         template = template_env.get_template(template_name + '.j2')
-        with self.path.join(relpath).open("a") as f:
+        with relpath.open("a") as f:
             f.write("\n")
             f.write(template.render(template_vars))
 
@@ -93,3 +94,14 @@ class Project(object):
                 break
         else:
             raise RuntimeError('Could not connect')
+
+
+class TemplateContainer(object):
+
+    def __init__(self, proj, path):
+        super(TemplateContainer, self).__init__()
+        self._proj = proj
+        self._path = path
+
+    def append_template(self, *args, **kwargs):
+        return self._proj.append_template(self._path, *args, **kwargs)
