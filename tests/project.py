@@ -18,6 +18,8 @@ from .utils import chdir_context
 
 _logger = logbook.Logger(__name__)
 
+_DEFAULT_PORT = 6789
+
 
 template_env = TemplateEnvironment(loader=FileSystemLoader(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), '_templates')))
@@ -61,11 +63,11 @@ class Project(object):
 
 
     @contextmanager
-    def server_context(self):
+    def server_context(self, port=_DEFAULT_PORT):
         self._run_cob(['bootstrap']).wait()
-        with self._end_killing(self._run_cob(['testserver'])) as p:
+        with self._end_killing(self._run_cob(['testserver', '-p', str(port)])) as p:
             self._wait_for_server(process=p)
-            yield URLObject('http://127.0.0.1:5000')
+            yield URLObject('http://127.0.0.1:{}'.format(port))
 
     def _run_cob(self, argv):
         _logger.debug('Running cob on {}...', self.path)
@@ -85,7 +87,7 @@ class Project(object):
                 p.terminate()
             p.wait()
 
-    def _wait_for_server(self, port=5000, timeout_seconds=5, process=None):
+    def _wait_for_server(self, port=_DEFAULT_PORT, timeout_seconds=5, process=None):
         end_time = time.time() + timeout_seconds
         while time.time() < end_time:
             s = socket.socket()

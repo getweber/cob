@@ -7,6 +7,7 @@ _logger = logbook.Logger(__name__)
 
 
 @click.command()
-def testserver():
+@click.option('-p', '--port', type=int, default=5000)
+def testserver(port):
     flask_app = build_app()
-    flask_app.run()
+    flask_app.run(port=port)
