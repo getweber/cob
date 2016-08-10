@@ -18,13 +18,15 @@ class SubsystemsManager(object):
 
     def _load_project_subsystems(self):
         for directory in os.listdir(self.project.root):
+            _logger.trace('Examining {}...', directory)
             path = os.path.join(self.project.root, directory)
             yml = os.path.join(path, '.cob.yml')
             if not os.path.isfile(yml):
+                _logger.trace('No cob file detected ({}). Skipping...', yml)
                 continue
             with open(yml) as f:
                 config = yaml.load(f.read())
-            _logger.debug(
+            _logger.trace(
                 'Detected module in {} (subsystem: {[type]}', directory, config)
             subsystem_cls = self._get_subsystem_by_module_type(config['type'])
             subsystem = self._subsystems.get(subsystem_cls.NAME)
