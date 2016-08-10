@@ -34,6 +34,7 @@ class SubsystemsManager(object):
                 subsystem = self._subsystems[
                     subsystem_cls.NAME] = subsystem_cls(self)
             subsystem.add_module(path, config)
+        _logger.trace('Module loading complete')
 
     def _get_subsystem_by_module_type(self, module_type):
         return SubsystemBase.SUBSYSTEM_BY_NAME[module_type]
