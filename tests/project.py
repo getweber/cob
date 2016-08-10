@@ -9,10 +9,10 @@ import logbook
 from jinja2 import Environment as TemplateEnvironment, FileSystemLoader
 
 from urlobject import URLObject
-from weber.cli.generate import blueprint as _generate_blueprint
-from weber.cli.generate import project as _generate_project
-from weber.cli.generate import static_dir as _generate_static_dir
-from weber.cli.generate import models as _generate_models
+from cob.cli.generate import blueprint as _generate_blueprint
+from cob.cli.generate import project as _generate_project
+from cob.cli.generate import static_dir as _generate_static_dir
+from cob.cli.generate import models as _generate_models
 
 from .utils import chdir_context
 
@@ -62,15 +62,15 @@ class Project(object):
 
     @contextmanager
     def server_context(self):
-        self._run_weber(['bootstrap']).wait()
-        with self._end_killing(self._run_weber(['testserver'])) as p:
+        self._run_cob(['bootstrap']).wait()
+        with self._end_killing(self._run_cob(['testserver'])) as p:
             self._wait_for_server(process=p)
             yield URLObject('http://127.0.0.1:5000')
 
-    def _run_weber(self, argv):
-        _logger.debug('Running weber on {}...', self.path)
+    def _run_cob(self, argv):
+        _logger.debug('Running cob on {}...', self.path)
         return subprocess.Popen(
-            ' '.join([sys.executable, '-m', 'weber.cli.main', '-vvvvv', *argv]),
+            ' '.join([sys.executable, '-m', 'cob.cli.main', '-vvvvv', *argv]),
             cwd=str(self.path),
             shell=True,
         )

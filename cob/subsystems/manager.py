@@ -19,7 +19,7 @@ class SubsystemsManager(object):
     def _load_project_subsystems(self):
         for directory in os.listdir(self.project.root):
             path = os.path.join(self.project.root, directory)
-            yml = os.path.join(path, '.weber.yml')
+            yml = os.path.join(path, '.cob.yml')
             if not os.path.isfile(yml):
                 continue
             with open(yml) as f:

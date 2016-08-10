@@ -1,7 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
-with open(os.path.join(os.path.dirname(__file__), "weber", "__version__.py")) as version_file:
+with open(os.path.join(os.path.dirname(__file__), "cob", "__version__.py")) as version_file:
     exec(version_file.read()) # pylint: disable=W0122
 
 _INSTALL_REQUIRES = [
@@ -29,10 +29,10 @@ setup(name="cob",
       version=__version__, # pylint: disable=E0602
       packages=find_packages(exclude=["tests"]),
 
-      url="https://github.com/getweber/weber-cli",
+      url="https://github.com/getcob/cob-cli",
       entry_points={
           "console_scripts": [
-              "weber = weber.cli.main:main",
+              "cob = cob.cli.main:main",
           ]},
       install_requires=_INSTALL_REQUIRES,
       scripts=[],

@@ -6,7 +6,7 @@ import logbook
 import pytest
 
 from .project import Project
-from weber.bootstrapping import _PREVENT_REENTRY_ENV_VAR
+from cob.bootstrapping import _PREVENT_REENTRY_ENV_VAR
 
 
 @pytest.fixture(scope='session', autouse=True)
