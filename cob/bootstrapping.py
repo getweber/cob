@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 import logbook
-import virtualenv
+import venv
 
 from .defs import WEBER_CONFIG_FILE_NAME
 
@@ -27,7 +27,7 @@ def _ensure_virtualenv():
         _logger.trace('Virtualenv already seems bootstrapped. Skipping...')
         return
     _logger.trace('Creating virtualenv in {}', _VIRTUALENV_PATH)
-    virtualenv.create_environment(_VIRTUALENV_PATH)
+    venv.create(_VIRTUALENV_PATH)
     _virtualenv_pip_install(['-e', os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))])
 
 def _virtualenv_pip_install(argv):
