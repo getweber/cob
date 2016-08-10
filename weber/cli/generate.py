@@ -5,7 +5,6 @@ import click
 import jinja2
 import logbook
 
-from .exceptions import UsageError
 
 _logger = logbook.Logger(__name__)
 
@@ -47,6 +46,14 @@ def static_dir(name, mountpoint):
     })
     os.mkdir(os.path.join(name, 'root'))
 
+@generate.command()
+@click.argument('name')
+def models(name):
+    _generate('models', name, {
+        'name': name,
+    })
+
+
 def _generate(skeleton_name, dest_path, ctx):
     s = load_skeleton(skeleton_name)
     with template_context(ctx):
@@ -64,7 +71,7 @@ def template_context(ctx):
 def load_skeleton(skeleton_name):
     skeleton_path = os.path.join(_SKELETONS_ROOT, skeleton_name)
     if not os.path.exists(skeleton_path):
-        raise UsageError('No such skeleton: {!r}'.format(skeleton_name))
+        raise click.ClickException('No such skeleton: {!r}'.format(skeleton_name))
 
     if os.path.isdir(skeleton_path):
         return SkeletonDir(skeleton_path)

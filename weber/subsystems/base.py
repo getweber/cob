@@ -43,11 +43,15 @@ class LoadedModule(object):
 
     def load_python_symbol_by_name(self, symbol):
         filename, symbol = symbol.rsplit(':', 1)
-        assert not os.path.isabs(filename)
-        filename = os.path.join(self.path, filename)
-        if not os.path.isfile(filename) and not filename.endswith('.py'):
-            filename += '.py'
-        if not os.path.isfile(filename):
-            raise RuntimeError('File does not exist: {!r}'.format(filename))
-        module = emport.import_file(filename)
+        module = self.load_python_module_by_name(filename)
         return getattr(module, symbol)
+
+    def load_python_module_by_name(self, rel_filename):
+        assert not os.path.isabs(rel_filename)
+        rel_filename = os.path.join(self.path, rel_filename)
+        if not os.path.isfile(rel_filename) and not rel_filename.endswith('.py'):
+            rel_filename += '.py'
+        if not os.path.isfile(rel_filename):
+            raise RuntimeError('File does not exist: {!r}'.format(rel_filename))
+        module = emport.import_file(rel_filename)
+        return module

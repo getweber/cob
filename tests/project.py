@@ -12,6 +12,7 @@ from urlobject import URLObject
 from weber.cli.generate import blueprint as _generate_blueprint
 from weber.cli.generate import project as _generate_project
 from weber.cli.generate import static_dir as _generate_static_dir
+from weber.cli.generate import models as _generate_models
 
 from .utils import chdir_context
 
@@ -40,6 +41,11 @@ class Project(object):
             _generate_blueprint.callback(
                 name=name, mountpoint='/{}'.format(name))
         return TemplateContainer(self, self.path.join(name).join('blueprint.py'))
+
+    def generate_models(self, name, **kwargs):
+        with chdir_context(self.path):
+            _generate_models.callback(name=name, **kwargs)
+        return TemplateContainer(self, self.path.join(name).join('models.py'))
 
     def generate_static_dir(self, name, **kw):
         with chdir_context(self.path):

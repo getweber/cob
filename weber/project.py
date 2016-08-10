@@ -4,6 +4,7 @@ import yaml
 
 from .defs import WEBER_CONFIG_FILE_NAME
 from .subsystems.manager import SubsystemsManager
+from .db import Database
 
 _projet = None
 
@@ -16,6 +17,7 @@ class Project(object):
             yaml_config = yaml.load(f)
         self.name = yaml_config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
+        self.db = Database(self)
 
     def configure_app(self, app):
         for subsystem in self.subsystems:

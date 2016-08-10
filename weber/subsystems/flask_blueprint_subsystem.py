@@ -1,7 +1,5 @@
 import logbook
 
-import gossip
-
 from .base import SubsystemBase
 
 _logger = logbook.Logger(__name__)

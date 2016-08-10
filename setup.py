@@ -8,6 +8,7 @@ _INSTALL_REQUIRES = [
     'click',
     'emport',
     'Flask',
+    'Flask-SQLAlchemy',
     'Jinja2',
     'gossip',
     'Logbook',
@@ -15,7 +16,7 @@ _INSTALL_REQUIRES = [
     'virtualenv',
 ]
 
-setup(name="weber",
+setup(name="cob",
       classifiers = [
           "Programming Language :: Python :: 3.3",
           "Programming Language :: Python :: 3.4",
