@@ -5,15 +5,15 @@ import sys
 import logbook
 import venv
 
-from .defs import WEBER_CONFIG_FILE_NAME
+from .defs import COB_CONFIG_FILE_NAME
 
 _logger = logbook.Logger(__name__)
 
-_PREVENT_REENTRY_ENV_VAR = 'WEBER_NO_REENTRY'
+_PREVENT_REENTRY_ENV_VAR = 'COB_NO_REENTRY'
 _VIRTUALENV_PATH = '.cob-env'
 
 def ensure_project_bootstrapped():
-    if not os.path.isfile(WEBER_CONFIG_FILE_NAME):
+    if not os.path.isfile(COB_CONFIG_FILE_NAME):
         _logger.trace('Project is not a cob project')
         return
     if _PREVENT_REENTRY_ENV_VAR in os.environ:
