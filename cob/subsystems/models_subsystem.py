@@ -8,8 +8,8 @@ class ModelsSubsystem(SubsystemBase):
 
     NAME = 'models'
 
-    def configure_app(self, app):
+    def configure_app(self, app): # pylint: disable=unused-argument
         for m in self.modules:
             self.project.db.begin_declarations()
             _logger.trace('Found models: {m.path}', m)
-            models = m.load_python_module_by_name('models.py')
+            models = m.load_python_module_by_name('models.py') # pylint: disable=unused-variable

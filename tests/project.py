@@ -1,7 +1,9 @@
+import re
 import os
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 from contextlib import contextmanager
 
@@ -63,18 +65,29 @@ class Project(object):
 
 
     @contextmanager
-    def server_context(self, port=_DEFAULT_PORT):
-        self._run_cob(['bootstrap']).wait()
-        with self._end_killing(self._run_cob(['testserver', '-p', str(port)])) as p:
-            self._wait_for_server(process=p)
-            yield URLObject('http://127.0.0.1:{}'.format(port))
+    def server_context(self):
 
-    def _run_cob(self, argv):
+
+        tempdir = tempfile.mkdtemp()
+        logfile_name = os.path.join(tempdir, 'testserver.log')
+        _logger.debug('Server log is going to {}...', logfile_name)
+
+        with open(logfile_name, 'a') as logfile:
+
+            self._run_cob(['bootstrap'], logfile).wait()
+            with self._end_killing(self._run_cob(['testserver', '-p', '0'], logfile)) as p:
+                port = self._parse_port(logfile)
+                self._wait_for_server(process=p, port=port)
+                yield URLObject('http://127.0.0.1:{}'.format(port))
+
+    def _run_cob(self, argv, logfile):
         _logger.debug('Running cob on {}...', self.path)
         return subprocess.Popen(
             ' '.join([sys.executable, '-m', 'cob.cli.main', '-vvvvv', *argv]),
             cwd=str(self.path),
             shell=True,
+            stdout=logfile,
+            stderr=subprocess.STDOUT,
         )
 
     @contextmanager
@@ -87,7 +100,17 @@ class Project(object):
                 p.terminate()
             p.wait()
 
-    def _wait_for_server(self, port=_DEFAULT_PORT, timeout_seconds=5, process=None):
+    def _parse_port(self, logfile, timeout_seconds=5):
+        end_time = time.time() + timeout_seconds
+        while time.time() < end_time:
+            with open(logfile.name, 'r') as f:
+                for line in f:
+                    match = re.search(r'Running on http://127\.0\.0\.1:(\d+)', line)
+                    if match:
+                        return int(match.group(1))
+            time.sleep(0.1)
+
+    def _wait_for_server(self, port, timeout_seconds=5, process=None):
         end_time = time.time() + timeout_seconds
         while time.time() < end_time:
             s = socket.socket()

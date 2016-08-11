@@ -1,7 +1,5 @@
 import logbook
 
-import gossip
-
 from .project import get_project
 
 _logger = logbook.Logger(__name__)

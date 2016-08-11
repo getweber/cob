@@ -2,7 +2,6 @@ import os
 
 import logbook
 
-import gossip
 from flask.helpers import send_from_directory
 
 from .base import SubsystemBase

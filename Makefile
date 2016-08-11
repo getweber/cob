@@ -1,6 +1,8 @@
 default: test
 
-test: env
+test: test_only pylint
+
+test_only: env
 	.env/bin/py.test -x tests
 
 env: .env/.up-to-date
@@ -15,4 +17,4 @@ env: .env/.up-to-date
 	touch $@
 
 pylint: env
-	.env/bin/pylint --rcfile=.pylintrc weber
+	.env/bin/pylint --rcfile=.pylintrc cob
