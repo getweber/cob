@@ -47,7 +47,7 @@ def static_dir(name, mountpoint):
     os.mkdir(os.path.join(name, 'root'))
 
 @generate.command()
-@click.argument('name')
+@click.argument('name', default='models')
 def models(name):
     _generate('models', name, {
         'name': name,
