@@ -14,7 +14,11 @@ env: .env/.up-to-date
 	.env/bin/pip install pylint
 	.env/bin/pip install -r ./*.egg-info/requires.txt || true
 	.env/bin/pip install -r test_requirements.txt
+	.env/bin/pip install -r ./doc/pip_requirements.txt
 	touch $@
 
 pylint: env
 	.env/bin/pylint --rcfile=.pylintrc cob
+
+doc: env
+	.env/bin/python setup.py build_sphinx -a -E
