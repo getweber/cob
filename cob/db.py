@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 
-from . import current
+from . import this
 
 
 class Database(object):
@@ -11,4 +11,4 @@ class Database(object):
 
     def begin_declarations(self):
         self._sa = SQLAlchemy()
-        current.db = self._sa
+        this.db = self._sa
