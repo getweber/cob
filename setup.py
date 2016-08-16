@@ -8,6 +8,7 @@ _INSTALL_REQUIRES = [
     'click',
     'emport',
     'Flask',
+    'Flask-Migrate',
     'Flask-SQLAlchemy',
     'Jinja2',
     'gossip',

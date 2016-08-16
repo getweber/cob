@@ -26,6 +26,7 @@ def _add_all_subcommands():
     for name in [
             'generate',
             'testserver',
+            'migrate',
     ]:
         mod = __import__('cob.cli.{}'.format(name), fromlist=[''])
         cmd = getattr(mod, name)
