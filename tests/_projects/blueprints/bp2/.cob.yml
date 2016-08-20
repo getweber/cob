@@ -1,0 +1,3 @@
+type: blueprint
+blueprint: blueprint:blueprint
+mountpoint: /bp2
