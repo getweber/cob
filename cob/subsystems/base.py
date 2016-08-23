@@ -26,11 +26,19 @@ class SubsystemBase(metaclass=SubsystemMeta):
     def add_module(self, path, config):
         self.modules.append((path, config))
 
-    def activate(self):
+    def activate(self, flask_app):
+        pass
+
+    def configure_app(self, flask_app):
         for index, (path, config) in enumerate(self.modules):
             self.modules[index] = LoadedModule(path, config)
 
-    def configure_app(self, flask_app):
+        for index, module in enumerate(self.modules):
+            if index == 0:
+                self.activate(flask_app)
+            self.configure_module(module, flask_app)
+
+    def configure_module(self, module, flask_app):
         raise NotImplementedError() # pragma: no cover
 
 
@@ -40,6 +48,11 @@ class LoadedModule(object):
         super(LoadedModule, self).__init__()
         self.path = path
         self.config = config
+
+    def load(self):
+        if os.path.isfile(self.path):
+            return emport.import_file(self.path)
+        raise NotImplementedError() # pragma: no cover
 
     def load_python_symbol_by_name(self, symbol):
         filename, symbol = symbol.rsplit(':', 1)

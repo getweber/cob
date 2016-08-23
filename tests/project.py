@@ -5,6 +5,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import requests
 import time
 from contextlib import contextmanager
 
@@ -35,6 +36,9 @@ class Project(object):
         shutil.copytree(os.path.join(_PROJS_ROOT, self._name), self.projdir)
         self.logfile_name = os.path.join(self.tempdir, 'testserver.log')
 
+    def on(self, path):
+        return ProjectPath(self, path)
+
     @contextmanager
     def server_context(self):
 
@@ -49,7 +53,6 @@ class Project(object):
                 yield URLObject('http://127.0.0.1:{}'.format(port))
 
     def _run_cob(self, argv, logfile):
-        _logger.debug('Running cob on {}...', )
         return subprocess.Popen(
             ' '.join([sys.executable, '-m', 'cob.cli.main', '-vvvvv', *argv]),
             cwd=self.projdir,
@@ -78,8 +81,11 @@ class Project(object):
                     if match:
                         return int(match.group(1))
             time.sleep(0.1)
+        with open(logfile.name, 'r') as f:
+            error_msg = 'Could not parse port. It is very likely that cob has failed or encountered an exception.\nOutput was:\n {})'.format(f.read())
+            raise RuntimeError(error_msg)
 
-    def _wait_for_server(self, port, timeout_seconds=5, process=None):
+    def _wait_for_server(self, port, timeout_seconds=2, process=None):
         end_time = time.time() + timeout_seconds
         while time.time() < end_time:
             s = socket.socket()
@@ -88,9 +94,26 @@ class Project(object):
             except socket.error:
                 if process is not None and process.poll() is not None:
                     raise RuntimeError('Process exited!')
-                time.sleep(0.1)
+                time.sleep(0.05)
                 continue
             else:
                 break
         else:
             raise RuntimeError('Could not connect')
+
+class ProjectPath(object):
+
+    def __init__(self, project, path):
+        super(ProjectPath, self).__init__()
+        self.project = project
+        self.path = path
+
+    def returns(self, code_or_string):
+        with self.project.server_context() as url:
+            resp = requests.get(url.add_path(self.path))
+            if isinstance(code_or_string, int):
+                assert resp.status_code == code_or_string
+            else:
+                assert resp.text == code_or_string
+
+        return True

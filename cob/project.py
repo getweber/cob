@@ -31,6 +31,5 @@ def get_project():
     global _project # pylint: disable=global-statement
     if _project is None:
         _project = Project()
-        _project.subsystems.activate()
 
     return _project
