@@ -22,3 +22,4 @@ class ModelsSubsystem(SubsystemBase):
     def configure_module(self, module, app):
         _logger.trace('Found models: {m.path}', module)
         models = module.load_python_module_by_name('models.py')  # pylint: disable=unused-variable
+        _ = app

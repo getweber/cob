@@ -13,20 +13,55 @@ Cob is relatively opinionated about how projects should be structured, and provi
 
 Cob is greatly inspired by *Ember CLI*, which also aimed at solving a similar problem.
 
-Cob in 5 Minutes
-----------------
+Anatomy of a Cob App
+--------------------
+A Cob App is built from *configuration*, letting cob know how to build, test and deploy your app, and from *grains*.
 
-Install Cob
-~~~~~~~~~~~
+Grains can be individual files or whole directories, and they comprise the individual parts of your app.
 
-.. code-block:: bash
+For example - a grain can be a blueprint binding multiple Flask views, or it can be a whole front-end UI written in JavaScript. Cob has well-defined grain types, and it knows how to deal with them.
 
-       $ pip install cob
+Getting Started
+---------------
 
-Generate a project
-~~~~~~~~~~~~~~~~~~
+Installation
+~~~~~~~~~~~~
+You can install cob from ``pip``, just by using::
 
-.. code-block:: bash
+  $ pip install cob
 
-       $ cob generate project myproj
-       $ cd myproj
+Generating an Empty Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cob has a utility for generating grains and projects, and it can be used to generate an empty project for us::
+
+  $ cob generate project myproj
+  $ tree myproj
+  myproj
+  └── .cob-project.yml
+
+  0 directories, 1 file
+
+Your project is now created, and already has its base configuration in the ``.cob-project.yml``. By default, it only contains the project name to be used.
+
+The Simplest App - The Views Grain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now it's time to populate our app with grains. Grains, as mentioned earlier, are the actual pieces of functionality in your app.
+
+The simplest grain to demonstrate is the **views** grain, and it should be recognizable to anyone familiar with Flask::
+
+  $ cat myproj/index.py
+
+.. code-block:: python
+
+  # cob: type=views mountpoint=/
+  from cob import route
+
+  @route('/hey')
+  def say_hey():
+      return 'hey'
+
+Our file contains the mount point (a.k.a the url prefix) for our grain, and indicates it is a views grain, meaning a grain comprising of simple Flask view functions.
+
+Note that we do not mention the Flask app itself here. We only indicate what's indended to be added to it when it is configured. This is the cob philosophy in a nutshell - you don't specify the glue code - only the main logic of your app. Cob tries very hard to perform the gluing operations for you.
