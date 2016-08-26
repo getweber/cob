@@ -9,8 +9,8 @@ class FlaskBlueprintSubsystem(SubsystemBase):
     NAME = 'blueprint'
 
     def configure_module(self, module, app):
-        _logger.trace('Found blueprint: {[blueprint]}', module.config)
-        bp = module.load_python_symbol_by_name(
-            module.config['blueprint'])
+        _logger.trace('Found blueprint: {}', module)
+        main = module.load()
+        bp = getattr(main, module.config.get('blueprint', 'blueprint'))
         _logger.trace('registering under {.url_prefix}', bp)
         app.register_blueprint(bp)

@@ -18,6 +18,27 @@ def generate():
     pass
 
 @generate.command()
+@click.option('-m', '--mountpoint', default=None)
+@click.option('-t', '--type', default='views')
+@click.argument('name')
+def grain(type, name, mountpoint):
+    if mountpoint is None:
+        mountpoint = '/{}'.format(name)
+    filename = '{}.py'.format(name)
+    if os.path.exists(filename):
+        raise click.ClickException('File exists: {}'.format(filename))
+
+    if type not in {'views', 'blueprint'}:
+        raise click.ClickException('Unknown grain type: {}'.format(type))
+
+    _generate('grain', filename, {
+        'type': type,
+        'name': name,
+        'mountpoint': mountpoint,
+    })
+
+
+@generate.command()
 @click.argument('path')
 @click.argument('project_name', required=False)
 def project(path, project_name=None):
@@ -25,15 +46,6 @@ def project(path, project_name=None):
         project_name = os.path.basename(path)
     _generate('project', path, {
         'project_name': project_name
-    })
-
-@generate.command()
-@click.argument('name')
-@click.argument('mountpoint')
-def blueprint(name, mountpoint):
-    _generate('blueprint', name, {
-        'name': name,
-        'mountpoint': mountpoint,
     })
 
 @generate.command()
@@ -106,7 +118,7 @@ class SkeletonFile(Skeleton):
         self._path = path
 
     def generate(self, dest_path):
-        with open(self._path, 'r') as template:
-            template = jinja2.Template(template.read())
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(self._path)))
+        template = env.get_template(os.path.basename(self._path))
         with open(dest_path, 'w') as f:
             f.write(template.render(**_ctx))

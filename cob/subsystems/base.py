@@ -52,7 +52,10 @@ class LoadedModule(object):
     def load(self):
         if os.path.isfile(self.path):
             return emport.import_file(self.path)
-        raise NotImplementedError() # pragma: no cover
+        main = self.config.get('main', 'main')
+        if not main.endswith('.py'):
+            main += '.py'
+        return emport.import_file(os.path.join(self.path, main))
 
     def load_python_symbol_by_name(self, symbol):
         filename, symbol = symbol.rsplit(':', 1)

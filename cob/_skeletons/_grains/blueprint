@@ -1,0 +1,3 @@
+from flask import Blueprint
+
+blueprint = Blueprint('{{name}}', __name__)
