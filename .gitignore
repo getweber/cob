@@ -8,3 +8,4 @@ flycheck_*
 dist
 .cache
 .env
+/.envrc

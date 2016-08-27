@@ -24,15 +24,11 @@ def generate():
 def grain(type, name, mountpoint):
     if mountpoint is None:
         mountpoint = '/{}'.format(name)
-    filename = '{}.py'.format(name)
-    if os.path.exists(filename):
-        raise click.ClickException('File exists: {}'.format(filename))
 
-    if type not in {'views', 'blueprint'}:
+    if type not in {'views', 'blueprint', 'templates'}:
         raise click.ClickException('Unknown grain type: {}'.format(type))
 
-    _generate('grain', filename, {
-        'type': type,
+    _generate('grain-{}'.format(type), name, {
         'name': name,
         'mountpoint': mountpoint,
     })
@@ -68,6 +64,8 @@ def models(name):
 
 def _generate(skeleton_name, dest_path, ctx):
     s = load_skeleton(skeleton_name)
+    if s.is_single_file() and not dest_path.endswith('.py'):
+        dest_path += '.py'
     with template_context(ctx):
         s.generate(dest_path)
 
@@ -96,6 +94,8 @@ class Skeleton(object):
     def generate(self, dest_path):
         raise NotImplementedError()  # pragma: no cover
 
+    def is_single_file(self):
+        return isinstance(self, SkeletonFile)
 
 class SkeletonDir(Skeleton):
 

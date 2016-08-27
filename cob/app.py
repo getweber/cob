@@ -10,6 +10,6 @@ def build_app():
 
     proj = get_project()
     _logger.debug('Starting app {.name}...', proj)
-    flask_app = Flask(get_project().name, static_folder=None)
+    flask_app = Flask(get_project().name, static_folder=None, template_folder=None)
     proj.configure_app(flask_app)
     return flask_app

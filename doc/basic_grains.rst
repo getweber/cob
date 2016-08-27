@@ -1,8 +1,8 @@
 Basic Grains
 ============
 
-Views Grain
------------
+Views Grains
+------------
 
 *Views* is the simplest type of grain, and it contains plain Flask route functions.
 
@@ -41,3 +41,25 @@ Blueprint Grains
   from flask import Blueprint
 
   blueprint = Blueprint(...)
+
+Template Grains
+---------------
+
+*Template* grains are used to host Flask (Jinja2) templates:
+
+  $ cob generate grain templates --type template
+  ...
+
+You can now create a basic template under ``templates/index.html``. Rendering it is fairly simple::
+
+  $ cat index.py
+
+.. code-block:: python
+
+       # cob: type=views mountpoint=/
+       from cob import route
+       from flask import render_template
+
+       @route('/')
+       def index():
+	   return render_template('index.html')

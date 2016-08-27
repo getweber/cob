@@ -1,3 +1,4 @@
+# cob: type=views mountpoint={{mountpoint}}
 from cob import route
 
 ## Your routes go here

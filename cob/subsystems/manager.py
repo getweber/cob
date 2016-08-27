@@ -61,3 +61,4 @@ from . import flask_blueprint_subsystem  # pylint: disable=unused-import
 from . import static_subsystem  # pylint: disable=unused-import
 from . import models_subsystem  # pylint: disable=unused-import
 from . import views_subsystem  # pylint: disable=unused-import
+from . import templates_subsystem  # pylint: disable=unused-import
