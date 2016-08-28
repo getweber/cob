@@ -34,8 +34,6 @@ class SubsystemBase(metaclass=SubsystemMeta):
             self.modules[index] = LoadedModule(path, config)
 
         for index, module in enumerate(self.modules):
-            if index == 0:
-                self.activate(flask_app)
             self.configure_module(module, flask_app)
 
     def configure_module(self, module, flask_app):

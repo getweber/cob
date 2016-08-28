@@ -5,15 +5,15 @@ import socket
 import subprocess
 import sys
 import tempfile
-import requests
 import time
 from contextlib import contextmanager
 
 import logbook
 from jinja2 import Environment as TemplateEnvironment
 from jinja2 import FileSystemLoader
-from urlobject import URLObject
 
+import requests
+from urlobject import URLObject
 
 _logger = logbook.Logger(__name__)
 
@@ -35,6 +35,9 @@ class Project(object):
         self.projdir = os.path.join(self.tempdir, 'proj')
         shutil.copytree(os.path.join(_PROJS_ROOT, self._name), self.projdir)
         self.logfile_name = os.path.join(self.tempdir, 'testserver.log')
+
+    def cmd(self, cmd):
+        return subprocess.check_call(cmd, shell=True, cwd=self.projdir)
 
     def on(self, path):
         return ProjectPath(self, path)
@@ -109,11 +112,17 @@ class ProjectPath(object):
         self.path = path
 
     def returns(self, code_or_string):
-        with self.project.server_context() as url:
-            resp = requests.get(url.add_path(self.path))
-            if isinstance(code_or_string, int):
-                assert resp.status_code == code_or_string
-            else:
-                assert resp.text == code_or_string
-
+        resp = self._request()
+        if isinstance(code_or_string, int):
+            assert resp.status_code == code_or_string
+        else:
+            assert resp.text == code_or_string
         return True
+
+    def returns_json(self, value):
+        assert self._request().json() == value
+        return True
+
+    def _request(self):
+        with self.project.server_context() as url:
+            return requests.get(url.add_path(self.path))

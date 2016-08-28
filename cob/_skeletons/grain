@@ -1,2 +1,0 @@
-# cob: type={{type}} mountpoint={{mountpoint}}
-{% include '_grains/' + type %}

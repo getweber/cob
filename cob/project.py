@@ -19,8 +19,7 @@ class Project(object):
 
     def configure_app(self, app):
         app.config.update(self.config.get('flask_config', {}))
-        for subsystem in self.subsystems:
-            subsystem.configure_app(app)
+        self.subsystems.configure_app(app)
 
 
 

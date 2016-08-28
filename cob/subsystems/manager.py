@@ -48,6 +48,14 @@ class SubsystemsManager(object):
         _logger.trace('No cob config detected ({}). Skipping...', path)
         return None
 
+    def configure_app(self, flask_app):
+        for subsystem in self:
+            subsystem.activate(flask_app)
+
+        for subsystem in self:
+            subsystem.configure_app(flask_app)
+
+
     def _get_subsystem_by_module_type(self, module_type):
         return SubsystemBase.SUBSYSTEM_BY_NAME[module_type]
 
