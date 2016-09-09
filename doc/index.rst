@@ -12,6 +12,8 @@ Contents:
    :maxdepth: 2
 
    introduction
+   basic_grains
+   database
 
 
 Indices and tables

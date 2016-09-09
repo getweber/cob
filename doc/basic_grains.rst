@@ -45,7 +45,7 @@ Blueprint Grains
 Template Grains
 ---------------
 
-*Template* grains are used to host Flask (Jinja2) templates:
+*Template* grains are used to host Flask (Jinja2) templates::
 
   $ cob generate grain templates --type template
   ...
