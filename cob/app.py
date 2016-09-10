@@ -12,4 +12,5 @@ def build_app():
     _logger.debug('Starting app {.name}...', proj)
     flask_app = Flask(get_project().name, static_folder=None, template_folder=None)
     proj.configure_app(flask_app)
+    _logger.trace('URL map: {}', flask_app.url_map)
     return flask_app

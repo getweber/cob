@@ -42,6 +42,10 @@ Blueprint Grains
 
   blueprint = Blueprint(...)
 
+.. note::
+
+   You do not have to name your blueprint variable ``blueprint``. Cob will look for your Blueprint instance among the module's globals
+
 Template Grains
 ---------------
 

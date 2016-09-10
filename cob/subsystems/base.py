@@ -69,3 +69,6 @@ class LoadedModule(object):
             raise RuntimeError('File does not exist: {!r}'.format(rel_filename))
         module = emport.import_file(rel_filename)
         return module
+
+    def __repr__(self):
+        return self.path
