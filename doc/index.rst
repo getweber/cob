@@ -13,6 +13,7 @@ Contents:
 
    introduction
    basic_grains
+   static_files
    database
    migrations
 

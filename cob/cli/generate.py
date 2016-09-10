@@ -25,7 +25,7 @@ def grain(type, name, mountpoint):
     if mountpoint is None:
         mountpoint = '/{}'.format(name)
 
-    if type not in {'views', 'blueprint', 'templates', 'models'}:
+    if type not in {'views', 'blueprint', 'templates', 'models', 'static'}:
         raise click.ClickException('Unknown grain type: {}'.format(type))
 
     _generate('grain-{}'.format(type), name, {
@@ -107,6 +107,8 @@ class SkeletonDir(Skeleton):
         if not os.path.isdir(dest_path):
             os.mkdir(dest_path)
         for filename in os.listdir(self._path):
+            if filename == '.cob.git.keep':
+                continue
             skeleton = load_skeleton(os.path.join(self._path, filename))
             skeleton.generate(os.path.join(dest_path, filename))
 
