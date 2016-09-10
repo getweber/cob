@@ -14,6 +14,7 @@ Contents:
    introduction
    basic_grains
    database
+   migrations
 
 
 Indices and tables
