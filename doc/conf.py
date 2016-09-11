@@ -129,7 +129,7 @@ html_theme_path = [alabaster.get_path()]
 
 html_theme = 'alabaster'
 html_theme_options = {
-    #'logo': 'cob-logo.png',
+    'logo': 'logo-small.png',
     'github_user': 'getweber',
     'github_repo': 'cob',
     'github_button': True,
