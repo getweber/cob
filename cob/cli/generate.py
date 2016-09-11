@@ -25,13 +25,13 @@ def grain(type, name, mountpoint):
     if mountpoint is None:
         mountpoint = '/{}'.format(name)
 
-    if type not in {'views', 'blueprint', 'templates', 'models', 'static'}:
-        raise click.ClickException('Unknown grain type: {}'.format(type))
-
-    _generate('grain-{}'.format(type), name, {
-        'name': name,
-        'mountpoint': mountpoint,
-    })
+    try:
+        _generate('grain-{}'.format(type), name, {
+            'name': name,
+            'mountpoint': mountpoint,
+        })
+    except click.ClickException:
+        raise click.ClickException('Unknown grain type {!r}'.format(type))
 
 
 @generate.command()
@@ -122,6 +122,6 @@ class SkeletonFile(Skeleton):
     def generate(self, dest_path):
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(self._path)))
         template = env.get_template(os.path.basename(self._path))
-        click.echo('Generating {}'.format(os.path.relpath(dest_path)))
+        click.echo('Generating {}'.format(os.path.relpath(dest_path) if not os.path.isabs(dest_path) else dest_path))
         with open(dest_path, 'w') as f:
             f.write(template.render(**_ctx))

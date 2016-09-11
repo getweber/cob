@@ -18,21 +18,28 @@ class SubsystemsManager(object):
         self._load_project_subsystems()
 
     def _load_project_subsystems(self):
-        for name in os.listdir(self.project.root):
-            _logger.trace('Examining {}...', name)
-            path = os.path.join(self.project.root, name)
-            config = self._try_get_config(path)
-            if config is None:
-                _logger.trace('{} does not seem to be a cob module. Skipping...', name)
-                continue
-            _logger.trace(
-                'Detected module in {} (subsystem: {[type]}', name, config)
-            subsystem_cls = self._get_subsystem_by_module_type(config['type'])
-            subsystem = self._subsystems.get(subsystem_cls.NAME)
-            if subsystem is None:
-                subsystem = self._subsystems[
-                    subsystem_cls.NAME] = subsystem_cls(self)
-            subsystem.add_module(path, config)
+        roots = [self.project.root]
+        while roots:
+            root = roots.pop()
+            for name in os.listdir(root):
+                _logger.trace('Examining {}...', name)
+                path = os.path.join(root, name)
+                config = self._try_get_config(path)
+                if config is None:
+                    _logger.trace('{} does not seem to be a cob module. Skipping...', name)
+                    continue
+                _logger.trace(
+                    'Detected module in {} (subsystem: {[type]}', name, config)
+                if config['type'] == 'bundle':
+                    _logger.trace('Will traverse into bundle {}', path)
+                    roots.append(path)
+                    continue
+                subsystem_cls = self._get_subsystem_by_module_type(config['type'])
+                subsystem = self._subsystems.get(subsystem_cls.NAME)
+                if subsystem is None:
+                    subsystem = self._subsystems[
+                        subsystem_cls.NAME] = subsystem_cls(self)
+                subsystem.add_module(path, config)
         _logger.trace('Module loading complete')
 
     def _try_get_config(self, path):

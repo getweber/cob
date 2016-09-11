@@ -67,3 +67,17 @@ You can now create a basic template under ``templates/index.html``. Rendering it
        @route('/')
        def index():
 	   return render_template('index.html')
+
+
+Bundle Grains
+-------------
+
+In some cases, as we'll see later, you may want to bundle several grains into a single directory. However, Cob only searches for grains in the project root by default.
+
+Luckily you can create a directory and declare it as a bundle to tell Cob it should traverse the top level of that directory as well::
+
+  $ cob generate grain my_addon --type bundle
+  $ cat my_addon/.cob.yml
+  type: bundle
+  $ cob generate grain my_addon/index.py --type views
+  ...
