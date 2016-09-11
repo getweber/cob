@@ -16,6 +16,7 @@ Contents:
    static_files
    database
    migrations
+   frontend
 
 
 Indices and tables

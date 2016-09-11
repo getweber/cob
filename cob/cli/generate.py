@@ -1,10 +1,12 @@
 import os
+import subprocess
 from contextlib import contextmanager
 
 import click
 import jinja2
 import logbook
 
+import gossip
 
 _logger = logbook.Logger(__name__)
 
@@ -32,6 +34,17 @@ def grain(type, name, mountpoint):
         })
     except click.ClickException:
         raise click.ClickException('Unknown grain type {!r}'.format(type))
+
+    gossip.trigger_with_tags('cob.after_generate.grain', tags=[type], kwargs={'name': name})
+
+@gossip.register('cob.after_generate.grain', tags=['frontend-ember'])
+def after_generate_grain_frontend_ember(*, name):
+    status, p = subprocess.getstatusoutput('which ember')
+    if status != 0:
+        click.echo('You do not seem to have ember-cli installed. Skipping ember app creation...')
+    else:
+        click.echo('Generating new Ember project')
+        subprocess.check_call('ember init', cwd=name, shell=True)
 
 
 @generate.command()
