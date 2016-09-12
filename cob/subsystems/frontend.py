@@ -2,8 +2,7 @@ import os
 
 from .base import SubsystemBase
 
-class FrontendSubsystem(SubsystemBase):
-
+class FrontendSubsystem(SubsystemBase): # pylint: disable=abstract-method
     pass
 
 class EmberSubsystem(FrontendSubsystem):

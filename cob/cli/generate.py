@@ -39,7 +39,7 @@ def grain(type, name, mountpoint):
 
 @gossip.register('cob.after_generate.grain', tags=['frontend-ember'])
 def after_generate_grain_frontend_ember(*, name):
-    status, p = subprocess.getstatusoutput('which ember')
+    status, _ = subprocess.getstatusoutput('which ember')
     if status != 0:
         click.echo('You do not seem to have ember-cli installed. Skipping ember app creation...')
     else:
