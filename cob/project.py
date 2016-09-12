@@ -1,6 +1,7 @@
 import os
 
 import yaml
+import logbook
 
 from .defs import COB_CONFIG_FILE_NAME
 from .subsystems.manager import SubsystemsManager
@@ -9,6 +10,8 @@ from flask.helpers import send_from_directory
 from flask import abort
 
 _projet = None
+
+_logger = logbook.Logger(__name__)
 
 
 class Project(object):
@@ -30,11 +33,11 @@ class Project(object):
         self._configure_static_locations(app)
 
     def add_static_location(self, url_path, fs_path):
-        self.static_locations.setdefault(url_path, []).append(fs_path)
+        self.static_locations.setdefault(url_path, []).append(os.path.abspath(fs_path))
 
     def add_static_file_alias(self, url_path, fs_path):
         assert url_path not in self.static_aliases
-        self.static_aliases[url_path] = fs_path
+        self.static_aliases[url_path] = os.path.abspath(fs_path)
 
     def _configure_static_locations(self, flask_app):
         for url_path, fs_paths in self.static_locations.items():
@@ -52,8 +55,10 @@ def _static_view(filename, search_locations):
     for location in search_locations:
         if not location.endswith('/'):
             location += '/'
+        _logger.trace('looking for {!r} in {!r}...', filename, location)
         p = os.path.join(location, filename)
         if os.path.exists(p) and os.path.abspath(p).startswith(location):
+            _logger.trace('Found. Serving')
             return send_from_directory(location, filename)
     abort(404)
 
