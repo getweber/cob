@@ -1,6 +1,6 @@
 # Cob
 
-<img src="https://github.com/getweber/cob/raw/develop/doc/_static/logo.png" style="width: 200px; float:right">
+<img src="https://github.com/getweber/cob/raw/develop/doc/_static/logo-small.png" >
 
 
 ![Build Status] (https://secure.travis-ci.org/getweber/cob.png )
