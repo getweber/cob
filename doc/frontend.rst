@@ -1,5 +1,5 @@
 Working with Front-end Code
-==========================
+===========================
 
 Creating Front-end Grains
 ~~~~~~~~~~~~~~~~~~~~~~~~~
