@@ -27,6 +27,9 @@ class Project(object):
         self.static_locations = {}
         self.static_aliases = {}
 
+    def get_deps(self):
+        return set(self.config.get('deps') or ())
+
     def configure_app(self, app):
         app.config.update(self.config.get('flask_config', {}))
         self.subsystems.configure_app(app)

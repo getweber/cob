@@ -14,3 +14,15 @@ Cob takes care of only refreshing this environment when needed (e.g. when it is 
    .. code:: bash
 
        $ COB_REFRESH_ENV=1 cob testserver
+
+
+Additional Dependencies
+-----------------------
+
+You can install additional dependencies through the ``deps`` section of the ``.cob-project.yml`` file::
+
+  # .cob-project.yml
+  ...
+  deps:
+    - Flask-Security
+    - Flask-SQLAlchemy>=0.1.0

@@ -2,10 +2,13 @@ import os
 import subprocess
 import sys
 
+import click
 import logbook
 import venv
+import yaml
 
 from .defs import COB_CONFIG_FILE_NAME
+from .project import get_project
 
 _logger = logbook.Logger(__name__)
 
@@ -13,6 +16,7 @@ _PREVENT_REENTRY_ENV_VAR = 'COB_NO_REENTRY'
 _COB_DEVELOP_MODE = 'COB_DEVELOP'
 _COB_REFRESH_ENV = 'COB_REFRESH_ENV'
 _VIRTUALENV_PATH = '.cob/env'
+_INSTALLED_DEPS = '.cob/_installed_deps.yml'
 
 def ensure_project_bootstrapped():
     if not os.path.isfile(COB_CONFIG_FILE_NAME):
@@ -25,7 +29,7 @@ def ensure_project_bootstrapped():
     _reenter()
 
 def _ensure_virtualenv():
-    if os.path.exists(os.path.join(_VIRTUALENV_PATH, 'bin', 'python')) and _COB_REFRESH_ENV not in os.environ:
+    if not _needs_refresh():
         _logger.trace('Virtualenv already seems bootstrapped. Skipping...')
         return
     _logger.trace('Creating virtualenv in {}', _VIRTUALENV_PATH)
@@ -40,6 +44,29 @@ def _ensure_virtualenv():
     else:
         _logger.trace('Installing cob form Pypi')
         _virtualenv_pip_install(['-U', 'cob'])
+
+    deps = sorted(get_project().get_deps())
+    _virtualenv_pip_install(['-U', *deps])
+    with open(_INSTALLED_DEPS, 'w') as f:
+        yaml.dump(deps, f)
+
+def _needs_refresh():
+    if _COB_REFRESH_ENV in os.environ:
+        click.echo(click.style('Virtualenv refresh forced. This might take a while...', fg='magenta'))
+        return True
+    if not os.path.exists(os.path.join(_VIRTUALENV_PATH, 'bin', 'python')):
+        click.echo(click.style('Creating project environment. This might take a while...', fg='magenta'))
+        return True
+    if _get_installed_deps() != get_project().get_deps():
+        click.echo(click.style('Dependencies have changes - refreshing virtualenv. This might take a while...', fg='magenta'))
+        return True
+    return False
+
+def _get_installed_deps():
+    if not os.path.isfile(_INSTALLED_DEPS):
+        return set()
+    with open(_INSTALLED_DEPS) as f:
+        return set(yaml.load(f.read()))
 
 def _virtualenv_pip_install(argv):
     _logger.trace('Installing cob in virtualenv...')
