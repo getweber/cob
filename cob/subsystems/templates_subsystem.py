@@ -8,8 +8,8 @@ class FlaskBlueprintSubsystem(SubsystemBase):
 
     NAME = 'templates'
 
-    def configure_module(self, module, app):
+    def configure_grain(self, grain, app):
         if app.template_folder is not None:
             raise RuntimeError('Multiple template dirs not supported yet')
 
-        app.template_folder = module.path
+        app.template_folder = grain.path

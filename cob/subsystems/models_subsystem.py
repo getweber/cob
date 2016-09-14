@@ -19,6 +19,6 @@ class ModelsSubsystem(SubsystemBase):
         Migrate(app, context.db).init_app(app)
         super(ModelsSubsystem, self).activate(app)
 
-    def configure_module(self, module, app): # pylint: disable=unused-argument
-        _logger.trace('Found models: {m.path}', module)
-        module.load()
+    def configure_grain(self, grain, app): # pylint: disable=unused-argument
+        _logger.trace('Found models: {m.path}', grain)
+        grain.load()

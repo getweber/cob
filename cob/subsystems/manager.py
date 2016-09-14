@@ -26,21 +26,21 @@ class SubsystemsManager(object):
                 path = os.path.join(root, name)
                 config = self._try_get_config(path)
                 if config is None:
-                    _logger.trace('{} does not seem to be a cob module. Skipping...', name)
+                    _logger.trace('{} does not seem to be a cob grain. Skipping...', name)
                     continue
                 _logger.trace(
-                    'Detected module in {} (subsystem: {[type]}', name, config)
+                    'Detected grain in {} (subsystem: {[type]}', name, config)
                 if config['type'] == 'bundle':
                     _logger.trace('Will traverse into bundle {}', path)
                     roots.append(path)
                     continue
-                subsystem_cls = self._get_subsystem_by_module_type(config['type'])
+                subsystem_cls = self._get_subsystem_by_grain_type(config['type'])
                 subsystem = self._subsystems.get(subsystem_cls.NAME)
                 if subsystem is None:
                     subsystem = self._subsystems[
                         subsystem_cls.NAME] = subsystem_cls(self)
-                subsystem.add_module(path, config)
-        _logger.trace('Module loading complete')
+                subsystem.add_grain(path, config)
+        _logger.trace('Grain loading complete')
 
     def _try_get_config(self, path):
         yml = os.path.join(path, '.cob.yml')
@@ -62,9 +62,8 @@ class SubsystemsManager(object):
         for subsystem in self:
             subsystem.configure_app(flask_app)
 
-
-    def _get_subsystem_by_module_type(self, module_type):
-        return SubsystemBase.SUBSYSTEM_BY_NAME[module_type]
+    def _get_subsystem_by_grain_type(self, grain_type):
+        return SubsystemBase.SUBSYSTEM_BY_NAME[grain_type]
 
     def __iter__(self):
         return iter(self._subsystems.values())

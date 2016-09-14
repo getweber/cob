@@ -21,29 +21,30 @@ class SubsystemBase(metaclass=SubsystemMeta):
         super(SubsystemBase, self).__init__()
         self.manager = manager
         self.project = self.manager.project
-        self.modules = []
+        self.grains = []
 
-    def add_module(self, path, config):
-        self.modules.append((path, config))
+    def add_grain(self, path, config):
+        self.grains.append(LoadedGrain(self, path, config))
 
     def activate(self, flask_app):
         pass
 
     def configure_app(self, flask_app):
-        for index, (path, config) in enumerate(self.modules):
-            self.modules[index] = LoadedModule(path, config)
+        for grain in self.grains:
+            self.configure_grain(grain, flask_app)
 
-        for index, module in enumerate(self.modules):
-            self.configure_module(module, flask_app)
-
-    def configure_module(self, module, flask_app):
+    def configure_grain(self, grain, flask_app):
         raise NotImplementedError() # pragma: no cover
 
+    def configure_tmux_window(self, windows):
+        pass
 
-class LoadedModule(object):
 
-    def __init__(self, path, config):
-        super(LoadedModule, self).__init__()
+class LoadedGrain(object):
+
+    def __init__(self, subsystem, path, config):
+        super(LoadedGrain, self).__init__()
+        self.subsystem = subsystem
         self.path = path
         self.config = config
 
@@ -57,8 +58,8 @@ class LoadedModule(object):
 
     def load_python_symbol_by_name(self, symbol):
         filename, symbol = symbol.rsplit(':', 1)
-        module = self.load_python_module_by_name(filename)
-        return getattr(module, symbol)
+        grain = self.load_python_module_by_name(filename)
+        return getattr(grain, symbol)
 
     def load_python_module_by_name(self, rel_filename):
         assert not os.path.isabs(rel_filename)

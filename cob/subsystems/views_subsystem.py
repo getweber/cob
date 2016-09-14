@@ -10,10 +10,10 @@ class ViewsSubsystem(SubsystemBase):
 
     NAME = 'views'
 
-    def configure_module(self, module, app):
-        _logger.trace('Found views module: {}', module)
-        main = module.load()
-        blueprint = Blueprint(main.__name__, main.__name__, url_prefix=module.config['mountpoint'])
+    def configure_grain(self, grain, app):
+        _logger.trace('Found views grain: {}', grain)
+        main = grain.load()
+        blueprint = Blueprint(main.__name__, main.__name__, url_prefix=grain.config['mountpoint'])
         for deferred_route in getattr(main, '__cob_routes__', []):
             deferred_route.register(blueprint)
         app.register_blueprint(blueprint)

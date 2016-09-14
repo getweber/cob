@@ -28,6 +28,9 @@ def ensure_project_bootstrapped():
     _ensure_virtualenv()
     _reenter()
 
+def get_virtualenv_binary_path(name):
+    return os.path.join(_VIRTUALENV_PATH, 'bin', name)
+
 def _ensure_virtualenv():
     if not _needs_refresh():
         _logger.trace('Virtualenv already seems bootstrapped. Skipping...')
