@@ -61,3 +61,13 @@ The simplest grain to demonstrate is the **views** grain, and it should be recog
 Our file contains the mount point (a.k.a the url prefix) for our grain, and indicates it is a views grain, meaning a grain comprising of simple Flask view functions.
 
 Note that we do not mention the Flask app itself here. We only indicate what's indended to be added to it when it is configured. This is the cob philosophy in a nutshell - you don't specify the glue code - only the main logic of your app. Cob tries very hard to perform the gluing operations for you.
+
+
+Running your App
+~~~~~~~~~~~~~~~~
+
+When you're ready to test your app, just hit::
+
+  $ cob testserver
+
+And it will run your app for you to test.
