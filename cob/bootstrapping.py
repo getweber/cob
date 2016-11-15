@@ -8,12 +8,12 @@ import venv
 import yaml
 
 from .defs import COB_CONFIG_FILE_NAME
+from .utils.develop import is_develop, cob_root
 from .project import get_project
 
 _logger = logbook.Logger(__name__)
 
 _PREVENT_REENTRY_ENV_VAR = 'COB_NO_REENTRY'
-_COB_DEVELOP_MODE = 'COB_DEVELOP'
 _COB_REFRESH_ENV = 'COB_REFRESH_ENV'
 _VIRTUALENV_PATH = '.cob/env'
 _INSTALLED_DEPS = '.cob/_installed_deps.yml'
@@ -41,9 +41,9 @@ def _ensure_virtualenv():
         os.makedirs(venv_parent_dir)
     venv.create(_VIRTUALENV_PATH)
     subprocess.check_call([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'ensurepip'])
-    if _COB_DEVELOP_MODE in os.environ:
+    if is_develop():
         _logger.trace('Using development version of cob')
-        _virtualenv_pip_install(['-e', os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))])
+        _virtualenv_pip_install(['-e', cob_root()])
     else:
         _logger.trace('Installing cob form Pypi')
         _virtualenv_pip_install(['-U', 'cob'])
