@@ -17,6 +17,7 @@ Contents:
    database
    migrations
    frontend
+   configuration
    developing
    environment
 
