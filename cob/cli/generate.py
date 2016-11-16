@@ -20,13 +20,10 @@ def generate():
     pass
 
 @generate.command()
-@click.option('-m', '--mountpoint', default=None)
+@click.option('-m', '--mountpoint', default="/")
 @click.option('-t', '--type', default='views')
 @click.argument('name')
 def grain(type, name, mountpoint):
-    if mountpoint is None:
-        mountpoint = '/{}'.format(name)
-
     try:
         _generate('grain-{}'.format(type), name, {
             'name': name,
