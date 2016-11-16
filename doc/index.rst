@@ -21,6 +21,7 @@ Contents:
    deployment
    developing
    environment
+   changelog
 
 
 Indices and tables
