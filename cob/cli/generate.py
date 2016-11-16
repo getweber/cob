@@ -26,18 +26,18 @@ def generate():
 
 @generate.command()
 @click.option('-m', '--mountpoint', default="/")
-@click.option('-t', '--type', default='views')
+@click.option('grain_type', '-t', '--type', default='views')
 @click.argument('name')
-def grain(type, name, mountpoint):
+def grain(grain_type, name, mountpoint):
     try:
-        _generate('grain-{}'.format(type), name, {
+        _generate('grain-{}'.format(grain_type), name, {
             'name': name,
             'mountpoint': mountpoint,
         })
     except UnknownSkeleton:
-        raise click.ClickException('Unknown grain type {!r}'.format(type))
+        raise click.ClickException('Unknown grain type {!r}'.format(grain_type))
 
-    gossip.trigger_with_tags('cob.after_generate.grain', tags=[type], kwargs={'name': name})
+    gossip.trigger_with_tags('cob.after_generate.grain', tags=[grain_type], kwargs={'name': name})
 
 @gossip.register('cob.after_generate.grain', tags=['frontend-ember'])
 def after_generate_grain_frontend_ember(*, name):
