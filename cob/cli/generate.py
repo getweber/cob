@@ -15,27 +15,29 @@ _SKELETONS_ROOT = os.path.abspath(os.path.join(
 
 _ctx = {}
 
+
+class UnknownSkeleton(Exception):
+    pass
+
+
 @click.group()
 def generate():
     pass
 
 @generate.command()
-@click.option('-m', '--mountpoint', default=None)
-@click.option('-t', '--type', default='views')
+@click.option('-m', '--mountpoint', default="/")
+@click.option('grain_type', '-t', '--type', default='views')
 @click.argument('name')
-def grain(type, name, mountpoint):
-    if mountpoint is None:
-        mountpoint = '/{}'.format(name)
-
+def grain(grain_type, name, mountpoint):
     try:
-        _generate('grain-{}'.format(type), name, {
+        _generate('grain-{}'.format(grain_type), name, {
             'name': name,
             'mountpoint': mountpoint,
         })
-    except click.ClickException:
-        raise click.ClickException('Unknown grain type {!r}'.format(type))
+    except UnknownSkeleton:
+        raise click.ClickException('Unknown grain type {!r}'.format(grain_type))
 
-    gossip.trigger_with_tags('cob.after_generate.grain', tags=[type], kwargs={'name': name})
+    gossip.trigger_with_tags('cob.after_generate.grain', tags=[grain_type], kwargs={'name': name})
 
 @gossip.register('cob.after_generate.grain', tags=['frontend-ember'])
 def after_generate_grain_frontend_ember(*, name):
@@ -94,7 +96,7 @@ def template_context(ctx):
 def load_skeleton(skeleton_name):
     skeleton_path = os.path.join(_SKELETONS_ROOT, skeleton_name)
     if not os.path.exists(skeleton_path):
-        raise click.ClickException('No such skeleton: {!r}'.format(skeleton_name))
+        raise UnknownSkeleton()
 
     if os.path.isdir(skeleton_path):
         return SkeletonDir(skeleton_path)
@@ -135,6 +137,9 @@ class SkeletonFile(Skeleton):
     def generate(self, dest_path):
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(self._path)))
         template = env.get_template(os.path.basename(self._path))
-        click.echo('Generating {}'.format(os.path.relpath(dest_path) if not os.path.isabs(dest_path) else dest_path))
+        normalized_path = os.path.relpath(dest_path) if not os.path.isabs(dest_path) else dest_path
+        click.echo('Generating {}'.format(normalized_path))
+        if os.path.exists(dest_path):
+            raise click.ClickException("{} already exists".format(normalized_path))
         with open(dest_path, 'w') as f:
             f.write(template.render(**_ctx))
