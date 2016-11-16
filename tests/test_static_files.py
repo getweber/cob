@@ -1,28 +1,20 @@
-from uuid import uuid4
-
 import requests
 
 import pytest
 
 
-@pytest.mark.parametrize('same_root', [True, False])
-def test_static_files(empty_project, same_root):
-    if same_root:
-        pytest.skip('not implemented')
-    proj = empty_project
-    names = ['static1', 'static2']
-    if same_root:
-        mount_points = ['/static' for name in names]
-    else:
-        mount_points = ['/{}'.format(name) for name in names]
-    expected_values = [str(uuid4()) for _ in names]
+from .project import Project
 
-    for name, mount_point, expected_value in zip(names, mount_points, expected_values):
-        proj.generate_static_dir(name, mountpoint=mount_point)
-        with proj.path.join(name).join('root').join('file').open('w') as f:
-            f.write(expected_value)
 
-    with proj.server_context() as url:
-        for name, mount_point, expected_value in zip(names, mount_points, expected_values):
-            assert requests.get(url.add_path(mount_point).add_path('file')).content.decode(
-                'utf-8') == expected_value
+def test_static_files_same_root():
+    p = Project('staticfiles')
+    with p.server_context() as url:
+        assert requests.get(url.add_path('static1/file')).text == 'this is #1\n'
+        assert requests.get(url.add_path('static1/file3')).text == 'this is #3\n'
+
+
+def test_static_files():
+    p = Project('staticfiles')
+    with p.server_context() as url:
+        assert requests.get(url.add_path('static1/file')).text == 'this is #1\n'
+        assert requests.get(url.add_path('static2/file')).text == 'this is #2\n'

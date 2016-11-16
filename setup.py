@@ -7,12 +7,15 @@ with open(os.path.join(os.path.dirname(__file__), "cob", "__version__.py")) as v
 _INSTALL_REQUIRES = [
     'click',
     'emport',
+    'gossip',
     'Flask',
+    'Flask-Migrate',
     'Flask-SQLAlchemy',
     'Jinja2',
     'gossip',
     'Logbook',
     'PyYAML',
+    'tmuxp',
     'virtualenv',
 ]
 
@@ -36,5 +39,7 @@ setup(name="cob",
           ]},
       install_requires=_INSTALL_REQUIRES,
       scripts=[],
-      namespace_packages=[]
+      namespace_packages=[],
+      package_data={'cob': ['cob/Dockerfile.j2']},
+
       )

@@ -24,8 +24,12 @@ def bootstrap():
 
 def _add_all_subcommands():
     for name in [
+            'develop',
+            'docker',
             'generate',
             'testserver',
+            'migrate',
+            'db',
     ]:
         mod = __import__('cob.cli.{}'.format(name), fromlist=[''])
         cmd = getattr(mod, name)

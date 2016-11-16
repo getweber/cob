@@ -4,6 +4,8 @@
 build
 .tox
 flycheck-*
+flycheck_*
 dist
 .cache
 .env
+/.envrc

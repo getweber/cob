@@ -1,5 +1,6 @@
 import logbook
 
+from flask import Blueprint
 from .base import SubsystemBase
 
 _logger = logbook.Logger(__name__)
@@ -8,10 +9,18 @@ class FlaskBlueprintSubsystem(SubsystemBase):
 
     NAME = 'blueprint'
 
-    def configure_app(self, app):
-        for blueprint_module in self.modules:
-            _logger.trace('Found blueprint: {[blueprint]}', blueprint_module.config)
-            bp = blueprint_module.load_python_symbol_by_name(
-                blueprint_module.config['blueprint'])
-            _logger.trace('registering under {.url_prefix}', bp)
-            app.register_blueprint(bp)
+    def configure_grain(self, grain, app):
+        _logger.trace('Found blueprint: {}', grain)
+        main = grain.load()
+        name = None
+        for name in dir(main):
+            if name.startswith('_'):
+                continue
+            blueprint = getattr(main, name)
+            if isinstance(blueprint, Blueprint):
+                break
+        else:
+            raise RuntimeError('Could not find any blueprint in {}'.format(grain.path))
+        url_prefix = grain.config.get('mountpoint', '/')
+        _logger.trace('registering {}:{} under {}', grain, name, url_prefix)
+        app.register_blueprint(blueprint, url_prefix=url_prefix)

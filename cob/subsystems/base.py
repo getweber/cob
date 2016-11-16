@@ -21,30 +21,45 @@ class SubsystemBase(metaclass=SubsystemMeta):
         super(SubsystemBase, self).__init__()
         self.manager = manager
         self.project = self.manager.project
-        self.modules = []
+        self.grains = []
 
-    def add_module(self, path, config):
-        self.modules.append((path, config))
+    def add_grain(self, path, config):
+        self.grains.append(LoadedGrain(self, path, config))
 
-    def activate(self):
-        for index, (path, config) in enumerate(self.modules):
-            self.modules[index] = LoadedModule(path, config)
+    def activate(self, flask_app):
+        pass
 
     def configure_app(self, flask_app):
+        for grain in self.grains:
+            self.configure_grain(grain, flask_app)
+
+    def configure_grain(self, grain, flask_app):
         raise NotImplementedError() # pragma: no cover
 
+    def configure_tmux_window(self, windows):
+        pass
 
-class LoadedModule(object):
 
-    def __init__(self, path, config):
-        super(LoadedModule, self).__init__()
+class LoadedGrain(object):
+
+    def __init__(self, subsystem, path, config):
+        super(LoadedGrain, self).__init__()
+        self.subsystem = subsystem
         self.path = path
         self.config = config
 
+    def load(self):
+        if os.path.isfile(self.path):
+            return emport.import_file(self.path)
+        main = self.config.get('main', 'main')
+        if not main.endswith('.py'):
+            main += '.py'
+        return emport.import_file(os.path.join(self.path, main))
+
     def load_python_symbol_by_name(self, symbol):
         filename, symbol = symbol.rsplit(':', 1)
-        module = self.load_python_module_by_name(filename)
-        return getattr(module, symbol)
+        grain = self.load_python_module_by_name(filename)
+        return getattr(grain, symbol)
 
     def load_python_module_by_name(self, rel_filename):
         assert not os.path.isabs(rel_filename)
@@ -55,3 +70,6 @@ class LoadedModule(object):
             raise RuntimeError('File does not exist: {!r}'.format(rel_filename))
         module = emport.import_file(rel_filename)
         return module
+
+    def __repr__(self):
+        return self.path

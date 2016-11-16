@@ -1,0 +1,4 @@
+name: cobproj
+
+flask_config:
+  SQLALCHEMY_DATABASE_URI: sqlite:////tmp/dbfile.db

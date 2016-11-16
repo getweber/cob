@@ -11,6 +11,17 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   introduction
+   basic_grains
+   static_files
+   database
+   migrations
+   frontend
+   configuration
+   deployment
+   developing
+   environment
+   changelog
 
 
 Indices and tables

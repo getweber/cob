@@ -1,0 +1,2 @@
+# cob: type=models
+from cob import db

@@ -1,10 +1,12 @@
 import os
+import subprocess
 from contextlib import contextmanager
 
 import click
 import jinja2
 import logbook
 
+import gossip
 
 _logger = logbook.Logger(__name__)
 
@@ -18,6 +20,34 @@ def generate():
     pass
 
 @generate.command()
+@click.option('-m', '--mountpoint', default=None)
+@click.option('-t', '--type', default='views')
+@click.argument('name')
+def grain(type, name, mountpoint):
+    if mountpoint is None:
+        mountpoint = '/{}'.format(name)
+
+    try:
+        _generate('grain-{}'.format(type), name, {
+            'name': name,
+            'mountpoint': mountpoint,
+        })
+    except click.ClickException:
+        raise click.ClickException('Unknown grain type {!r}'.format(type))
+
+    gossip.trigger_with_tags('cob.after_generate.grain', tags=[type], kwargs={'name': name})
+
+@gossip.register('cob.after_generate.grain', tags=['frontend-ember'])
+def after_generate_grain_frontend_ember(*, name):
+    status, _ = subprocess.getstatusoutput('which ember')
+    if status != 0:
+        click.echo('You do not seem to have ember-cli installed. Skipping ember app creation...')
+    else:
+        click.echo('Generating new Ember project')
+        subprocess.check_call('ember init', cwd=name, shell=True)
+
+
+@generate.command()
 @click.argument('path')
 @click.argument('project_name', required=False)
 def project(path, project_name=None):
@@ -25,15 +55,6 @@ def project(path, project_name=None):
         project_name = os.path.basename(path)
     _generate('project', path, {
         'project_name': project_name
-    })
-
-@generate.command()
-@click.argument('name')
-@click.argument('mountpoint')
-def blueprint(name, mountpoint):
-    _generate('blueprint', name, {
-        'name': name,
-        'mountpoint': mountpoint,
     })
 
 @generate.command()
@@ -47,7 +68,7 @@ def static_dir(name, mountpoint):
     os.mkdir(os.path.join(name, 'root'))
 
 @generate.command()
-@click.argument('name')
+@click.argument('name', default='models')
 def models(name):
     _generate('models', name, {
         'name': name,
@@ -56,6 +77,8 @@ def models(name):
 
 def _generate(skeleton_name, dest_path, ctx):
     s = load_skeleton(skeleton_name)
+    if s.is_single_file() and not dest_path.endswith('.py'):
+        dest_path += '.py'
     with template_context(ctx):
         s.generate(dest_path)
 
@@ -84,6 +107,8 @@ class Skeleton(object):
     def generate(self, dest_path):
         raise NotImplementedError()  # pragma: no cover
 
+    def is_single_file(self):
+        return isinstance(self, SkeletonFile)
 
 class SkeletonDir(Skeleton):
 
@@ -95,6 +120,8 @@ class SkeletonDir(Skeleton):
         if not os.path.isdir(dest_path):
             os.mkdir(dest_path)
         for filename in os.listdir(self._path):
+            if filename == '.cob.git.keep':
+                continue
             skeleton = load_skeleton(os.path.join(self._path, filename))
             skeleton.generate(os.path.join(dest_path, filename))
 
@@ -106,7 +133,8 @@ class SkeletonFile(Skeleton):
         self._path = path
 
     def generate(self, dest_path):
-        with open(self._path, 'r') as template:
-            template = jinja2.Template(template.read())
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(self._path)))
+        template = env.get_template(os.path.basename(self._path))
+        click.echo('Generating {}'.format(os.path.relpath(dest_path) if not os.path.isabs(dest_path) else dest_path))
         with open(dest_path, 'w') as f:
             f.write(template.render(**_ctx))
