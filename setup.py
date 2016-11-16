@@ -39,5 +39,7 @@ setup(name="cob",
           ]},
       install_requires=_INSTALL_REQUIRES,
       scripts=[],
-      namespace_packages=[]
+      namespace_packages=[],
+      package_data={'cob': ['cob/Dockerfile.j2']},
+
       )

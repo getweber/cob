@@ -25,6 +25,7 @@ def bootstrap():
 def _add_all_subcommands():
     for name in [
             'develop',
+            'docker',
             'generate',
             'testserver',
             'migrate',

@@ -6,7 +6,8 @@ import logbook
 import pytest
 
 from .project import Project
-from cob.bootstrapping import _PREVENT_REENTRY_ENV_VAR, _COB_DEVELOP_MODE
+from cob.bootstrapping import _PREVENT_REENTRY_ENV_VAR
+from cob.utils.develop import _COB_DEVELOP_MODE
 
 
 @pytest.fixture(scope='session', autouse=True)
