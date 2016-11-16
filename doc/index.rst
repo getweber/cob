@@ -18,6 +18,7 @@ Contents:
    migrations
    frontend
    configuration
+   deployment
    developing
    environment
 
