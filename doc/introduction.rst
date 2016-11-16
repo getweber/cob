@@ -54,7 +54,7 @@ The simplest grain to demonstrate is the **views** grain, and it should be recog
   # cob: type=views mountpoint=/
   from cob import route
 
-  @route('/hey')
+  @route('hey')
   def say_hey():
       return 'hey'
 
