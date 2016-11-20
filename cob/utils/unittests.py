@@ -1,16 +1,22 @@
 from flask.ext.loopback import FlaskLoopback  # pylint: disable=import-error, no-name-in-module
+
+from ..app import build_app
+
 import requests
 import uuid
 
 class Webapp(object):
 
-    def __init__(self, app):
+    def __init__(self):
         super(Webapp, self).__init__()
-        self.app = app
-        self.loopback = FlaskLoopback(self.app)
         self.hostname = str(uuid.uuid1())
 
     def activate(self):
+        self.app = build_app(use_cached=True)
+        self.app.config["SECRET_KEY"] = "testing_key"
+        self.app.config["TESTING"] = True
+
+        self.loopback = FlaskLoopback(self.app)
         self.loopback.activate_address((self.hostname, 80))
 
     def deactivate(self):
