@@ -11,6 +11,7 @@ _INSTALL_REQUIRES = [
     'Flask',
     'Flask-Migrate',
     'Flask-SQLAlchemy',
+    'Flask-Loopback',
     'Jinja2',
     'gossip',
     'Logbook',
