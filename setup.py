@@ -42,5 +42,5 @@ setup(name="cob",
       scripts=[],
       namespace_packages=[],
       package_data={'cob': ['cob/Dockerfile.j2']},
-
+      zip_safe=False,
       )
