@@ -8,12 +8,12 @@ Project Config
 
 Assuming you need a place to store project-specific configuration values, you can use the ``.cob-project.yml`` file located at the root of your project.
 
-Any configuration written in this file will be available to your project via XXXXX. For instance, for the following contents of ``.cob-project.yml``::
+Any configuration written in this file will be available to your project via the current project's ``config`` attribute. For instance, for the following contents of ``.cob-project.yml``::
 
   name: myproj
   some_value: 2
 
-You can access ``some_value`` through the XXXX:
+You can access ``some_value`` through the ``config`` project attribute:
 
 .. code-block:: python
 
