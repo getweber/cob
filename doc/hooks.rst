@@ -19,5 +19,5 @@ You can use the ``cob.after_configure_app`` hook to add additional features or c
        def after_configure_app(app):
 
            @app.before_request
-           def befoer_request():
+           def before_request():
                ...
