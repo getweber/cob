@@ -1,5 +1,6 @@
 import os
 
+import emport
 import yaml
 import logbook
 
@@ -26,11 +27,21 @@ class Project(object):
 
         self.static_locations = {}
         self.static_aliases = {}
+        self._initialized = False
 
     def get_deps(self):
         return set(self.config.get('deps') or ())
 
+    def initialize(self):
+        if self._initialized:
+            return
+        project_file_path = os.path.join(self.root, 'project.py')
+        if os.path.isfile(project_file_path):
+            emport.import_file(project_file_path)
+        self._initialized = True
+
     def configure_app(self, app):
+        self.initialize()
         app.config.update(self.config.get('flask_config', {}))
         self.subsystems.configure_app(app)
         self._configure_static_locations(app)
