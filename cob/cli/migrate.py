@@ -2,7 +2,6 @@ import click
 import logbook
 
 from .utils import appcontext_command
-from ..bootstrapping import ensure_project_bootstrapped
 
 import flask_migrate
 
@@ -30,11 +29,9 @@ def revision(message):
 @migrate.command()
 @appcontext_command
 def up():
-    ensure_project_bootstrapped()
     flask_migrate.upgrade()
 
 @migrate.command()
 @appcontext_command
 def down():
-    ensure_project_bootstrapped()
     flask_migrate.upgrade()
