@@ -14,7 +14,7 @@ def build_app(*, use_cached=False):
     from flask import Flask
 
     global _cached_app  # pylint: disable=global-statement
-    global _building    # pylint: disable=global-variable-not-assigned
+    global _building    # pylint: disable=global-statement
     if use_cached and _cached_app is not None:
         return _cached_app
 
