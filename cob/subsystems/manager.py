@@ -77,3 +77,4 @@ from . import models_subsystem  # pylint: disable=unused-import
 from . import views_subsystem  # pylint: disable=unused-import
 from . import templates_subsystem  # pylint: disable=unused-import
 from . import frontend  # pylint: disable=unused-import
+from . import unittests  # pylint: disable=unused-import

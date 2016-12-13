@@ -31,15 +31,22 @@ def ensure_project_bootstrapped():
 def get_virtualenv_binary_path(name):
     return os.path.join(_VIRTUALENV_PATH, 'bin', name)
 
+def _is_in_project_virtualenv():
+    venv_parent_dir = os.path.dirname(os.path.abspath(_VIRTUALENV_PATH))
+    python = os.path.abspath(os.path.join(venv_parent_dir, "env", "bin", "python"))
+    return os.path.abspath(sys.executable) == python
+
 def _ensure_virtualenv():
     if not _needs_refresh():
         _logger.trace('Virtualenv already seems bootstrapped. Skipping...')
         return
-    _logger.trace('Creating virtualenv in {}', _VIRTUALENV_PATH)
     venv_parent_dir = os.path.dirname(os.path.abspath(_VIRTUALENV_PATH))
-    if not os.path.isdir(venv_parent_dir):
-        os.makedirs(venv_parent_dir)
-    venv.create(_VIRTUALENV_PATH)
+    if not _is_in_project_virtualenv():
+        _logger.trace('Creating virtualenv in {}', _VIRTUALENV_PATH)
+        if not os.path.isdir(venv_parent_dir):
+            os.makedirs(venv_parent_dir)
+        venv.create(_VIRTUALENV_PATH)
+
     subprocess.check_call([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'ensurepip'])
     if is_develop():
         _logger.trace('Using development version of cob')
@@ -76,6 +83,9 @@ def _virtualenv_pip_install(argv):
     subprocess.check_call([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'pip', 'install', *argv])
 
 def _reenter():
+    if _is_in_project_virtualenv():
+        return
+
     argv = sys.argv[:]
     argv[:1] = [os.path.abspath(os.path.join(_VIRTUALENV_PATH, 'bin', 'python')), '-m', 'cob.cli.main']
     _logger.trace('Running in {}: {}...', _VIRTUALENV_PATH, argv)

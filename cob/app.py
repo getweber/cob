@@ -1,4 +1,5 @@
 import logbook
+import gossip
 
 from .project import get_project
 
@@ -19,5 +20,6 @@ def build_app(*, use_cached=False):
     _logger.debug('Starting app {.name}...', proj)
     _cached_app = Flask(get_project().name, static_folder=None, template_folder=None)
     proj.configure_app(_cached_app)
+    gossip.trigger_with_tags('cob.after_configure_app', {'app': _cached_app})
     _logger.trace('URL map: {}', _cached_app.url_map)
     return _cached_app
