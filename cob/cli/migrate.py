@@ -2,6 +2,7 @@ import click
 import logbook
 
 from .utils import appcontext_command
+from ..ctx import context
 
 import flask_migrate
 
@@ -23,6 +24,8 @@ def init():
 @click.option('-m', '--message', default=None)
 @appcontext_command
 def revision(message):
+    if not context.db.metadata.tables:
+        _logger.warning('No tables loaded!')
     flask_migrate.upgrade()
     flask_migrate.revision(autogenerate=True, message=message)
 
