@@ -12,4 +12,4 @@ _logger = logbook.Logger(__name__)
 def testserver(port):
     ensure_project_bootstrapped()
     flask_app = build_app()
-    flask_app.run(port=port)
+    flask_app.run(port=port, debug=True)
