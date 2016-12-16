@@ -51,7 +51,7 @@ Template Grains
 
 *Template* grains are used to host Flask (Jinja2) templates::
 
-  $ cob generate grain templates --type template
+  $ cob generate grain templates --type templates
   ...
 
 You can now create a basic template under ``templates/index.html``. Rendering it is fairly simple::
