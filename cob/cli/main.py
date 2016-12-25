@@ -4,8 +4,8 @@ import sys
 import logbook
 import click
 
-from ..bootstrapping import ensure_project_bootstrapped
 
+from cob.bootstrapping import ensure_project_bootstrapped
 
 @click.group()
 @click.option("-v", "--verbose", count=True)
