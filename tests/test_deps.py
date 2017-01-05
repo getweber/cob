@@ -7,7 +7,7 @@ import pytest
 
 def test_adding_deps(tmpdir):
     with pytest.raises(ImportError):
-        import sentinels
+        import pact
 
     projdir = tmpdir.join('proj')
     yaml = projdir.join('.cob-project.yml')
@@ -20,14 +20,14 @@ def test_adding_deps(tmpdir):
 
     assert os.path.exists(python)
 
-    assert subprocess.call([python, '-c', 'import sentinels']) == 1
+    assert subprocess.call([python, '-c', 'import pact']) == 1
 
     with yaml.open('a') as f:
         print('deps:', file=f)
-        print('  - sentinels', file=f)
+        print('  - pact', file=f)
 
     _cob_on(projdir, 'bootstrap')
-    assert subprocess.call([python, '-c', 'import sentinels']) == 0
+    assert subprocess.call([python, '-c', 'import pact']) == 0
 
 
 def _cob_on(cwd, cmd):
