@@ -22,6 +22,8 @@ class SubsystemsManager(object):
         while roots:
             root = roots.pop()
             for name in os.listdir(root):
+                if os.path.isfile(name) and (name.startswith('.') or not name.endswith('.py')):
+                    continue
                 _logger.trace('Examining {}...', name)
                 path = os.path.join(root, name)
                 config = self._try_get_config(path)

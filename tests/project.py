@@ -50,7 +50,7 @@ class Project(object):
         with open(self.logfile_name, 'a') as logfile:
 
             self._run_cob(['bootstrap'], logfile).wait()
-            with self._end_killing(self._run_cob(['testserver', '-p', '0'], logfile)) as p:
+            with self._end_killing(self._run_cob(['testserver', '-p', '0', '--no-debug'], logfile)) as p:
                 port = self._parse_port(logfile)
                 self._wait_for_server(process=p, port=port)
                 yield URLObject('http://127.0.0.1:{}'.format(port))
