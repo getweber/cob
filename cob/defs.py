@@ -1,1 +1,5 @@
 COB_CONFIG_FILE_NAME = '.cob-project.yml'
+CELERY_BACKEND = 'rpc://'
+CELERY_BROKER = 'amqp://guest:guest@localhost'
+CELERY_TIMEZONE = 'UTC'
+CELERY_VHOST = ''
