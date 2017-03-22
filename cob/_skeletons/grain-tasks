@@ -1,0 +1,4 @@
+# cob: type=tasks mountpoint={{mountpoint}}
+from celery import Celery
+
+## Your tasks go here
