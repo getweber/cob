@@ -1,4 +1,5 @@
 import os
+import sys
 
 import emport
 import yaml
@@ -35,6 +36,9 @@ class Project(object):
     def initialize(self):
         if self._initialized:
             return
+        assert '_cob' not in sys.modules
+        emport.set_package_name(self.root, '_cob')
+
         project_file_path = os.path.join(self.root, 'project.py')
         if os.path.isfile(project_file_path):
             emport.import_file(project_file_path)

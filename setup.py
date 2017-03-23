@@ -6,7 +6,7 @@ with open(os.path.join(os.path.dirname(__file__), "cob", "__version__.py")) as v
 
 _INSTALL_REQUIRES = [
     'click',
-    'emport',
+    'emport>=1.2.0',
     'gossip',
     'Flask',
     'Flask-Migrate',
