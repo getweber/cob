@@ -15,8 +15,8 @@ cobcelery.conf.update(
 
 def task(**kwargs):
     def task_wrap(func):
-        if 'name' not in kwargs:  
-            kwargs.update({'name':'tasks.add'})
+        # if 'name' not in kwargs:  
+        #     kwargs.update({'name':'tasks.add'})
         conf = dict()
         if 'queue' in kwargs:
             conf['task_queues'] = [Queue(name=kwargs.get('queue'))]
