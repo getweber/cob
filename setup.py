@@ -37,6 +37,9 @@ setup(name="cob",
       entry_points={
           "console_scripts": [
               "cob = cob.cli.main:main",
+          ],
+          "pytest11": [
+              'cob = cob.pytest_plugin'
           ]},
       install_requires=_INSTALL_REQUIRES,
       scripts=[],

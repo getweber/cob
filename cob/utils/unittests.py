@@ -11,6 +11,13 @@ class Webapp(object):
         super(Webapp, self).__init__()
         self.hostname = str(uuid.uuid1())
 
+    def __enter__(self):
+        self.activate()
+        return self
+
+    def __exit__(self, *args):
+        self.deactivate()
+
     def activate(self):
         self.app = build_app(use_cached=True)
         self.app.config["SECRET_KEY"] = "testing_key"
