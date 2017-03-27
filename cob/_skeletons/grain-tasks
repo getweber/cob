@@ -1,4 +1,4 @@
 # cob: type=tasks mountpoint={{mountpoint}}
-from celery import Celery
+from cob import task, periodic_task
 
 ## Your tasks go here

@@ -31,6 +31,14 @@ def _get_tmux_config():
                 'source .cob/env/bin/activate && cob testserver',
             ]
         },
+        {
+            'window_name': 'celery_workers and beat',
+            'layout': 'even-horizontal',
+            'panes': [
+                'celery -A cob.celery_utils -I tasks worker -B -Q celery,zuzu'
+                ]
+
+        }
     ]
 
     for subsystem in get_project().subsystems:
