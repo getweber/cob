@@ -1,6 +1,8 @@
 Basic Grains
 ============
 
+.. _views_grain:
+
 Views Grains
 ------------
 
