@@ -30,6 +30,7 @@ Contents:
    static_files
    database
    migrations
+   tasks
    frontend
    hooks
    configuration
