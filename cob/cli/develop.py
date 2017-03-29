@@ -45,7 +45,7 @@ def _get_tmux_config():
             'window_name': 'start celery_workers and beat',
             'layout': 'even-horizontal',
             'panes': [
-                'cd {} && source .cob/env/bin/activate && sleep 10 && {} celery -A cob.celery_utils -I tasks worker --loglevel=DEBUG -E -B -Q celery'.format(project.root, env),
+                'cd {} && source .cob/env/bin/activate && sleep 10 && {} celery -A cob.celery_utils worker --loglevel=DEBUG -E -B -Q celery'.format(project.root, env),
             ]
         },
         {
