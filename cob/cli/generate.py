@@ -29,14 +29,10 @@ def generate():
 @click.option('grain_type', '-t', '--type', default='views')
 @click.argument('name')
 def grain(grain_type, name, mountpoint):
-    try:
-        _generate('grain-{}'.format(grain_type), name, {
-            'name': name,
-            'mountpoint': mountpoint,
-        })
-    except UnknownSkeleton:
-        raise click.ClickException('Unknown grain type {!r}'.format(grain_type))
-
+    _generate('grain-{}'.format(grain_type), name, {
+        'name': name,
+        'mountpoint': mountpoint,
+    })
     gossip.trigger_with_tags('cob.after_generate.grain', tags=[grain_type], kwargs={'name': name})
 
 @gossip.register('cob.after_generate.grain', tags=['frontend-ember'])
@@ -72,13 +68,16 @@ def static_dir(name, mountpoint):
 @generate.command()
 @click.argument('name', default='models')
 def models(name):
-    _generate('models', name, {
+    _generate('grain-models', name, {
         'name': name,
     })
 
 
 def _generate(skeleton_name, dest_path, ctx):
-    s = load_skeleton(skeleton_name)
+    try:
+        s = load_skeleton(skeleton_name)
+    except UnknownSkeleton:
+        raise click.ClickException('Unknown skeleton: {}'.format(skeleton_name))
     if s.is_single_file() and not dest_path.endswith('.py'):
         dest_path += '.py'
     with template_context(ctx):
