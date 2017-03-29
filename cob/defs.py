@@ -1,8 +1,1 @@
 COB_CONFIG_FILE_NAME = '.cob-project.yml'
-CELERY_BACKEND = 'rpc://'
-RABBITMQ_USER = 'cob'
-RABBITMQ_PASSWORD = 'cob'
-RABBITMQ_VHOST = '/cob'
-CELERY_BROKER = 'amqp://cob:cob@localhost//cob'
-CELERY_TIMEZONE = 'UTC'
-CELERY_VHOST = ''
