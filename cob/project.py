@@ -4,11 +4,8 @@ import sys
 import emport
 import yaml
 import logbook
-from celery import Celery
-from celery.schedules import crontab
-from celery.schedules import crontab
 
-from .defs import COB_CONFIG_FILE_NAME, CELERY_BACKEND, CELERY_BROKER, CELERY_TIMEZONE
+from .defs import COB_CONFIG_FILE_NAME
 from .subsystems.manager import SubsystemsManager
 
 from flask.helpers import send_from_directory
@@ -27,7 +24,6 @@ class Project(object):
         with open(os.path.join(self.root, COB_CONFIG_FILE_NAME)) as f:
             self.config = yaml.load(f)
         self.name = self.config.get('name', os.path.basename(self.root))
-        self.celery = self.init_celery()
         self.subsystems = SubsystemsManager(self)
 
 
@@ -48,20 +44,6 @@ class Project(object):
         if os.path.isfile(project_file_path):
             emport.import_file(project_file_path)
         self._initialized = True
-
-    def init_celery(self):
-        celeryInst = Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
-        celeryInst.conf.update(
-            CELERY_TIMEZONE=CELERY_TIMEZONE,
-            CELERY_ROUTES={self.name + '.tasks.add': {'queue': 'celery'}},
-            CELERYBEAT_SCHEDULE={
-                'sync_infinilab_systems': {
-                    'task': 'flask_app.tasks.refresh',
-                    'schedule': crontab(minute='*/10'),
-                }
-            }
-        )
-        return celeryInst
 
     def configure_app(self, app):
         self.initialize()
