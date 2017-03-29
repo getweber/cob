@@ -1,3 +1,4 @@
+import os
 import logbook
 
 from .base import SubsystemBase
@@ -15,6 +16,7 @@ class ModelsSubsystem(SubsystemBase):
     NAME = 'models'
 
     def activate(self, flask_app):
+        flask_app.config.setdefault('SQLALCHEMY_DATABASE_URI', 'sqlite:///{}'.format(os.path.join(self.project.root, '.cob', 'db.sqlite')))
         context.db = SQLAlchemy(flask_app)
         Migrate(flask_app, context.db).init_app(flask_app)
         super(ModelsSubsystem, self).activate(flask_app)
