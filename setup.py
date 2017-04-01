@@ -17,6 +17,7 @@ _INSTALL_REQUIRES = [
     'Logbook',
     'PyYAML',
     'pytest',
+    'sentinels',
     'tmuxp',
     'virtualenv',
 ]
