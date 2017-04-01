@@ -16,6 +16,8 @@ _INSTALL_REQUIRES = [
     'gossip',
     'Logbook',
     'PyYAML',
+    'pytest',
+    'sentinels',
     'tmuxp',
     'virtualenv',
 ]

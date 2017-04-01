@@ -57,7 +57,6 @@ boilerplate code.
 Let's start by adding our route for serving TODO items. Let's create a
 file named ``backend.py``, and add the following content to it: 
 
-.. in ./backend.py
 .. code-block:: python
        
    # cob: type=views mountpoint=/api
@@ -224,3 +223,43 @@ tasks from the database:
              }
          }
          
+
+We now have a working, simple TODO app, with a REST API to add and
+view tasks.
+
+
+Testing
+-------
+
+Now that our app is beginning to grow some logic, it's time to start
+adding tests. Cob makes testing easy with the help of **pytest** and
+several related tools.
+
+Let's add our first test -- create a directory called ``tests`` under
+your project root, and create your first test file -- let's name it
+``test_todo.py``:
+
+.. code-block:: python
+
+    def test_add_todo(webapp):
+        message = 'some message'
+        webapp.post('/api/todos', data_json={
+            'data': {
+                'description': message,
+            }})
+        all_todos = webapp.get('/api/todos')['data']
+        last_todo = all_todos[-1]['attributes']
+        assert last_todo['description'] == message
+
+We wrote a single test function for use in **pytest**, with a single
+fixture called webapp, which is an instance of
+:class:`cob.utils.unittest.Webapp`, a helper Cob exposes for tests.
+
+To run our tests, all we need to do is run ``cob test`` from our
+project root.
+
+.. tip:: ``cob test`` is just a shortcut for running **pytest** in
+         your project. All options and arguments are forwarded to
+         pytest for maximum flexibility.
+
+
