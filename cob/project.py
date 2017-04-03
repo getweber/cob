@@ -26,7 +26,6 @@ class Project(object):
         self.name = self.config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
 
-
         self.static_locations = {}
         self.static_aliases = {}
         self._initialized = False
@@ -50,6 +49,7 @@ class Project(object):
         app.config.update(self.config.get('flask_config', {}))
         self.subsystems.configure_app(app)
         self._configure_static_locations(app)
+
 
     def add_static_location(self, url_path, fs_path):
         self.static_locations.setdefault(url_path, []).append(os.path.abspath(fs_path))

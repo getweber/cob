@@ -1,7 +1,7 @@
 import logbook
 
 from .base import SubsystemBase
-from celery import Celery
+from ..celery_utils import celery_app
 
 _logger = logbook.Logger(__name__)
 
@@ -11,11 +11,12 @@ class TasksSubsystem(SubsystemBase):
     NAME = 'tasks'
 
 
-    def configure_grain(self, grain, app):
+    def configure_grain(self, grain, flask_app):
         _logger.trace('Found tasks grain: {}', grain)
-        celery = Celery('tasks', backend='rpc://', broker='amqp://dhcpawn:dhcpawn@localhost/dhcpawn_vhost')
+        # celery_app.cobcelery.conf.imports = ('%s' % grain.path.split('/')[-1].split('.')[0])
+        m = grain.load()
+        celery_app.register_tasks()
 
-        app.config['capp'] = "test"
-        grain.load()
 
-
+    def activate(self, flask_app):
+        celery_app.load_config(self.project)

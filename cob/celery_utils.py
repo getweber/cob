@@ -1,20 +1,28 @@
 from celery import Celery
+from celery.loaders.base import BaseLoader
+
+
 
 class CobCelery(object):
 
     def __init__(self, celery_inst):
         self.cobcelery = celery_inst
+        self.task_list = []
 
-
-    def celery_load_config(self):
+    def load_config(self, project):
         '''
-        by default ,a celeryconfig.py file should exist in the
-        main cob project dir with some basic configuration:
+        By default, cob holds some basic configuration values like
            - broker url
            - results backend
-        this file will be loaded and used as celery config.
+        these values are stored in .cob-project.yml and if needed
+        can be altered manually by the user.
         '''
-        self.cobcelery.config_from_object('celeryconfig')
+        self.cobcelery.conf.broker_url = project.config['celery']['broker_url']
+        self.cobcelery.conf.result_backend = project.config['celery']['result_backend']
+
+    def register_tasks(self):
+        for task in self.task_list:
+            self.cobcelery.register_task(task)
 
     def update_celery_task_name(self, func, kwargs):
         '''
@@ -22,8 +30,9 @@ class CobCelery(object):
         a task name so that tasks are registered exactly
         by the name we expect.
         '''
+        import pudb;pudb.set_trace()
         if not kwargs.get('name'):
-            return {'name': '_cob.tasks.%s' % func.__name__}
+            return {'name': '%s.%s' % (func.__module__, func.__name__)}
         else:
             return {}
 
@@ -75,15 +84,14 @@ class CobCelery(object):
         return kwargs
 
 
-celery_inst = Celery('cobtasks')
-celery_app = CobCelery(celery_inst)
-celery_app.celery_load_config()
 
 def task(*args, **kwargs):
     def task_wrap(func):
         kwargs.update(celery_app.update_celery_task_name(func, kwargs))
         celery_app.add_queue_consumer(kwargs)
-        return celery_app.cobcelery.task(func, **kwargs)
+        task = celery_app.cobcelery.task(func, **kwargs)
+        celery_app.task_list.append(task)
+        return task
     return task_wrap
 
 
@@ -92,5 +100,12 @@ def periodic_task(*args, **kwargs):
         kwargs.update(celery_app.update_celery_task_name(func, kwargs))
         kwargs.update(celery_app.periodic_task_parse_scheduling_args(func, kwargs))
         celery_app.add_queue_consumer(kwargs)
-        return celery_app.cobcelery.task(func, **kwargs)
+        task = celery_app.cobcelery.task(func, **kwargs)
+        celery_app.task_list.append(task)
+        return task
     return periodic_task_wrap
+
+
+
+celery_inst = Celery('cobtasks')
+celery_app = CobCelery(celery_inst)
