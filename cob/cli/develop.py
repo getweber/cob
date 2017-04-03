@@ -28,35 +28,19 @@ def _get_tmux_config():
                    if key in os.environ)
     windows = [
         {
-            'window_name': 'flask',
+            'window_name': 'Webapp',
             'layout': 'even-horizontal',
             'panes': [
-                'cd {} && sleep 20  && source .cob/env/bin/activate && {} cob testserver'.format(project.root, env),
+                'cd {} && source .cob/env/bin/activate && {} cob testserver'.format(project.root, env),
             ]
         },
         {
-            'window_name': 'rabbitmq-server',
+            'window_name': 'Celery',
             'layout': 'even-horizontal',
             'panes': [
-                'cd {} && {} rabbitmq-server'.format(project.root, env),
-                ]
-        },
-        {
-            'window_name': 'start celery_workers and beat',
-            'layout': 'even-horizontal',
-            'panes': [
-                'cd {} && source .cob/env/bin/activate && sleep 5 && {} celery -A cob.celery_utils worker --loglevel=DEBUG -E  -B -Q celery'.format(project.root, env),
+                'cd {} && source .cob/env/bin/activate && {} celery -A cob.celery_utils worker --loglevel=DEBUG -E  -B -Q celery'.format(project.root, env),
             ]
         },
-        {
-            'window_name': 'just working env',
-            'layout': 'even-horizontal',
-            'panes': [
-                'cd {} && {} && source .cob/env/bin/activate'.format(project.root, env)
-                ]
-        },
-
-
     ]
 
     for subsystem in get_project().subsystems:
