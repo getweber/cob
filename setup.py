@@ -5,6 +5,7 @@ with open(os.path.join(os.path.dirname(__file__), "cob", "__version__.py")) as v
     exec(version_file.read()) # pylint: disable=W0122
 
 _INSTALL_REQUIRES = [
+    'celery',
     'click',
     'emport>=1.2.0',
     'gossip',

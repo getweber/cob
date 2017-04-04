@@ -2,6 +2,7 @@ import logbook
 import gossip
 
 from .project import get_project
+# from .celery_utils import celery_app
 
 _logger = logbook.Logger(__name__)
 

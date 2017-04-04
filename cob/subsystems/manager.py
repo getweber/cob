@@ -70,6 +70,21 @@ class SubsystemsManager(object):
     def __iter__(self):
         return iter(self._subsystems.values())
 
+    def __getattr__(self, subsystem_name):
+        if subsystem_name not in self._subsystems:
+            raise AttributeError(subsystem_name)
+        return self._subsystems[subsystem_name]
+
+    def has_subsystem(self, name_or_cls):
+        if name_or_cls in self._subsystems:
+            return True
+
+        if isinstance(name_or_cls, type):
+            for subsystem in self._subsystems.values():
+                if isinstance(subsystem, name_or_cls):
+                    return True
+        return False
+
 
 ##########################################################################
 # import all known subsystems to ensure registration
@@ -78,5 +93,7 @@ from . import static_subsystem  # pylint: disable=unused-import
 from . import models_subsystem  # pylint: disable=unused-import
 from . import views_subsystem  # pylint: disable=unused-import
 from . import templates_subsystem  # pylint: disable=unused-import
+from . import tasks_subsystem # pylink: disable=unused-import
 from . import frontend  # pylint: disable=unused-import
 from . import unittests  # pylint: disable=unused-import
+

@@ -6,6 +6,7 @@ import yaml
 
 from ..bootstrapping import (ensure_project_bootstrapped,
                              get_virtualenv_binary_path)
+from ..app import build_app
 from ..project import get_project
 
 _logger = logbook.Logger(__name__)
@@ -22,16 +23,19 @@ def develop():
 
 
 def _get_tmux_config():
+    project = get_project()
+    _ = build_app() # make sure the tasks subsystem is initialized
 
     windows = [
-        {
-            'window_name': 'flask',
-            'layout': 'even-horizontal',
-            'panes': [
-                'source .cob/env/bin/activate && cob testserver',
-            ]
-        },
+        _window('Webapp', _project_cmd(project, 'cob testserver')),
     ]
+
+    if project.subsystems.has_subsystem('tasks'):
+        windows.extend([
+            _window('Celery', _project_cmd(
+                project,
+                'celery -A cob.celery_utils worker --loglevel=DEBUG -E -B -Q {}'.format(','.join(_get_queue_names(project))))),
+        ])
 
     for subsystem in get_project().subsystems:
         subsystem.configure_tmux_window(windows)
@@ -40,3 +44,22 @@ def _get_tmux_config():
         'session_name': 'cob-{}'.format(get_project().name),
         'windows': windows,
     }
+
+def _window(window_name, commands, *, layout='even-horizontal'):
+    if not isinstance(commands, (list, tuple)):
+        commands = [commands]
+    return {
+        'window_name': window_name,
+        'layout': layout,
+        'panes': list(commands),
+    }
+
+def _project_cmd(proj, cmd):
+    env = ' '.join('{}={}'.format(key, os.environ[key])
+                   for key in ('COB_DEVELOP', 'COB_NO_REENTRY')
+                   if key in os.environ)
+
+    return 'cd {} && source .cob/env/bin/activate && {} {}'.format(proj.root, env, cmd)
+
+def _get_queue_names(project):
+    return ['celery', *project.subsystems.tasks.queues]

@@ -9,7 +9,7 @@ from .defs import COB_CONFIG_FILE_NAME
 from .subsystems.manager import SubsystemsManager
 
 from flask.helpers import send_from_directory
-from flask import abort
+from flask import abort, Flask
 
 _projet = None
 
@@ -51,7 +51,8 @@ class Project(object):
         self._configure_static_locations(app)
 
     def add_static_location(self, url_path, fs_path):
-        self.static_locations.setdefault(url_path, []).append(os.path.abspath(fs_path))
+        self.static_locations.setdefault(
+            url_path, []).append(os.path.abspath(fs_path))
 
     def add_static_file_alias(self, url_path, fs_path):
         assert url_path not in self.static_aliases
