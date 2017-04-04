@@ -1,3 +1,4 @@
+from uuid import uuid4
 from .app import build_app
 
 from celery import Celery
@@ -13,10 +14,25 @@ class CobLoader(BaseLoader):
         build_app()
 
 
-def periodic_task(*args, **kwargs):
-    raise NotImplementedError()  # pragma: no cover
-
 celery_app = Celery('cob-celery', loader=CobLoader)
 
 
-task = celery_app.task
+def task(*, every=None, schedule=None, schedule_name=None, **kwargs):
+    if every is None and schedule is None:
+        return celery_app.task(**kwargs)
+
+    if every is not None and schedule is not None:
+        raise RuntimeError("'every' can't be provided along with 'schedule'")
+
+    if schedule_name is None:
+        schedule_name = str(uuid4())
+
+    def decorator(func):
+        returned = celery_app.task(**kwargs)(func)
+        celery_app.conf.beat_schedule[schedule_name] = {
+            'task': returned.name,
+            'schedule': every if every is not None else schedule,
+        }
+        return returned
+
+    return decorator
