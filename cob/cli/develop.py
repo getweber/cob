@@ -6,6 +6,7 @@ import yaml
 
 from ..bootstrapping import (ensure_project_bootstrapped,
                              get_virtualenv_binary_path)
+from ..app import build_app
 from ..project import get_project
 
 _logger = logbook.Logger(__name__)
@@ -23,9 +24,11 @@ def develop():
 
 def _get_tmux_config():
     project = get_project()
+    _ = build_app() # make sure the tasks subsystem is initialized
     env = ' '.join('{}={}'.format(key, os.environ[key])
                    for key in ('COB_DEVELOP', 'COB_NO_REENTRY')
                    if key in os.environ)
+
     windows = [
         {
             'window_name': 'Webapp',
@@ -38,7 +41,7 @@ def _get_tmux_config():
             'window_name': 'Celery',
             'layout': 'even-horizontal',
             'panes': [
-                'cd {} && source .cob/env/bin/activate && {} celery -A cob.celery_utils worker --loglevel=DEBUG -E  -B -Q celery'.format(project.root, env),
+                'cd {} && source .cob/env/bin/activate && {} celery -A cob.celery_utils worker --loglevel=DEBUG -E  -B -Q {}'.format(project.root, env, ','.join(_get_queue_names(project))),
             ]
         },
     ]
@@ -50,3 +53,6 @@ def _get_tmux_config():
         'session_name': 'cob-{}'.format(get_project().name),
         'windows': windows,
     }
+
+def _get_queue_names(project):
+    return ['celery', *project.subsystems.tasks.queues]
