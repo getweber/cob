@@ -50,9 +50,9 @@ class Project(object):
         self.subsystems.configure_app(app)
         self._configure_static_locations(app)
 
-
     def add_static_location(self, url_path, fs_path):
-        self.static_locations.setdefault(url_path, []).append(os.path.abspath(fs_path))
+        self.static_locations.setdefault(
+            url_path, []).append(os.path.abspath(fs_path))
 
     def add_static_file_alias(self, url_path, fs_path):
         assert url_path not in self.static_aliases

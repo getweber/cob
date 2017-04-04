@@ -75,6 +75,16 @@ class SubsystemsManager(object):
             raise AttributeError(subsystem_name)
         return self._subsystems[subsystem_name]
 
+    def has_subsystem(self, name_or_cls):
+        if name_or_cls in self._subsystems:
+            return True
+
+        if isinstance(name_or_cls, type):
+            for subsystem in self._subsystems.values():
+                if isinstance(subsystem, name_or_cls):
+                    return True
+        return False
+
 
 ##########################################################################
 # import all known subsystems to ensure registration
