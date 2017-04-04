@@ -1,4 +1,4 @@
-# cob: type=tasks mountpoint={{mountpoint}}
+# cob: type=tasks
 from cob import task
 
 ## Your tasks go here
