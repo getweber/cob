@@ -1,53 +1,8 @@
-import os
-from setuptools import setup, find_packages
+#!/usr/bin/env python
 
-with open(os.path.join(os.path.dirname(__file__), "cob", "__version__.py")) as version_file:
-    exec(version_file.read()) # pylint: disable=W0122
+from setuptools import setup
 
-_INSTALL_REQUIRES = [
-    'celery',
-    'click',
-    'emport>=1.2.0',
-    'gossip',
-    'Flask',
-    'Flask-Migrate',
-    'Flask-SQLAlchemy',
-    'Flask-Loopback',
-    'Jinja2',
-    'gossip',
-    'Logbook',
-    'PyYAML',
-    'pytest',
-    'sentinels',
-    'tmuxp',
-    'virtualenv',
-]
-
-setup(name="cob",
-      classifiers = [
-          "Programming Language :: Python :: 3.3",
-          "Programming Language :: Python :: 3.4",
-          "Programming Language :: Python :: 3.5",
-          ],
-      description="A scaffold for building and deploying powerful and robust webapps",
-      license="BSD3",
-      author="Rotem Yaari",
-      author_email="vmalloc@gmail.com",
-      version=__version__, # pylint: disable=E0602
-      packages=find_packages(exclude=["tests"]),
-
-      url="https://github.com/getcob/cob-cli",
-      entry_points={
-          "console_scripts": [
-              "cob = cob.cli.main:main",
-          ],
-          "pytest11": [
-              'cob = cob.pytest_plugin'
-          ]},
-      install_requires=_INSTALL_REQUIRES,
-      scripts=[],
-      namespace_packages=[],
-      package_data={'cob': ['cob/Dockerfile.j2']},
-      include_package_data=True,
-      zip_safe=False,
-      )
+setup(
+    setup_requires=['pbr>=1.9', 'setuptools>=33.0'],
+    pbr=True,
+)
