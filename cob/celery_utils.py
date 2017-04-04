@@ -29,7 +29,7 @@ def task(*, every=None, schedule=None, schedule_name=None, **kwargs):
 
     def decorator(func):
         returned = celery_app.task(**kwargs)(func)
-        celery_app.conf.beat_schedule[schedule_name] = {
+        celery_app.conf.beat_schedule[schedule_name] = { # pylint: disable=no-member
             'task': returned.name,
             'schedule': every if every is not None else schedule,
         }

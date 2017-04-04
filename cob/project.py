@@ -9,7 +9,7 @@ from .defs import COB_CONFIG_FILE_NAME
 from .subsystems.manager import SubsystemsManager
 
 from flask.helpers import send_from_directory
-from flask import abort, Flask
+from flask import abort
 
 _projet = None
 
