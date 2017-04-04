@@ -70,6 +70,11 @@ class SubsystemsManager(object):
     def __iter__(self):
         return iter(self._subsystems.values())
 
+    def __getattr__(self, subsystem_name):
+        if subsystem_name not in self._subsystems:
+            raise AttributeError(subsystem_name)
+        return self._subsystems[subsystem_name]
+
 
 ##########################################################################
 # import all known subsystems to ensure registration
