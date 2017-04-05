@@ -6,6 +6,7 @@ import yaml
 import logbook
 
 from .defs import COB_CONFIG_FILE_NAME
+from .exceptions import NotInProject
 from .subsystems.manager import SubsystemsManager
 
 from flask.helpers import send_from_directory
@@ -21,7 +22,12 @@ class Project(object):
     def __init__(self):
         super(Project, self).__init__()
         self.root = os.path.abspath('.')
-        with open(os.path.join(self.root, COB_CONFIG_FILE_NAME)) as f:
+        config_filename = os.path.join(self.root, COB_CONFIG_FILE_NAME)
+
+        if not os.path.isfile(config_filename):
+            raise NotInProject('You do not seem to be in a Cob project directory')
+
+        with open(config_filename) as f:
             self.config = yaml.load(f)
         self.name = self.config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
