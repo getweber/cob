@@ -207,7 +207,7 @@ tasks from the database:
      def create_todo():
          data = request.get_json()['data']
          task = Task(
-             description = data['description']
+             description = data['attributes']['description']
          )
          db.session.add(task)
          db.session.commit()
@@ -245,7 +245,9 @@ your project root, and create your first test file -- let's name it
         message = 'some message'
         webapp.post('/api/todos', data_json={
             'data': {
-                'description': message,
+                'attributes': {
+                    'description': message,
+                }
             }})
         all_todos = webapp.get('/api/todos')['data']
         last_todo = all_todos[-1]['attributes']
@@ -261,5 +263,98 @@ project root.
 .. tip:: ``cob test`` is just a shortcut for running **pytest** in
          your project. All options and arguments are forwarded to
          pytest for maximum flexibility.
+
+Adding Third-Party Components
+-----------------------------
+
+Cob is aimed at being the backbone of your webapp. Most web
+applications eventually need to bring in and use third party
+components or libraries, and Cob makes that easy to do.
+
+Python Dependencies
+~~~~~~~~~~~~~~~~~~~
+
+We are going to improve our Todo app by using a third-part tool for
+serialization, `marshmallow
+<http://marshmallow.readthedocs.io/en/latest/>`_. The first 
+order of business is to get Cob to install this dependency whenever
+our project is being bootstrapped. This can be done easily by
+appending it to the ``deps`` section of ``.cob-project.yml``::
+
+  # .cob-project.yml
+  ...
+  deps:
+      - marshmallow
+
+Now we can use this library to serialize our data, for instance create
+a file named ``schemas.py`` with the following:
+
+.. code-block:: python
+       
+  from marshmallow import Schema, fields, post_dump, post_load, pre_load
+  from .models import Task
+  
+  
+  class JSONAPISchema(Schema):
+  
+      @post_dump(pass_many=True)
+      def wrap_with_envelope(self, data, many): # pylint: disable=unused-argument
+          return {'data': data}
+  
+      @post_dump(pass_many=False)
+      def wrap_objet(self, obj):
+          return {'id': obj.pop('id'), 'attributes': obj, 'type': self.Meta.model.__name__.lower()}
+  
+      @post_load
+      def make_object(self, data):
+          return self.Meta.model(**data)
+  
+      @pre_load
+      def preload_object(self, data):
+          data = data.get('data', {})
+          returned = dict(data.get('attributes', {}))
+          returned['id'] = data.get('id')
+          return returned
+  
+  
+  class TaskSchema(JSONAPISchema):
+      id = fields.Integer(dump_only=True)
+      description = fields.Str(required=True)
+      done = fields.Boolean()
+  
+      class Meta:
+          model = Task
+  
+  tasks = TaskSchema(strict=True)
+
+And use it in ``backend.py``:
+
+.. code-block:: python
+
+  from cob import route
+  from flask import jsonify, request
+  
+  from .models import db, Task
+  from .schemas import tasks as tasks_schema
+  
+  @route('/todos')
+  def get_all():
+      return jsonify(tasks_schema.dump(Task.query.all(), many=True).data)
+  
+  @route('/todos', methods=['POST'])
+  def create_todo():
+      json = request.get_json()
+      if json is None:
+          return "No JSON provided", 400
+  
+      result = tasks_schema.load(json)
+      if result.errors:
+          return jsonify(result.errors), 400
+      db.session.add(result.data)
+      db.session.commit()
+      return jsonify(tasks_schema.dump(result.data).data)
+
+
+
 
 
