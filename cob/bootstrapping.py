@@ -4,7 +4,6 @@ import sys
 
 import click
 import logbook
-import venv
 import yaml
 
 from .defs import COB_CONFIG_FILE_NAME
@@ -45,7 +44,7 @@ def _ensure_virtualenv():
         _logger.trace('Creating virtualenv in {}', _VIRTUALENV_PATH)
         if not os.path.isdir(venv_parent_dir):
             os.makedirs(venv_parent_dir)
-        venv.create(_VIRTUALENV_PATH)
+        _create_virtualenv(_VIRTUALENV_PATH)
 
     subprocess.check_call([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'ensurepip'])
     if is_develop():
@@ -59,6 +58,26 @@ def _ensure_virtualenv():
     _virtualenv_pip_install(['-U', *deps])
     with open(_INSTALLED_DEPS, 'w') as f:
         yaml.dump(deps, f)
+
+def _create_virtualenv(path):
+    if 'VIRTUAL_ENV' in os.environ:
+        click.echo(click.style('You are attempting to use Cob from a virtual environment. Cob will try to locate your global Python installation to avoid '
+                               'unintended consequences', fg='yellow'))
+        interpreter = _locate_original_interpreter()
+    else:
+        interpreter = sys.executable
+
+    subprocess.check_call([interpreter, '-m', 'virtualenv', path])
+
+def _locate_original_interpreter():
+    for path in ('/usr/local/bin', '/usr/bin'):
+        for option in ('python{0.major}.{0.minor}', 'python{0.major}'):
+            optional = os.path.join(path, option.format(sys.version_info))
+            if os.path.isfile(optional):
+                return optional
+
+    click.echo(click.style('Could not locate global Python interpreter. Using current interpreter as fallback', fg='yellow'))
+    return sys.executable
 
 def _needs_refresh():
     if _COB_REFRESH_ENV in os.environ:
