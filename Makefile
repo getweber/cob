@@ -9,12 +9,13 @@ env: .env/.up-to-date
 
 
 .env/.up-to-date: setup.py Makefile test_requirements.txt
-	python3 -m venv .env
-	.env/bin/pip install -e .
-	.env/bin/pip install pylint
-	.env/bin/pip install -r ./*.egg-info/requires.txt || true
-	.env/bin/pip install -r test_requirements.txt
-	.env/bin/pip install -r ./doc/pip_requirements.txt
+	python3 -m virtualenv .env
+	.env/bin/python -m pip install -U pip virtualenv
+	.env/bin/python -m pip install -e .
+	.env/bin/python -m pip install pylint
+	.env/bin/python -m pip install -r ./*.egg-info/requires.txt || true
+	.env/bin/python -m pip install -r test_requirements.txt
+	.env/bin/python -m pip install -r ./doc/pip_requirements.txt
 	touch $@
 
 pylint: env
