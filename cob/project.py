@@ -1,4 +1,5 @@
 import os
+import sys
 
 import emport
 import yaml
@@ -35,6 +36,9 @@ class Project(object):
     def initialize(self):
         if self._initialized:
             return
+        assert '_cob' not in sys.modules
+        emport.set_package_name(self.root, '_cob')
+
         project_file_path = os.path.join(self.root, 'project.py')
         if os.path.isfile(project_file_path):
             emport.import_file(project_file_path)
@@ -47,7 +51,8 @@ class Project(object):
         self._configure_static_locations(app)
 
     def add_static_location(self, url_path, fs_path):
-        self.static_locations.setdefault(url_path, []).append(os.path.abspath(fs_path))
+        self.static_locations.setdefault(
+            url_path, []).append(os.path.abspath(fs_path))
 
     def add_static_file_alias(self, url_path, fs_path):
         assert url_path not in self.static_aliases

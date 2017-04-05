@@ -1,3 +1,5 @@
+.. _db:
+
 Working with Databases
 ======================
 

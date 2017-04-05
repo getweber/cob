@@ -1,6 +1,8 @@
 Basic Grains
 ============
 
+.. _views_grain:
+
 Views Grains
 ------------
 
@@ -68,7 +70,50 @@ You can now create a basic template under ``templates/index.html``. Rendering it
        def index():
 	   return render_template('index.html')
 
+Tasks Grains
+-------------
 
+*Tasks* grains are used to run Asyc tasks::
+
+  $ cob generate grain tasks --type tasks
+  ...
+  $ cat tasks.py
+
+  .. code-block:: python
+          # cob: type=tasks mountpoint={{mountpoint}}
+          from cob import task, periodic_task
+          from celery.schedules import crontab
+
+          ## Your tasks go here
+
+          # use the next syntax for tasks you'll send "manually" through REST API
+          @task()
+          def task_func1(x,y,z ...):
+                  ...
+
+          # use this syntax to set a task binded to an non-default queue ("celery").
+          # queue arg can also be used with the periodic_task decorators.
+          @task(queue=<queue name>)
+          def task_func2(...):
+                  ...
+
+          # use this syntax to create a task that will be dispached every predefined period.
+          @periodic_task(every=<num of seconds>)
+          def periodic_task_func3(...):
+                  ...
+
+          schedule_dict = {
+              '<choose a name>': {
+                       'schedule': crontab(...) or <number of seconds>,
+                       'args': <tuple of arguments according to the args your task_func needs>
+              }
+           }
+
+           # use this syntax to create a more "complex" schedule for the task
+           @periodic_task(schedule=schedule_dict)
+           def periodic_task_func4(...):
+                  ...        
+  
 Bundle Grains
 -------------
 

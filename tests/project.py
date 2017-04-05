@@ -37,7 +37,12 @@ class Project(object):
         self.logfile_name = os.path.join(self.tempdir, 'testserver.log')
 
     def cmd(self, cmd):
+        assert not cmd.startswith('cob '), "You must run cob from this project's path"
         return subprocess.check_call(cmd, shell=True, cwd=self.projdir)
+
+    def cob_cmd(self, cmd):
+        return self.cmd('{} {}'.format(
+            os.path.join(os.path.dirname(sys.executable), 'cob'), cmd))
 
     def on(self, path):
         return ProjectPath(self, path)

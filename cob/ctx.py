@@ -33,7 +33,7 @@ class _ContextStack(object):
         return ctx
 
     def pop(self):
-        assert len(self._stack) != 0
+        assert len(self._stack) != 0  # pylint: disable=len-as-condition
         if len(self._stack) == 1:
             raise RuntimeError("No more contexts to pop")
         return self._stack.pop(-1)

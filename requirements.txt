@@ -1,0 +1,16 @@
+celery
+click
+emport>=1.2.0
+gossip
+Flask
+Flask-Migrate
+Flask-SQLAlchemy
+Flask-Loopback
+Jinja2
+gossip
+Logbook
+PyYAML
+pytest
+sentinels
+tmuxp
+virtualenv

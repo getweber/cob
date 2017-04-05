@@ -7,8 +7,11 @@ from jinja2 import Template
 from pkg_resources import resource_string
 from ..utils.develop import is_develop, cob_branch
 from ..project import get_project
-from cob.__version__ import __version__
 
+import pkg_resources
+
+
+_COB_VERSION = pkg_resources.get_distribution('cob').version # pylint: disable=no-member
 
 _logger = logbook.Logger(__name__)
 _CUSTOM_DOCKERFILE = "custom.docker"
@@ -26,7 +29,7 @@ def _generate_cob_installation():
     if is_develop():
         return "ENV COB_DEVELOP=1\nRUN cd /opt && git clone -b {} https://github.com/getweber/cob && pip install -e cob --no-cache-dir".format(cob_branch())
     else:
-        return "RUN pip install cob=={}".format(__version__)
+        return "RUN pip install cob=={}".format(_COB_VERSION)
 
 
 @click.group()
@@ -36,7 +39,8 @@ def docker():
 
 @docker.command()
 def generate():
-    dockerfile_template = Template(resource_string("cob", "Dockerfile.j2").decode("UTF-8"))
+    dockerfile_template = Template(resource_string(
+        "cob", "Dockerfile.j2").decode("UTF-8"))
     with open(".Dockerfile", "w") as f:
         f.write(dockerfile_template.render(
             install_cob=_generate_cob_installation(),

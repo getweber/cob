@@ -1,0 +1,7 @@
+# cob: type=tasks
+from cob import task
+
+## Your tasks go here
+#@task()
+#def task_func1(x,y,z ...):
+#    ...

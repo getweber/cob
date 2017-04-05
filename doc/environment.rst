@@ -1,3 +1,5 @@
+.. _environments:
+
 The Cob Environment
 ===================
 
