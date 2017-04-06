@@ -2,6 +2,9 @@ language: python
 sudo: false
 python:
 - '3.5'
+env:
+  global:
+    - COB_FORCE_CURRENT_INTERPRETER=1
 install:
 - pip install -e .
 - pip install -r test_requirements.txt

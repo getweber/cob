@@ -70,11 +70,14 @@ def _create_virtualenv(path):
     subprocess.check_call([interpreter, '-m', 'virtualenv', path])
 
 def _locate_original_interpreter():
-    for path in ('/usr/local/bin', '/usr/bin'):
-        for option in ('python{0.major}.{0.minor}', 'python{0.major}'):
-            optional = os.path.join(path, option.format(sys.version_info))
-            if os.path.isfile(optional):
-                return optional
+    if not os.environ.get('COB_FORCE_CURRENT_INTERPRETER'):
+        for path in ('/usr/local/bin', '/usr/bin'):
+            for option in ('python{0.major}.{0.minor}', 'python{0.major}'):
+                optional = os.path.join(path, option.format(sys.version_info))
+                if os.path.isfile(optional):
+                    return optional
+    else:
+        click.echo(click.style('Current interpreter is forced (COB_FORCE_CURRENT_INTERPRETER is set)', fg='yellow'))
 
     click.echo(click.style('Could not locate global Python interpreter. Using current interpreter as fallback', fg='yellow'))
     return sys.executable
