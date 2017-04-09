@@ -89,7 +89,7 @@ how this works you can read about it :ref:`here <environments>`.
 
 After the setup is done, your server will run on the default port::
 
-  $ curl http://127.0.0.1/api/todos
+  $ curl http://127.0.0.1/api/tasks
   { 
       "data": []
   }
@@ -195,7 +195,7 @@ tasks from the database:
      from .models import db, Task
      
      
-     @route('/todos')
+     @route('/tasks')
      def get_all():
          return jsonify({
             'data': [
@@ -203,7 +203,7 @@ tasks from the database:
                 for task in Task.query.all()
             ]})
      
-     @route('/todos', methods=['POST'])
+     @route('/tasks', methods=['POST'])
      def create_todo():
          data = request.get_json()['data']
          task = Task(
@@ -243,7 +243,7 @@ your project root, and create your first test file -- let's name it
 
     def test_add_todo(webapp):
         message = 'some message'
-        webapp.post('/api/todos', data_json={
+        webapp.post('/api/tasks', data_json={
             'data': {
                 'attributes': {
                     'description': message,
@@ -270,9 +270,6 @@ Adding Third-Party Components
 Cob is aimed at being the backbone of your webapp. Most web
 applications eventually need to bring in and use third party
 components or libraries, and Cob makes that easy to do.
-
-Python Dependencies
-~~~~~~~~~~~~~~~~~~~
 
 We are going to improve our Todo app by using a third-part tool for
 serialization, `marshmallow
@@ -337,11 +334,11 @@ And use it in ``backend.py``:
   from .models import db, Task
   from .schemas import tasks as tasks_schema
   
-  @route('/todos')
+  @route('/tasks')
   def get_all():
       return jsonify(tasks_schema.dump(Task.query.all(), many=True).data)
   
-  @route('/todos', methods=['POST'])
+  @route('/tasks', methods=['POST'])
   def create_todo():
       json = request.get_json()
       if json is None:
@@ -355,6 +352,118 @@ And use it in ``backend.py``:
       return jsonify(tasks_schema.dump(result.data).data)
 
 
+Building a UI
+-------------
+
+Cob makes it easy to integrate front-end code in the same repository as
+your backend, and helps you build, test and deploy it too. 
+
+Setting Up
+~~~~~~~~~~
+
+In our example we will be using `Ember <https://www.emberjs.com/>`_ to
+use our UI. We'll start by creating our front-end grain::
+
+  $ cob generate grain --type frontend-ember webapp
+
+.. note:: In order for the above to work, you need to have
+          `Ember CLI <https://ember-cli.com/>`_ installed on your
+          system
+
+This will bootstrap your ``webapp`` subdirectory with our UI code, and
+take care of initial setup.
+
+While this looks like black magic, what happens here is quite simple -
+Cob creates a directory called ``webapp``, and places a ``.cob.yml``
+file inside it, letting Cob know that this is a grain of type
+``frontend-ember``::
+
+  # In webapp/.cob.yml
+  type: frontend-ember
+
+The ``.cob.yml`` file is just a different way to write the markup we
+used in the first comment line of our previous grains. Once we marked
+our webapp directory in this way, Cob knows how to treat it as one
+containing Ember front-end code.
+
+Writing our Front-end Logic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We won't dive in to how to develop using Ember, so we'll just create a
+minimal front-end app for displaying and adding our TODOs.
+
+.. note:: We won't cover Ember here in depth -- for more information
+          you can refer to the excellent `Ember Guides
+          <https://guides.emberjs.com/v2.12.0/>`_. For now, just take
+          our word for it
 
 
+.. code-block:: javascript
 
+  // webapp/app/routes/tasks.js
+  import Ember from 'ember';
+  
+  export default Ember.Route.extend({
+  
+      model() {
+          return this.store.findAll('task');
+      },
+  
+      setupController(controller, model) {
+          this._super(...arguments);
+          controller.set('tasks', model);
+      },
+  });
+
+
+.. code-block:: javascript
+
+  // webapp/app/controllers/tasks.js
+  import Ember from 'ember';
+  
+  export default Ember.Controller.extend({
+  
+      new_task: '',
+  
+      actions: {
+          add_task() {
+              let task = this.store.createRecord('task', {
+                  description: this.get('new_task'),
+              });
+              task.save();
+          }
+      }
+  });
+
+
+.. code-block:: javascript
+
+  // webapp/app/models/task.js  
+  import DS from 'ember-data';
+  
+  export default DS.Model.extend({
+  
+      description: DS.attr(),
+      done: DS.attr('boolean'),
+  });
+
+.. code-block:: javascript
+
+  // webapp/app/adapters/application.js
+  import DS from 'ember-data';
+  
+  export default DS.JSONAPIAdapter.extend({
+      namespace: '/api',
+  });
+
+And finally our template::
+
+  <!-- webapp/app/templates/tasks.hbs -->
+  {{#each tasks as |task| }}
+    <div class="task">
+      <h3>{{task.description}}</h3>
+    </div>
+  {{/each}}
+  
+  {{input value=new_task}}
+  <button {{action "add_task"}}>Add</button>
