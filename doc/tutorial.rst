@@ -467,3 +467,20 @@ And finally our template::
   
   {{input value=new_task}}
   <button {{action "add_task"}}>Add</button>
+
+
+Developing Front-end and Backend Simultaneously
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that we have multiple components to track during development (our
+Flask app and our Front-end compilation) we can make use of yet
+another handy tool Cob provides for us: ``cob develop``::
+
+  $ cob develop
+
+This command will fire up ``tmux`` (you'll have to have it installed
+beforehand though), with two windows -- one for running the backend
+server and the other running ``ember build --watch`` to compile your
+front-end. Cool huh?
+
+
