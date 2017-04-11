@@ -1,3 +1,5 @@
+import collections
+import functools
 import os
 import sys
 
@@ -8,6 +10,7 @@ import logbook
 from .defs import COB_CONFIG_FILE_NAME
 from .exceptions import NotInProject
 from .subsystems.manager import SubsystemsManager
+from .utils.url import ensure_trailing_slash
 
 from flask.helpers import send_from_directory
 from flask import abort
@@ -15,6 +18,8 @@ from flask import abort
 _projet = None
 
 _logger = logbook.Logger(__name__)
+
+StaticAlias = collections.namedtuple('StaticAlias', ('fs_path', 'wildcard'))
 
 
 class Project(object):
@@ -60,20 +65,21 @@ class Project(object):
         self.static_locations.setdefault(
             url_path, []).append(os.path.abspath(fs_path))
 
-    def add_static_file_alias(self, url_path, fs_path):
+    def add_static_file_alias(self, url_path, fs_path, wildcard=False):
         assert url_path not in self.static_aliases
-        self.static_aliases[url_path] = os.path.abspath(fs_path)
+        self.static_aliases[url_path] = StaticAlias(fs_path=os.path.abspath(fs_path), wildcard=wildcard)
 
     def _configure_static_locations(self, flask_app):
         for url_path, fs_paths in self.static_locations.items():
-            if not url_path.endswith('/'):
-                url_path += '/'
+            url_path = ensure_trailing_slash(url_path)
             flask_app.route(url_path + '<path:filename>',
                             defaults={'search_locations': fs_paths})(_static_view)
 
-        for url_path, fs_path in self.static_aliases.items():
-            flask_app.route(url_path, defaults={'path': fs_path})(
-                _static_alias_view)
+        for url_path, alias in self.static_aliases.items():
+            _route = functools.partial(flask_app.route, defaults={'path': alias.fs_path})
+            _route(url_path)(_static_alias_view)
+            if alias.wildcard:
+                _route(ensure_trailing_slash(url_path) + '<path:ignored>')(_static_alias_view)
 
 
 def _static_view(filename, search_locations):
@@ -88,7 +94,7 @@ def _static_view(filename, search_locations):
     abort(404)
 
 
-def _static_alias_view(path):
+def _static_alias_view(path, ignored=None):
     return send_from_directory(os.path.dirname(path), os.path.basename(path))
 
 

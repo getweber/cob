@@ -12,6 +12,11 @@ Cob supports front-ends written in Ember (through ember-cli). It even lets you e
 
 This will create the new grain and even, if ember-cli is detected in your environment, run ``ember init`` for you.
 
+Handling ``locationType``
++++++++++++++++++++++++++
+
+Cob automatically detects the use of ``locationType: "hash"``, and adjusts the resulting routing rules to handle the specific case in use.
+
 
 Developing
 ~~~~~~~~~~
