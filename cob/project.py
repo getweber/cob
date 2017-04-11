@@ -94,7 +94,7 @@ def _static_view(filename, search_locations):
     abort(404)
 
 
-def _static_alias_view(path, ignored=None):
+def _static_alias_view(path, ignored=None): # pylint: disable=unused-argument
     return send_from_directory(os.path.dirname(path), os.path.basename(path))
 
 
