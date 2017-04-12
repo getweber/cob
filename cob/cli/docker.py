@@ -5,6 +5,8 @@ import subprocess
 
 from jinja2 import Template
 from pkg_resources import resource_string
+
+from .utils import exec_or_error
 from ..utils.develop import is_develop, cob_root
 from ..project import get_project
 
@@ -57,4 +59,4 @@ def build(sudo, extra_build_args):
         project.name,
         extra_build_args)
 
-    subprocess.check_call(cmd, shell=True)
+    exec_or_error(cmd, shell=True)
