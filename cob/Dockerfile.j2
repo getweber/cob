@@ -29,13 +29,12 @@ RUN apt-get install -y $PYTHON_EXECUTABLE $PYTHON_EXECUTABLE-dev
 
 RUN wget https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py
 RUN $PYTHON_EXECUTABLE /tmp/get-pip.py
-RUN $PYTHON_EXECUTABLE -m pip install virtualenv
+RUN $PYTHON_EXECUTABLE -m pip install -U virtualenv pip setuptools
 
 ADD . /app
 
 {% if is_develop %}
-ADD {{cob_root}} /tmp/cob_src
-RUN $PYTHON_EXECUTABLE -m pip install /tmp/cob_src
+RUN $PYTHON_EXECUTABLE -m pip install /app/{{cob_sdist_filename}}
 env COB_DEVELOP=1
 {% else %}
 RUN $PYTHON_EXECUTABLE -m pip install cob
