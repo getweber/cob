@@ -484,3 +484,37 @@ server and the other running ``ember build --watch`` to compile your
 front-end. Cool huh?
 
 
+Deploying your Application
+--------------------------
+
+Cob uses **Docker** for deploying apps. It is the best way to
+guarantee reproducible, composable setups and also allow reuse between
+development and deployment.
+
+Cob separates deployment to two stages: building your deployment image
+and running it.
+
+Building your Application Image
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From your project directory, run::
+  
+  $ cob docker build
+
+This will create a basic Docker image, labeled ``todos`` by default
+(Cob uses the app name from the project's configuration to name to
+label its images), and that image will be later on used for running
+your app.
+
+Running your Application in Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To run your app via ``docker-compose``, running its various pieces
+properly linked, run::
+
+  $ cob docker run
+
+This will start your app in the foreground.
+
+.. seealso:: For more information on deploying your apps with Cob, see
+             the `deployment`_ section of the docs
