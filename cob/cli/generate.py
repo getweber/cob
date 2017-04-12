@@ -24,9 +24,14 @@ class UnknownSkeleton(Exception):
 def generate():
     pass
 
+def _get_grain_types():
+    return sorted(filename.split('-', 1)[1]
+                  for filename in os.listdir(_SKELETONS_ROOT)
+                  if filename.startswith('grain-'))
+
 @generate.command()
 @click.option('-m', '--mountpoint', default="/")
-@click.option('grain_type', '-t', '--type', default='views')
+@click.option('grain_type', '-t', '--type', default='views', type=click.Choice(_get_grain_types()))
 @click.argument('name')
 def grain(grain_type, name, mountpoint):
     _generate('grain-{}'.format(grain_type), name, {
