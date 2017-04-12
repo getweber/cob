@@ -5,13 +5,13 @@ import subprocess
 
 from jinja2 import Template
 from pkg_resources import resource_string
-from ..utils.develop import is_develop, cob_branch
+from ..utils.develop import is_develop, cob_root
 from ..project import get_project
 
 import pkg_resources
 
 
-_COB_VERSION = pkg_resources.get_distribution('cob').version # pylint: disable=no-member
+_COB_VERSION = pkg_resources.get_distribution('cob').version  # pylint: disable=no-member
 
 _logger = logbook.Logger(__name__)
 _CUSTOM_DOCKERFILE = "custom.docker"
@@ -25,13 +25,6 @@ def _get_user_steps():
         return f.read()
 
 
-def _generate_cob_installation():
-    if is_develop():
-        return "ENV COB_DEVELOP=1\nRUN cd /opt && git clone -b {} https://github.com/getweber/cob && pip install -e cob --no-cache-dir".format(cob_branch())
-    else:
-        return "RUN pip install cob=={}".format(_COB_VERSION)
-
-
 @click.group()
 def docker():
     pass
@@ -39,11 +32,16 @@ def docker():
 
 @docker.command()
 def generate():
+    proj = get_project()
     dockerfile_template = Template(resource_string(
         "cob", "Dockerfile.j2").decode("UTF-8"))
     with open(".Dockerfile", "w") as f:
         f.write(dockerfile_template.render(
-            install_cob=_generate_cob_installation(),
+            project=proj,
+            deployment_base_image='ubuntu:latest',
+            python_version='3.6',
+            is_develop=is_develop(),
+            cob_root=cob_root(),
             user_steps=_get_user_steps()))
 
 
