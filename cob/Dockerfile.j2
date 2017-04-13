@@ -34,8 +34,9 @@ RUN $PYTHON_EXECUTABLE -m pip install -U virtualenv pip setuptools
 ADD . /app
 
 {% if is_develop %}
-RUN $PYTHON_EXECUTABLE -m pip install /app/{{cob_sdist_filename}}
-env COB_DEVELOP=1
+ENV COB_DEVELOP 1
+ENV COB_DEVELOP_SDIST /app/{{cob_sdist_filename}}
+RUN $PYTHON_EXECUTABLE -m pip install $COB_DEVELOP_SDIST
 {% else %}
 RUN $PYTHON_EXECUTABLE -m pip install cob
 {% endif %}

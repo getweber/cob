@@ -1,3 +1,4 @@
+import functools
 import os
 import subprocess
 import sys
@@ -46,10 +47,17 @@ def _ensure_virtualenv():
             os.makedirs(venv_parent_dir)
         _create_virtualenv(_VIRTUALENV_PATH)
 
-    subprocess.check_call([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'ensurepip'])
+    _in_env = functools.partial(os.path.join, _VIRTUALENV_PATH, 'bin')
+
+    if not os.path.isfile(_in_env('pip')):
+        subprocess.check_call([_in_env('python'), '-m', 'ensurepip'])
     if is_develop():
         _logger.trace('Using development version of cob')
-        _virtualenv_pip_install(['-e', cob_root()])
+        sdist_path = os.environ.get('COB_DEVELOP_SDIST')
+        if sdist_path is None:
+            _virtualenv_pip_install(['-e', cob_root()])
+        else:
+            _virtualenv_pip_install([sdist_path])
     else:
         _logger.trace('Installing cob form Pypi')
         _virtualenv_pip_install(['-U', 'cob'])
