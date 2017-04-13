@@ -3,11 +3,11 @@
 
 FROM {{deployment_base_image}}
 
-env PYTHON_VERSION {{python_version}}
-env PYTHON_EXECUTABLE python$PYTHON_VERSION
+ENV PYTHON_VERSION {{python_version}}
+ENV PYTHON_EXECUTABLE python$PYTHON_VERSION
 
-env LC_ALL C.UTF-8
-env LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
 
 RUN apt-get update
 RUN apt-get -y install build-essential rsync software-properties-common libpq-dev nginx curl redis-server gcc sudo libsasl2-dev libldap2-dev wget git
@@ -42,7 +42,5 @@ RUN $PYTHON_EXECUTABLE -m pip install cob
 
 WORKDIR /app
 RUN cob -vvv bootstrap
-
-RUN /app/.cob/env/bin/pip install
 
 {{user_steps}}
