@@ -1,15 +1,21 @@
 import os
 import click
+import flask_migrate
 import logbook
+import multiprocessing
 import shutil
 import subprocess
 from tempfile import mkdtemp
 
-from jinja2 import Template
-from pkg_resources import resource_string
 
+import gunicorn.app.base
+import yaml
+
+from ..app import build_app
+from ..bootstrapping import ensure_project_bootstrapped
 from .utils import exec_or_error
 from ..utils.develop import is_develop, cob_root
+from ..utils.templates import load_template
 from ..project import get_project
 
 import pkg_resources
@@ -37,14 +43,13 @@ def docker():
 @docker.command()
 def generate():
     proj = get_project()
-    dockerfile_template = Template(resource_string(
-        "cob", "Dockerfile.j2").decode("UTF-8"))
+    template = load_template('Dockerfile')
 
     if is_develop():
         sdist_file_name = _build_cob_sdist()
 
     with open(".Dockerfile", "w") as f:
-        f.write(dockerfile_template.render(
+        f.write(template.render(
             project=proj,
             deployment_base_image='ubuntu:latest',
             python_version='3.6',
@@ -78,3 +83,111 @@ def build(sudo, extra_build_args):
         extra_build_args)
 
     exec_or_error(cmd, shell=True)
+
+
+@docker.command(name='wsgi-start')
+def start_wsgi():
+    ensure_project_bootstrapped()
+    project = get_project()
+    app = build_app()
+
+    if project.subsystems.has_database():
+        with app.app_context():
+            flask_migrate.upgrade()
+
+    workers_count = (multiprocessing.cpu_count() * 2) + 1
+
+    class StandaloneApplication(gunicorn.app.base.BaseApplication): # pylint: disable=abstract-method
+
+        def __init__(self, app, options=None):
+            self.options = options or {}
+            self.application = app
+            super(StandaloneApplication, self).__init__()
+
+        def load_config(self):
+            config = dict([(key, value) for key, value in self.options.items()
+                           if key in self.cfg.settings and value is not None])
+            for key, value in config.items():
+                self.cfg.set(key.lower(), value)
+
+        def load(self):
+            return self.application
+
+    options = {
+        'bind': '0.0.0.0:8000',
+        'workers': workers_count,
+    }
+    logbook.StderrHandler(level=logbook.DEBUG).push_application()
+    StandaloneApplication(app, options).run()
+
+
+@docker.command(name='nginx-start')
+@click.option('--print-config', is_flag=True, default=False)
+def start_nginx(print_config):
+    template = load_template('nginx_config')
+    config = template.render({'use_ssl': False, 'hostname': None})
+
+    if print_config:
+        print(config)
+        return
+
+    with open('/etc/nginx/conf.d/webapp.conf', 'w') as f:
+        f.write(config)
+
+    nginx_path = '/usr/sbin/nginx'
+    os.execv(nginx_path, [nginx_path, '-g', 'daemon off;'])
+
+
+@docker.command()
+def run():
+    project = get_project()
+
+    compose_filename = '/tmp/__{}-docker-compose.yml'.format(project.name)
+    with open(compose_filename, 'w') as f:
+        f.write(_generate_compose_file())
+
+    docker_compose = shutil.which('docker-compose')
+    os.execv(docker_compose, [docker_compose, '-f', compose_filename, '-p', project.name, 'up'])
+
+
+@docker.command()
+def compose():
+    print(_generate_compose_file())
+
+
+def _generate_compose_file():
+    project = get_project()
+
+    config = {
+        'version': '3',
+        'volumes': {},
+    }
+    services = config['services'] = {
+
+        'wsgi':  {
+            'image': project.name,
+            'command': 'cob docker wsgi-start',
+        },
+
+        'nginx': {
+            'image': project.name,
+            'command': 'cob docker nginx-start',
+            'ports': ['8000:80'],
+        }
+    }
+
+    if project.subsystems.has_database():
+        services['db'] = {
+            'image': 'postgres:9.6',
+            'volumes': [
+                'db:/var/lib/postgresql/data'
+            ],
+            'environment': {
+                'POSTGRES_USER': project.name,
+                'POSTGRES_DB': project.name,
+            }
+        }
+        config['volumes']['db'] = None
+
+
+    return yaml.safe_dump(config, allow_unicode=True, default_flow_style=False)

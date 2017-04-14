@@ -8,6 +8,7 @@ Flask-SQLAlchemy
 Flask-Loopback
 Jinja2
 gossip
+gunicorn
 Logbook
 PyYAML
 pytest

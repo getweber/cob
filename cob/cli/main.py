@@ -36,12 +36,12 @@ def test(pytest_args):
 
 def _add_all_subcommands():
     for name in [
+            'db',
             'develop',
             'docker',
             'generate',
             'testserver',
             'migrate',
-            'db',
     ]:
         mod = __import__('cob.cli.{}'.format(name), fromlist=[''])
         cmd = getattr(mod, name)

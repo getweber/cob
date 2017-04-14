@@ -3,11 +3,7 @@
 
 FROM {{deployment_base_image}}
 
-ENV PYTHON_VERSION {{python_version}}
-ENV PYTHON_EXECUTABLE python$PYTHON_VERSION
-
-ENV LC_ALL C.UTF-8
-ENV LANG C.UTF-8
+ENV PYTHON_VERSION={{python_version}} PYTHON_EXECUTABLE=python{{python_version}} LC_ALL=C.UTF-8 LANG=C.UTF-8
 
 RUN apt-get update
 RUN apt-get -y install build-essential rsync software-properties-common libpq-dev nginx curl redis-server gcc sudo libsasl2-dev libldap2-dev wget git
@@ -33,15 +29,20 @@ RUN $PYTHON_EXECUTABLE -m pip install -U virtualenv pip setuptools
 
 ADD . /app
 
+WORKDIR /app
+
 {% if is_develop %}
-ENV COB_DEVELOP 1
-ENV COB_DEVELOP_SDIST /app/{{cob_sdist_filename}}
+ENV COB_DEVELOP=1 COB_DEVELOP_SDIST=/app/{{cob_sdist_filename}}
 RUN $PYTHON_EXECUTABLE -m pip install $COB_DEVELOP_SDIST
 {% else %}
 RUN $PYTHON_EXECUTABLE -m pip install cob
 {% endif %}
 
-WORKDIR /app
 RUN cob -vvv bootstrap
 
+## nginx configuration
+RUN rm -rf /etc/nginx/conf.d/* /etc/nginx/sites-enabled/*
+
 {{user_steps}}
+
+EXPOSE 80 443

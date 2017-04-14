@@ -17,6 +17,7 @@ class SubsystemsManager(object):
         self._subsystems = {}
         self._load_project_subsystems()
 
+
     def _load_project_subsystems(self):
         roots = [self.project.root]
         while roots:
@@ -84,6 +85,9 @@ class SubsystemsManager(object):
                 if isinstance(subsystem, name_or_cls):
                     return True
         return False
+
+    def has_database(self):
+        return self.has_subsystem('models')
 
 
 ##########################################################################
