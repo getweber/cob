@@ -1,5 +1,4 @@
 import os
-import re
 import shutil
 import socket
 import subprocess
@@ -11,9 +10,8 @@ from contextlib import contextmanager
 import logbook
 from jinja2 import Environment as TemplateEnvironment
 from jinja2 import FileSystemLoader
-
 import requests
-from urlobject import URLObject
+
 
 _logger = logbook.Logger(__name__)
 
@@ -26,18 +24,23 @@ template_env = TemplateEnvironment(loader=FileSystemLoader(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), '_templates')))
 
 
+_built_dockers = set()
+_projs_root = tempfile.mkdtemp()
+
+
 class Project(object):
 
     def __init__(self, name):
         super(Project, self).__init__()
         self._name = name
-        self.tempdir = tempfile.mkdtemp()
-        self.projdir = os.path.join(self.tempdir, 'proj')
-        shutil.copytree(os.path.join(_PROJS_ROOT, self._name), self.projdir)
-        self.logfile_name = os.path.join(self.tempdir, 'testserver.log')
+        self.projdir = os.path.join(_projs_root, self._name)
+        if not os.path.isdir(self.projdir):
+            shutil.copytree(os.path.join(
+                _PROJS_ROOT, self._name), self.projdir)
 
     def cmd(self, cmd):
-        assert not cmd.startswith('cob '), "You must run cob from this project's path"
+        assert not cmd.startswith(
+            'cob '), "You must run cob from this project's path"
         return subprocess.check_call(cmd, shell=True, cwd=self.projdir)
 
     def cob_cmd(self, cmd):
@@ -47,26 +50,39 @@ class Project(object):
     def on(self, path):
         return ProjectPath(self, path)
 
+    def _build(self):
+        if self._name not in _built_dockers:
+            _logger.debug('Building docker image for {._name}...', self)
+            self._run_cob(['docker', 'build']).wait()
+            _built_dockers.add(self._name)
+        else:
+            _logger.debug('Docker image for {._name} already built', self)
+
     @contextmanager
     def server_context(self):
 
-        _logger.debug('Server log is going to {}...', self.logfile_name)
+        port = 8888
 
-        with open(self.logfile_name, 'a') as logfile:
-
-            self._run_cob(['bootstrap'], logfile).wait()
-            with self._end_killing(self._run_cob(['testserver', '-p', '0', '--no-debug'], logfile)) as p:
-                port = self._parse_port(logfile)
+        self._build()
+        try:
+            with self._end_killing(self._run_cob(['docker', 'run', '--http-port', str(port)])) as p:
                 self._wait_for_server(process=p, port=port)
-                yield URLObject('http://127.0.0.1:{}'.format(port))
+                try:
+                    yield RunningProject(self, port)
+                except Exception:
+                    self._run_cob(['docker', 'logs']).wait()
+                    raise
+        finally:
+            self._run_cob(['docker stop']).wait()
 
-    def _run_cob(self, argv, logfile):
+    def _run_cob(self, argv, *, logfile=None):
         return subprocess.Popen(
             ' '.join([sys.executable, '-m', 'cob.cli.main', '-vvvvv', *argv]),
             cwd=self.projdir,
             shell=True,
             stdout=logfile,
             stderr=subprocess.STDOUT,
+            env={**os.environ, **{'COB_DEVELOP': 'true'}},
         )
 
     @contextmanager
@@ -79,35 +95,24 @@ class Project(object):
                 p.terminate()
             p.wait()
 
-    def _parse_port(self, logfile, timeout_seconds=5):
+    def _wait_for_server(self, port, timeout_seconds=10, process=None):
         end_time = time.time() + timeout_seconds
         while time.time() < end_time:
-            with open(logfile.name, 'r') as f:
-                for line in f:
-                    match = re.search(
-                        r'Running on http://127\.0\.0\.1:(\d+)', line)
-                    if match:
-                        return int(match.group(1))
-            time.sleep(0.1)
-        with open(logfile.name, 'r') as f:
-            error_msg = 'Could not parse port. It is very likely that cob has failed or encountered an exception.\nOutput was:\n {})'.format(f.read())
-            raise RuntimeError(error_msg)
-
-    def _wait_for_server(self, port, timeout_seconds=2, process=None):
-        end_time = time.time() + timeout_seconds
-        while time.time() < end_time:
-            s = socket.socket()
             try:
-                s.connect(('127.0.0.1', port))
-            except socket.error:
+                resp = requests.get('http://127.0.0.1:{}'.format(port))
+            except (socket.error, requests.ConnectionError) as e:
                 if process is not None and process.poll() is not None:
                     raise RuntimeError('Process exited!')
-                time.sleep(0.05)
+                _logger.debug(
+                    'Could not connect to server on port {} ({})', port, e)
+                time.sleep(1)
                 continue
             else:
                 break
         else:
+            _logger.error('Giving up on connection attempt to http://127.0.0.1:{}', port)
             raise RuntimeError('Could not connect')
+
 
 class ProjectPath(object):
 
@@ -129,5 +134,26 @@ class ProjectPath(object):
         return True
 
     def _request(self):
-        with self.project.server_context() as url:
-            return requests.get(url.add_path(self.path))
+        with self.project.server_context() as app:
+            return app.get(self.path)
+
+
+class RunningProject(object):
+
+    def __init__(self, project, port):
+        super().__init__()
+        self.project = project
+        self.port = port
+
+    def get(self, *args, **kwargs):
+        return self.request('get', *args, **kwargs)
+
+    def request(self, method, path, *args, **kwargs):
+
+        assert_success = kwargs.pop('assert_success', True)
+
+        returned = requests.request(method, 'http://127.0.0.1:{.port}/{}'.format(self, path), *args, **kwargs)
+        if assert_success:
+            assert returned.ok
+
+        return returned
