@@ -139,23 +139,29 @@ def start_nginx(print_config):
 
 
 @docker.command()
-def run():
-    project = get_project()
+@click.option('--http-port', default=None)
+def run(http_port):
+    _exec_docker_compose(['up'], http_port=http_port)
 
+
+@docker.command()
+def stop():
+    _exec_docker_compose(['down'])
+
+def _exec_docker_compose(cmd, **kwargs):
+    project = get_project()
     compose_filename = '/tmp/__{}-docker-compose.yml'.format(project.name)
     with open(compose_filename, 'w') as f:
-        f.write(_generate_compose_file())
-
+        f.write(_generate_compose_file(**kwargs))
     docker_compose = shutil.which('docker-compose')
-    os.execv(docker_compose, [docker_compose, '-f', compose_filename, '-p', project.name, 'up'])
-
+    os.execv(docker_compose, [docker_compose, '-f', compose_filename, '-p', project.name] + cmd)
 
 @docker.command()
 def compose():
     print(_generate_compose_file())
 
 
-def _generate_compose_file():
+def _generate_compose_file(*, http_port=None):
     project = get_project()
 
     config = {
@@ -172,7 +178,7 @@ def _generate_compose_file():
         'nginx': {
             'image': project.name,
             'command': 'cob docker nginx-start',
-            'ports': ['8000:80'],
+            'ports': ['{}:80'.format(http_port or 8000)],
         }
     }
 
