@@ -15,6 +15,7 @@ from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
 from .utils import exec_or_error
 from ..utils.develop import is_develop, cob_root
+from ..utils.network import wait_for_tcp
 from ..utils.templates import load_template
 from ..project import get_project
 
@@ -129,6 +130,8 @@ def start_wsgi():
 def start_nginx(print_config):
     template = load_template('nginx_config')
     config = template.render({'use_ssl': False, 'hostname': None})
+
+    wait_for_tcp('wsgi', 8000, timeout_seconds=30)
 
     if print_config:
         print(config)
