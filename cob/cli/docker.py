@@ -58,13 +58,16 @@ def generate():
             cob_root=cob_root() if is_develop() else None,
             user_steps=_get_user_steps()))
 
+
 def _build_cob_sdist():
     tmpdir = mkdtemp()
     try:
-        subprocess.check_call('python setup.py sdist -d {}'.format(tmpdir), cwd=cob_root(), shell=True)
+        subprocess.check_call(
+            'python setup.py sdist -d {}'.format(tmpdir), cwd=cob_root(), shell=True)
         [distfile] = os.listdir(tmpdir)
         returned = '.cob-sdist.tar.gz'
-        shutil.move(os.path.join(tmpdir, distfile), os.path.join(get_project().root, returned))
+        shutil.move(os.path.join(tmpdir, distfile),
+                    os.path.join(get_project().root, returned))
     finally:
         shutil.rmtree(tmpdir)
     return returned
@@ -97,7 +100,7 @@ def start_wsgi():
 
     workers_count = (multiprocessing.cpu_count() * 2) + 1
 
-    class StandaloneApplication(gunicorn.app.base.BaseApplication): # pylint: disable=abstract-method
+    class StandaloneApplication(gunicorn.app.base.BaseApplication):  # pylint: disable=abstract-method
 
         def __init__(self, app, options=None):
             self.options = options or {}
@@ -148,13 +151,21 @@ def run(http_port):
 def stop():
     _exec_docker_compose(['down'])
 
+
+@docker.command()
+def logs():
+    _exec_docker_compose(['logs'])
+
+
 def _exec_docker_compose(cmd, **kwargs):
     project = get_project()
     compose_filename = '/tmp/__{}-docker-compose.yml'.format(project.name)
     with open(compose_filename, 'w') as f:
         f.write(_generate_compose_file(**kwargs))
     docker_compose = shutil.which('docker-compose')
-    os.execv(docker_compose, [docker_compose, '-f', compose_filename, '-p', project.name] + cmd)
+    os.execv(docker_compose, [docker_compose, '-f',
+                              compose_filename, '-p', project.name] + cmd)
+
 
 @docker.command()
 def compose():
@@ -194,6 +205,5 @@ def _generate_compose_file(*, http_port=None):
             }
         }
         config['volumes']['db'] = None
-
 
     return yaml.safe_dump(config, allow_unicode=True, default_flow_style=False)
