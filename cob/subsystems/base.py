@@ -54,7 +54,6 @@ class LoadedGrain(object):
         main = self.config.get('main', 'main')
         if not main.endswith('.py'):
             main += '.py'
-        print("Importing %s" % os.path.join(self.path, main))
         return emport.import_file(os.path.join(self.path, main))
 
     def load_python_symbol_by_name(self, symbol):
