@@ -95,7 +95,7 @@ class Project(object):
                 p.terminate()
             p.wait()
 
-    def _wait_for_server(self, port, timeout_seconds=10, process=None):
+    def _wait_for_server(self, port, timeout_seconds=30, process=None):
         end_time = time.time() + timeout_seconds
         while time.time() < end_time:
             try:
