@@ -11,6 +11,7 @@ from tempfile import mkdtemp
 import gunicorn.app.base
 import yaml
 
+from ..ctx import context
 from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
 from .utils import exec_or_error
@@ -97,7 +98,10 @@ def start_wsgi():
 
     if project.subsystems.has_database():
         with app.app_context():
-            flask_migrate.upgrade()
+            if project.subsystems.models.has_migrations():
+                flask_migrate.upgrade()
+            else:
+                context.db.create_all()
 
     workers_count = (multiprocessing.cpu_count() * 2) + 1
 
