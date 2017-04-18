@@ -41,6 +41,7 @@ def _add_all_subcommands():
             'docker',
             'generate',
             'testserver',
+            'list',
             'migrate',
     ]:
         mod = __import__('cob.cli.{}'.format(name), fromlist=[''])
