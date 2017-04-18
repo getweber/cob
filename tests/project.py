@@ -38,14 +38,14 @@ class Project(object):
             shutil.copytree(os.path.join(
                 _PROJS_ROOT, self._name), self.projdir)
 
-    def cmd(self, cmd):
+    def cmd(self, cmd, **kwargs):
         assert not cmd.startswith(
             'cob '), "You must run cob from this project's path"
-        return subprocess.check_call(cmd, shell=True, cwd=self.projdir)
+        return subprocess.check_call(cmd, shell=True, cwd=self.projdir, **kwargs)
 
-    def cob_cmd(self, cmd):
+    def cob_develop_cmd(self, cmd, **kwargs):
         return self.cmd('{} {}'.format(
-            os.path.join(os.path.dirname(sys.executable), 'cob'), cmd))
+            os.path.join(os.path.dirname(sys.executable), 'cob'), cmd), env={'COB_DEVELOP': '1'})
 
     def on(self, path):
         return ProjectPath(self, path)
@@ -122,7 +122,7 @@ class ProjectPath(object):
         self.path = path
 
     def returns(self, code_or_string):
-        resp = self._request()
+        resp = self._request(assert_success=False)
         if isinstance(code_or_string, int):
             assert resp.status_code == code_or_string
         else:
@@ -133,9 +133,9 @@ class ProjectPath(object):
         assert self._request().json() == value
         return True
 
-    def _request(self):
+    def _request(self, **kwargs):
         with self.project.server_context() as app:
-            return app.get(self.path)
+            return app.get(self.path, **kwargs)
 
 
 class RunningProject(object):
