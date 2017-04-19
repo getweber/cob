@@ -47,6 +47,20 @@ server {
 
     {% endif %}
 
+    {% for static_location in project.iter_static_locations() %}
+    location ^{{static_location.url_path_no_trailing_slash}}/(.*)$ {
+
+       root /;
+       {% if static_location.frontend_app %}
+       try_files {{static_location.fs_paths[0]}}/$1 {{static_location.fs_paths[0]}}/index.html =404;
+       {% else %}
+       try_files {% for fs_path in static_location.fs_paths %} {{fs_path}}/$1 {{fs_path}}/$1/index.html{% endfor %} =404;
+       {% endif %}
+
+       gzip_static on;
+    }
+    {% endfor %}
+
     location / {
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;

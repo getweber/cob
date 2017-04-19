@@ -45,7 +45,7 @@ class Project(object):
 
     def cob_develop_cmd(self, cmd, **kwargs):
         return self.cmd('{} {}'.format(
-            os.path.join(os.path.dirname(sys.executable), 'cob'), cmd), env={'COB_DEVELOP': '1'})
+            os.path.join(os.path.dirname(sys.executable), 'cob'), cmd), env={'COB_DEVELOP': '1'}, **kwargs)
 
     def on(self, path):
         return ProjectPath(self, path)

@@ -132,9 +132,9 @@ def start_wsgi():
 @docker.command(name='nginx-start')
 @click.option('--print-config', is_flag=True, default=False)
 def start_nginx(print_config):
+    project = get_project()
     template = load_template('nginx_config')
-    config = template.render({'use_ssl': False, 'hostname': None})
-
+    config = template.render({'use_ssl': False, 'hostname': None, 'project': project})
 
     if print_config:
         print(config)

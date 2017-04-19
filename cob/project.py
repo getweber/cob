@@ -1,5 +1,3 @@
-import collections
-import functools
 import os
 import sys
 
@@ -10,6 +8,7 @@ import logbook
 from .defs import COB_CONFIG_FILE_NAME
 from .exceptions import NotInProject
 from .subsystems.manager import SubsystemsManager
+from .utils.static_files import StaticLocation
 from .utils.url import ensure_trailing_slash
 
 from flask.helpers import send_from_directory
@@ -19,14 +18,14 @@ _projet = None
 
 _logger = logbook.Logger(__name__)
 
-StaticAlias = collections.namedtuple('StaticAlias', ('fs_path', 'wildcard'))
-
 
 class Project(object):
 
     def __init__(self):
         super(Project, self).__init__()
         self.root = os.path.abspath('.')
+        self._static = {}
+
         config_filename = os.path.join(self.root, COB_CONFIG_FILE_NAME)
 
         if not os.path.isfile(config_filename):
@@ -37,8 +36,6 @@ class Project(object):
         self.name = self.config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
 
-        self.static_locations = {}
-        self.static_aliases = {}
         self._initialized = False
 
     def get_deps(self):
@@ -61,26 +58,25 @@ class Project(object):
         self.subsystems.configure_app(app)
         self._configure_static_locations(app)
 
-    def add_static_location(self, url_path, fs_path):
-        self.static_locations.setdefault(
-            url_path, []).append(os.path.abspath(fs_path))
-
-    def add_static_file_alias(self, url_path, fs_path, wildcard=False):
-        assert url_path not in self.static_aliases
-        self.static_aliases[url_path] = StaticAlias(fs_path=os.path.abspath(fs_path), wildcard=wildcard)
+    def add_static_location(self, url_path, fs_path, frontend_app=False):
+        self._static.setdefault(url_path, StaticLocation(url_path, frontend_app=frontend_app)).add_fs_path(fs_path)
 
     def _configure_static_locations(self, flask_app):
-        for url_path, fs_paths in self.static_locations.items():
-            url_path = ensure_trailing_slash(url_path)
-            flask_app.route(url_path + '<path:filename>',
-                            defaults={'search_locations': fs_paths})(_static_view)
 
-        for url_path, alias in self.static_aliases.items():
-            _route = functools.partial(flask_app.route, defaults={'path': alias.fs_path})
-            _route(url_path)(_static_alias_view)
-            if alias.wildcard:
-                _route(ensure_trailing_slash(url_path) + '<path:ignored>')(_static_alias_view)
+        for location in self._static.values():
 
+            url_path = ensure_trailing_slash(location.url_path)
+
+            if location.frontend_app:
+                flask_app.route(ensure_trailing_slash(url_path), defaults={'path': location.fs_paths[0]})(
+                    _static_alias_view)
+            else:
+                flask_app.route(url_path + '<path:filename>',
+                                defaults={'search_locations': location.fs_paths})(_static_view)
+
+
+    def iter_static_locations(self):
+        yield from self._static.values()
 
 def _static_view(filename, search_locations):
     for location in search_locations:

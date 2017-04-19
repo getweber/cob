@@ -42,7 +42,7 @@ class SubsystemsManager(object):
                 if subsystem is None:
                     subsystem = self._subsystems[
                         subsystem_cls.NAME] = subsystem_cls(self)
-                subsystem.add_grain(path, config)
+                subsystem.add_grain(os.path.abspath(path), config)
         _logger.trace('Grain loading complete')
 
     def _try_get_config(self, path):

@@ -13,7 +13,7 @@ class EmberSubsystem(FrontendSubsystem):
     def configure_grain(self, grain, flask_app): # pylint: disable=unused-argument
         mountpoint = ensure_trailing_slash(grain.config.get('mountpoint', '/'))
         self.project.add_static_location(mountpoint + 'assets', os.path.join(grain.path, 'dist/assets'))
-        self.project.add_static_file_alias(mountpoint, os.path.join(grain.path, 'dist/index.html'), wildcard=self._is_location_type_auto(grain))
+        self.project.add_static_location(mountpoint, os.path.join(grain.path, 'dist/index.html'), frontend_app=self._is_location_type_auto(grain))
 
     def _is_location_type_auto(self, grain):
         config_filename = os.path.join(grain.path, 'config', 'environment.js')
