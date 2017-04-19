@@ -135,11 +135,12 @@ def start_nginx(print_config):
     template = load_template('nginx_config')
     config = template.render({'use_ssl': False, 'hostname': None})
 
-    wait_for_tcp('wsgi', 8000, timeout_seconds=30)
 
     if print_config:
         print(config)
         return
+
+    wait_for_tcp('wsgi', 8000, timeout_seconds=30)
 
     with open('/etc/nginx/conf.d/webapp.conf', 'w') as f:
         f.write(config)
