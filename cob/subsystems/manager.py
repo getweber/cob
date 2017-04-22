@@ -72,8 +72,14 @@ class SubsystemsManager(object):
         return iter(self._subsystems.values())
 
     def __getattr__(self, subsystem_name):
+        try:
+            return self[subsystem_name]
+        except LookupError:
+            raise AttributeError(subsystem_name) from None
+
+    def __getitem__(self, subsystem_name):
         if subsystem_name not in self._subsystems:
-            raise AttributeError(subsystem_name)
+            raise LookupError(subsystem_name)
         return self._subsystems[subsystem_name]
 
     def has_subsystem(self, name_or_cls):
