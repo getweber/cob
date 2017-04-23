@@ -1,3 +1,6 @@
+# tmuxp uses strict requirement versioning so it comes first
+tmuxp
+
 celery
 click
 colorful
@@ -14,5 +17,4 @@ Logbook
 PyYAML
 pytest
 sentinels
-tmuxp
 virtualenv
