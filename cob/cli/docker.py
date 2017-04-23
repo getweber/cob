@@ -146,7 +146,7 @@ def start_nginx(print_config):
         f.write(config)
 
     nginx_path = '/usr/sbin/nginx'
-    os.execv(nginx_path, [nginx_path, '-g', 'daemon off;'])
+    os.execv(nginx_path, [nginx_path, '-g', 'daemon off; error_log /dev/stdout info;'])
 
 
 @docker.command()
