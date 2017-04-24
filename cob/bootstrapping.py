@@ -4,7 +4,6 @@ import subprocess
 import sys
 
 import click
-import colorful
 import logbook
 import yaml
 
@@ -70,8 +69,8 @@ def _ensure_virtualenv():
 
 def _create_virtualenv(path):
     if 'VIRTUAL_ENV' in os.environ:
-        click.echo(colorful.yellow('You are attempting to use Cob from a virtual environment. Cob will try to locate your global Python installation to avoid '
-                                   'unintended consequences'))
+        click.echo(click.style('You are attempting to use Cob from a virtual environment. Cob will try to locate your global Python installation to avoid '
+                               'unintended consequences', fg='yellow'))
         interpreter = _locate_original_interpreter()
     else:
         interpreter = sys.executable
@@ -86,20 +85,20 @@ def _locate_original_interpreter():
                 if os.path.isfile(optional):
                     return optional
     else:
-        click.echo(colorful.yellow('Current interpreter is forced (COB_FORCE_CURRENT_INTERPRETER is set)'))
+        click.echo(click.style('Current interpreter is forced (COB_FORCE_CURRENT_INTERPRETER is set)', fg='yellow'))
 
-    click.echo(colorful.yellow('Could not locate global Python interpreter. Using current interpreter as fallback'))
+    click.echo(click.style('Could not locate global Python interpreter. Using current interpreter as fallback', fg='yellow'))
     return sys.executable
 
 def _needs_refresh():
     if _COB_REFRESH_ENV in os.environ:
-        click.echo(colorful.magenta('Virtualenv refresh forced. This might take a while...'))
+        click.echo(click.style('Virtualenv refresh forced. This might take a while...', fg='magenta'))
         return True
     if not os.path.exists(os.path.join(_VIRTUALENV_PATH, 'bin', 'python')):
-        click.echo(colorful.magenta('Creating project environment. This might take a while...'))
+        click.echo(click.style('Creating project environment. This might take a while...', fg='magenta'))
         return True
     if _get_installed_deps() != get_project().get_deps():
-        click.echo(colorful.magenta('Dependencies have changes - refreshing virtualenv. This might take a while...'))
+        click.echo(click.style('Dependencies have changes - refreshing virtualenv. This might take a while...', fg='magenta'))
         return True
     return False
 

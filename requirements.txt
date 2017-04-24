@@ -3,7 +3,6 @@ tmuxp
 
 celery
 click
-colorful
 emport>=1.2.0
 gossip
 Flask
