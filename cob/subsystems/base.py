@@ -48,13 +48,17 @@ class LoadedGrain(object):
         self.path = path
         self.config = config
 
+    def get_path_from(self, project_root):
+        our_proj_root = self.subsystem.project.root
+        relpath = os.path.relpath(self.path, our_proj_root)
+        return os.path.abspath(os.path.join(project_root, relpath))
+
     def load(self):
         if os.path.isfile(self.path):
             return emport.import_file(self.path)
         main = self.config.get('main', 'main')
         if not main.endswith('.py'):
             main += '.py'
-        print("Importing %s" % os.path.join(self.path, main))
         return emport.import_file(os.path.join(self.path, main))
 
     def load_python_symbol_by_name(self, symbol):

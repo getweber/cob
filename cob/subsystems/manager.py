@@ -17,6 +17,7 @@ class SubsystemsManager(object):
         self._subsystems = {}
         self._load_project_subsystems()
 
+
     def _load_project_subsystems(self):
         roots = [self.project.root]
         while roots:
@@ -41,7 +42,7 @@ class SubsystemsManager(object):
                 if subsystem is None:
                     subsystem = self._subsystems[
                         subsystem_cls.NAME] = subsystem_cls(self)
-                subsystem.add_grain(path, config)
+                subsystem.add_grain(os.path.abspath(path), config)
         _logger.trace('Grain loading complete')
 
     def _try_get_config(self, path):
@@ -71,8 +72,14 @@ class SubsystemsManager(object):
         return iter(self._subsystems.values())
 
     def __getattr__(self, subsystem_name):
+        try:
+            return self[subsystem_name]
+        except LookupError:
+            raise AttributeError(subsystem_name) from None
+
+    def __getitem__(self, subsystem_name):
         if subsystem_name not in self._subsystems:
-            raise AttributeError(subsystem_name)
+            raise LookupError(subsystem_name)
         return self._subsystems[subsystem_name]
 
     def has_subsystem(self, name_or_cls):
@@ -84,6 +91,9 @@ class SubsystemsManager(object):
                 if isinstance(subsystem, name_or_cls):
                     return True
         return False
+
+    def has_database(self):
+        return self.has_subsystem('models')
 
 
 ##########################################################################

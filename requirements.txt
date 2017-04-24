@@ -1,5 +1,9 @@
+# tmuxp uses strict requirement versioning so it comes first
+tmuxp
+
 celery
 click
+colorful
 emport>=1.2.0
 gossip
 Flask
@@ -8,9 +12,9 @@ Flask-SQLAlchemy
 Flask-Loopback
 Jinja2
 gossip
+gunicorn
 Logbook
 PyYAML
 pytest
 sentinels
-tmuxp
 virtualenv

@@ -1,8 +1,10 @@
+import functools
 import os
 import subprocess
 import sys
 
 import click
+import colorful
 import logbook
 import yaml
 
@@ -46,10 +48,17 @@ def _ensure_virtualenv():
             os.makedirs(venv_parent_dir)
         _create_virtualenv(_VIRTUALENV_PATH)
 
-    subprocess.check_call([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'ensurepip'])
+    _in_env = functools.partial(os.path.join, _VIRTUALENV_PATH, 'bin')
+
+    if not os.path.isfile(_in_env('pip')):
+        subprocess.check_call([_in_env('python'), '-m', 'ensurepip'])
     if is_develop():
         _logger.trace('Using development version of cob')
-        _virtualenv_pip_install(['-e', cob_root()])
+        sdist_path = os.environ.get('COB_DEVELOP_SDIST')
+        if sdist_path is None:
+            _virtualenv_pip_install(['-e', cob_root()])
+        else:
+            _virtualenv_pip_install([sdist_path])
     else:
         _logger.trace('Installing cob form Pypi')
         _virtualenv_pip_install(['-U', 'cob'])
@@ -61,8 +70,8 @@ def _ensure_virtualenv():
 
 def _create_virtualenv(path):
     if 'VIRTUAL_ENV' in os.environ:
-        click.echo(click.style('You are attempting to use Cob from a virtual environment. Cob will try to locate your global Python installation to avoid '
-                               'unintended consequences', fg='yellow'))
+        click.echo(colorful.yellow('You are attempting to use Cob from a virtual environment. Cob will try to locate your global Python installation to avoid '
+                                   'unintended consequences'))
         interpreter = _locate_original_interpreter()
     else:
         interpreter = sys.executable
@@ -77,20 +86,20 @@ def _locate_original_interpreter():
                 if os.path.isfile(optional):
                     return optional
     else:
-        click.echo(click.style('Current interpreter is forced (COB_FORCE_CURRENT_INTERPRETER is set)', fg='yellow'))
+        click.echo(colorful.yellow('Current interpreter is forced (COB_FORCE_CURRENT_INTERPRETER is set)'))
 
-    click.echo(click.style('Could not locate global Python interpreter. Using current interpreter as fallback', fg='yellow'))
+    click.echo(colorful.yellow('Could not locate global Python interpreter. Using current interpreter as fallback'))
     return sys.executable
 
 def _needs_refresh():
     if _COB_REFRESH_ENV in os.environ:
-        click.echo(click.style('Virtualenv refresh forced. This might take a while...', fg='magenta'))
+        click.echo(colorful.magenta('Virtualenv refresh forced. This might take a while...'))
         return True
     if not os.path.exists(os.path.join(_VIRTUALENV_PATH, 'bin', 'python')):
-        click.echo(click.style('Creating project environment. This might take a while...', fg='magenta'))
+        click.echo(colorful.magenta('Creating project environment. This might take a while...'))
         return True
     if _get_installed_deps() != get_project().get_deps():
-        click.echo(click.style('Dependencies have changes - refreshing virtualenv. This might take a while...', fg='magenta'))
+        click.echo(colorful.magenta('Dependencies have changes - refreshing virtualenv. This might take a while...'))
         return True
     return False
 

@@ -10,7 +10,9 @@ def is_develop():
 
 def cob_root():
     assert is_develop()
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    returned = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    assert os.path.basename(returned) == 'cob', 'Unable to properly detect cob root (__file__ == {!r}'.format(__file__)
+    return returned
 
 
 def cob_branch():

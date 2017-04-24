@@ -21,6 +21,10 @@ class ModelsSubsystem(SubsystemBase):
         Migrate(flask_app, context.db).init_app(flask_app)
         super(ModelsSubsystem, self).activate(flask_app)
 
+    def has_migrations(self):
+        return os.path.isdir(os.path.join(self.project.root, 'migrations'))
+
+
     def configure_grain(self, grain, flask_app): # pylint: disable=unused-argument
         _logger.trace('Found models: {m.path}', grain)
         grain.load()

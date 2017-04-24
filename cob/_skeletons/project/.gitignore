@@ -1,5 +1,6 @@
 /.cob
 /.Dockerfile
+/.cob-sdist.tar.gz
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
