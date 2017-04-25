@@ -517,4 +517,4 @@ properly linked, run::
 This will start your app in the foreground.
 
 .. seealso:: For more information on deploying your apps with Cob, see
-             the `deployment`_ section of the docs
+             the :ref:`deployment` section of the docs
