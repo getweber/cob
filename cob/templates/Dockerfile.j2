@@ -21,7 +21,7 @@ RUN npm --version
 
 RUN add-apt-repository ppa:fkrull/deadsnakes
 RUN apt-get update
-RUN apt-get install -y $PYTHON_EXECUTABLE $PYTHON_EXECUTABLE-dev
+RUN apt-get install -y $PYTHON_EXECUTABLE $PYTHON_EXECUTABLE-dev $PYTHON_EXECUTABLE-gdbm
 
 RUN wget https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py
 RUN $PYTHON_EXECUTABLE /tmp/get-pip.py

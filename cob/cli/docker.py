@@ -202,6 +202,7 @@ def _generate_compose_file(*, http_port=None):
 
     common_environment = {
         'COB_DATABASE_URI': 'postgresql://{0}@db/{0}'.format(project.name),
+        'COB_CELERY_BROKER_URL': 'amqp://guest:guest@rabbitmq',
     }
 
     services = config['services'] = {
@@ -234,5 +235,16 @@ def _generate_compose_file(*, http_port=None):
             }
         }
         config['volumes']['db'] = None
+
+    if project.subsystems.has_tasks():
+
+        services['rabbitmq'] = {
+            'image': 'rabbitmq',
+        }
+        services['worker'] = {
+            'image': project.name,
+            'command': 'cob celery start-worker',
+            'environment': common_environment,
+        }
 
     return yaml.safe_dump(config, allow_unicode=True, default_flow_style=False)

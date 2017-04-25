@@ -38,6 +38,11 @@ class Project(object):
 
         self._initialized = False
 
+    def build_venv_command(self, cmd):
+        cmd, *remainder = cmd.split()
+        returned = os.path.abspath(os.path.join(self.root, '.cob', 'env', 'bin', cmd))
+        return ' '.join([returned, *remainder])
+
     def get_deps(self):
         return set(self.config.get('deps') or ())
 
