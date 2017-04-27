@@ -75,10 +75,10 @@ def _build_cob_sdist():
     return returned
 
 
-@docker.command()
+@docker.command(name='build')
 @click.option('--sudo', is_flag=True, help="Run docker build with sudo")
 @click.option('--extra-build-args', '-e', default="", help="Arguments to pass to docker build")
-def build(sudo, extra_build_args):
+def docker_build(sudo, extra_build_args):
     project = get_project()
     generate.callback()
 
@@ -163,7 +163,10 @@ def start_nginx(print_config):
 
 @docker.command()
 @click.option('--http-port', default=None)
-def run(http_port):
+@click.option('--build', is_flag=True, default=False)
+def run(http_port, build):
+    if build:
+        docker_build.callback(sudo=False, extra_build_args='')
     _exec_docker_compose(['up'], http_port=http_port)
 
 
