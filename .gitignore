@@ -15,4 +15,4 @@ ChangeLog
 .Dockerfile
 .cob
 .cob-sdist.tar.gz
-
+celerybeat-schedule
