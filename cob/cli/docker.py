@@ -7,8 +7,8 @@ import shutil
 import subprocess
 from tempfile import mkdtemp
 
-
 import gunicorn.app.base
+from urlobject import URLObject as URL
 import yaml
 
 from ..ctx import context
@@ -92,9 +92,13 @@ def build(sudo, extra_build_args):
 
 @docker.command(name='wsgi-start')
 def start_wsgi():
+    logbook.StderrHandler(level=logbook.DEBUG).push_application()
+
     ensure_project_bootstrapped()
     project = get_project()
     app = build_app()
+
+    _wait_for_services(app)
 
     if project.subsystems.has_database():
         with app.app_context():
@@ -125,8 +129,16 @@ def start_wsgi():
         'bind': '0.0.0.0:8000',
         'workers': workers_count,
     }
-    logbook.StderrHandler(level=logbook.DEBUG).push_application()
     StandaloneApplication(app, options).run()
+
+
+def _wait_for_services(app):
+    db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', None)
+    if db_uri is not None:
+        uri = URL(db_uri)
+        if uri.scheme == 'postgresql':
+            wait_for_tcp(uri.netloc.hostname, 5432)
+
 
 
 @docker.command(name='nginx-start')
@@ -140,7 +152,7 @@ def start_nginx(print_config):
         print(config)
         return
 
-    wait_for_tcp('wsgi', 8000, timeout_seconds=30)
+    wait_for_tcp('wsgi', 8000)
 
     with open('/etc/nginx/conf.d/webapp.conf', 'w') as f:
         f.write(config)
@@ -187,21 +199,30 @@ def _generate_compose_file(*, http_port=None):
         'version': '3',
         'volumes': {},
     }
+
+    common_environment = {
+        'COB_DATABASE_URI': 'postgresql://{0}@db/{0}'.format(project.name),
+    }
+
     services = config['services'] = {
 
         'wsgi':  {
             'image': project.name,
             'command': 'cob docker wsgi-start',
+            'environment': common_environment,
+            'depends_on': [],
         },
 
         'nginx': {
             'image': project.name,
             'command': 'cob docker nginx-start',
             'ports': ['{}:80'.format(http_port or 8000)],
+            'depends_on': ['wsgi'],
         }
     }
 
     if project.subsystems.has_database():
+        services['wsgi']['depends_on'].append('db')
         services['db'] = {
             'image': 'postgres:9.6',
             'volumes': [
