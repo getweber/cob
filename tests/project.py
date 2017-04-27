@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import socket
@@ -147,6 +148,16 @@ class RunningProject(object):
 
     def get(self, *args, **kwargs):
         return self.request('get', *args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        return self.request('post', *args, **kwargs)
+
+    def post_json(self, *args, **kwargs):
+        data = json.dumps(kwargs.pop('data'))
+        headers = kwargs.pop('headers', {})
+        headers['Content-type'] = 'application/json'
+        return self.post(*args, **kwargs, data=data, headers=headers)
+
 
     def request(self, method, path, *args, **kwargs):
 

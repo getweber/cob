@@ -1,3 +1,1 @@
-name: models1
-flask_config:
-  SQLALCHEMY_DATABASE_URI: sqlite:////tmp/__testdb.db
+name: models_no_migrations
