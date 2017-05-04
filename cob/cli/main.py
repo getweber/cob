@@ -36,6 +36,7 @@ def test(pytest_args):
 
 def _add_all_subcommands():
     for name in [
+            'celery',
             'db',
             'develop',
             'docker',

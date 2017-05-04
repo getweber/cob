@@ -18,7 +18,7 @@ _COB_REFRESH_ENV = 'COB_REFRESH_ENV'
 _VIRTUALENV_PATH = '.cob/env'
 _INSTALLED_DEPS = '.cob/_installed_deps.yml'
 
-def ensure_project_bootstrapped():
+def ensure_project_bootstrapped(*, reenter=True):
     if not os.path.isfile(COB_CONFIG_FILE_NAME):
         _logger.trace('Project is not a cob project')
         return
@@ -26,7 +26,8 @@ def ensure_project_bootstrapped():
         _logger.trace('{} found in environ. Not reentering.', _PREVENT_REENTRY_ENV_VAR)
         return
     _ensure_virtualenv()
-    _reenter()
+    if reenter:
+        _reenter()
 
 def get_virtualenv_binary_path(name):
     return os.path.join(_VIRTUALENV_PATH, 'bin', name)

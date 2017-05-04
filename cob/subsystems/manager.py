@@ -95,6 +95,9 @@ class SubsystemsManager(object):
     def has_database(self):
         return self.has_subsystem('models')
 
+    def has_tasks(self):
+        return self.has_subsystem('tasks')
+
 
 ##########################################################################
 # import all known subsystems to ensure registration

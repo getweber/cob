@@ -75,10 +75,10 @@ def _build_cob_sdist():
     return returned
 
 
-@docker.command()
+@docker.command(name='build')
 @click.option('--sudo', is_flag=True, help="Run docker build with sudo")
 @click.option('--extra-build-args', '-e', default="", help="Arguments to pass to docker build")
-def build(sudo, extra_build_args):
+def docker_build(sudo, extra_build_args):
     project = get_project()
     generate.callback()
 
@@ -163,7 +163,10 @@ def start_nginx(print_config):
 
 @docker.command()
 @click.option('--http-port', default=None)
-def run(http_port):
+@click.option('--build', is_flag=True, default=False)
+def run(http_port, build):
+    if build:
+        docker_build.callback(sudo=False, extra_build_args='')
     _exec_docker_compose(['up'], http_port=http_port)
 
 
@@ -202,6 +205,7 @@ def _generate_compose_file(*, http_port=None):
 
     common_environment = {
         'COB_DATABASE_URI': 'postgresql://{0}@db/{0}'.format(project.name),
+        'COB_CELERY_BROKER_URL': 'amqp://guest:guest@rabbitmq',
     }
 
     services = config['services'] = {
@@ -234,5 +238,16 @@ def _generate_compose_file(*, http_port=None):
             }
         }
         config['volumes']['db'] = None
+
+    if project.subsystems.has_tasks():
+
+        services['rabbitmq'] = {
+            'image': 'rabbitmq',
+        }
+        services['worker'] = {
+            'image': project.name,
+            'command': 'cob celery start-worker',
+            'environment': common_environment,
+        }
 
     return yaml.safe_dump(config, allow_unicode=True, default_flow_style=False)
