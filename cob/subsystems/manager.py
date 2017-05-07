@@ -31,9 +31,9 @@ class SubsystemsManager(object):
                 if config is None:
                     _logger.trace('{} does not seem to be a cob grain. Skipping...', name)
                     continue
+                grain_type = config.setdefault('type', 'views')
                 _logger.trace(
-                    'Detected grain in {} (subsystem: {[type]}', name, config)
-                grain_type = config.get('type', 'views')
+                    'Detected grain in {} (subsystem: {})', name, grain_type)
                 if grain_type == 'bundle':
                     _logger.trace('Will traverse into bundle {}', path)
                     roots.append(path)
