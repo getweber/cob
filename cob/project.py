@@ -8,6 +8,7 @@ import logbook
 from .defs import COB_CONFIG_FILE_NAME
 from .exceptions import NotInProject
 from .subsystems.manager import SubsystemsManager
+from .utils.config import merge_config
 from .utils.static_files import StaticLocation
 from .utils.url import ensure_trailing_slash
 
@@ -17,6 +18,13 @@ from flask import abort
 _projet = None
 
 _logger = logbook.Logger(__name__)
+
+
+DEFAULT_CONFIG = {
+    'flask_config': {
+        'SQLALCHEMY_TRACK_MODIFICATIONS': False,
+    },
+}
 
 
 class Project(object):
@@ -32,7 +40,7 @@ class Project(object):
             raise NotInProject('You do not seem to be in a Cob project directory')
 
         with open(config_filename) as f:
-            self.config = yaml.load(f)
+            self.config = merge_config(DEFAULT_CONFIG, yaml.load(f))
         self.name = self.config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
 
