@@ -33,11 +33,12 @@ class SubsystemsManager(object):
                     continue
                 _logger.trace(
                     'Detected grain in {} (subsystem: {[type]}', name, config)
-                if config['type'] == 'bundle':
+                grain_type = config.get('type', 'views')
+                if grain_type == 'bundle':
                     _logger.trace('Will traverse into bundle {}', path)
                     roots.append(path)
                     continue
-                subsystem_cls = self._get_subsystem_by_grain_type(config['type'])
+                subsystem_cls = self._get_subsystem_by_grain_type(grain_type)
                 subsystem = self._subsystems.get(subsystem_cls.NAME)
                 if subsystem is None:
                     subsystem = self._subsystems[
