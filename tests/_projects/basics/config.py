@@ -9,6 +9,7 @@ def get_config():
     return jsonify({
         key: current_app.config[key]
         for key in [
+                'SECRET_KEY',
                 'SQLALCHEMY_TRACK_MODIFICATIONS',
                 ]
         })

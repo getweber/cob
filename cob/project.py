@@ -40,9 +40,9 @@ class Project(object):
             raise NotInProject('You do not seem to be in a Cob project directory')
 
         with open(config_filename) as f:
-            self.config = merge_config(DEFAULT_CONFIG, yaml.load(f))
+            config = merge_config(DEFAULT_CONFIG, yaml.load(f))
 
-        load_overrides(self.config)
+        self.config = load_overrides(config)
 
         self.name = self.config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)

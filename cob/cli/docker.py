@@ -3,7 +3,9 @@ import click
 import flask_migrate
 import logbook
 import multiprocessing
+import random
 import shutil
+import string
 import subprocess
 from tempfile import mkdtemp
 
@@ -94,6 +96,7 @@ def docker_build(sudo, extra_build_args):
 def start_wsgi():
     logbook.StderrHandler(level=logbook.DEBUG).push_application()
 
+    _ensure_secret_config()
     ensure_project_bootstrapped()
     project = get_project()
     app = build_app()
@@ -130,6 +133,24 @@ def start_wsgi():
         'workers': workers_count,
     }
     StandaloneApplication(app, options).run()
+
+
+def _ensure_secret_config():
+    conf_dir = os.environ.get('COB_CONFIG_DIR')
+    if not conf_dir:
+        return
+    secret_file = os.path.join(conf_dir, '000-cob-private.yml')
+    if os.path.isfile(secret_file):
+        return
+
+    with open(secret_file, 'w') as f:
+        f.write('flask_config:\n')
+        for secret_name in ('SECRET_KEY', 'SECURITY_PASSWORD_SALT'):
+            f.write('  {}: {!r}\n'.format(secret_name, _generate_secret_string()))
+
+
+def _generate_secret_string(length=50):
+    return "".join([random.choice(string.ascii_letters) for i in range(length)])
 
 
 def _wait_for_services(app):
@@ -200,12 +221,15 @@ def _generate_compose_file(*, http_port=None):
 
     config = {
         'version': '3',
-        'volumes': {},
+        'volumes': {
+            'conf': None
+        },
     }
 
     common_environment = {
         'COB_DATABASE_URI': 'postgresql://{0}@db/{0}'.format(project.name),
         'COB_CELERY_BROKER_URL': 'amqp://guest:guest@rabbitmq',
+        'COB_CONFIG_DIR': '/conf',
     }
 
     services = config['services'] = {
@@ -215,6 +239,9 @@ def _generate_compose_file(*, http_port=None):
             'command': 'cob docker wsgi-start',
             'environment': common_environment,
             'depends_on': [],
+            'volumes': [
+                'conf:/conf',
+            ],
         },
 
         'nginx': {
