@@ -8,7 +8,7 @@ import logbook
 from .defs import COB_CONFIG_FILE_NAME
 from .exceptions import NotInProject
 from .subsystems.manager import SubsystemsManager
-from .utils.config import merge_config
+from .utils.config import merge_config, load_overrides
 from .utils.static_files import StaticLocation
 from .utils.url import ensure_trailing_slash
 
@@ -41,6 +41,9 @@ class Project(object):
 
         with open(config_filename) as f:
             self.config = merge_config(DEFAULT_CONFIG, yaml.load(f))
+
+        load_overrides(self.config)
+
         self.name = self.config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
 
