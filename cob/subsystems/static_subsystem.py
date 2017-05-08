@@ -11,6 +11,7 @@ _logger = logbook.Logger(__name__)
 class StaticSubsystem(SubsystemBase):
 
     NAME = 'static'
+    SUPPORTS_OVERLAYS = True
 
     def add_grain(self, path, config):
         super().add_grain(path, config)

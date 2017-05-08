@@ -2,6 +2,8 @@ import os
 
 import emport
 
+from ..exceptions import BadMountpoint
+
 _SUBSYSTEM_BY_NAME = {}
 
 class SubsystemMeta(type):
@@ -16,6 +18,7 @@ class SubsystemMeta(type):
 class SubsystemBase(metaclass=SubsystemMeta):
 
     SUBSYSTEM_BY_NAME = _SUBSYSTEM_BY_NAME
+    SUPPORTS_OVERLAYS = False
 
     def __init__(self, manager):
         super(SubsystemBase, self).__init__()
@@ -47,6 +50,9 @@ class LoadedGrain(object):
         self.subsystem = subsystem
         self.path = path
         self.config = config
+        self.mountpoint = config.get('mountpoint')
+        if self.mountpoint is not None and self.mountpoint != '/' and self.mountpoint.endswith('/'):
+            raise BadMountpoint('Mountpoint for grain {} should not end with /'.format(self.path))
 
     def get_path_from(self, project_root):
         our_proj_root = self.subsystem.project.root
