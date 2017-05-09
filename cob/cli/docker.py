@@ -30,6 +30,8 @@ _COB_VERSION = pkg_resources.get_distribution('cob').version  # pylint: disable=
 _logger = logbook.Logger(__name__)
 _CUSTOM_DOCKERFILE = "custom.docker"
 
+_POSTGRES_TCP_PORT = 5432
+_RABBITMQ_TCP_PORT = 5672
 
 def _get_user_steps():
     if not os.path.isfile(_CUSTOM_DOCKERFILE):
@@ -158,7 +160,13 @@ def _wait_for_services(app):
     if db_uri is not None:
         uri = URL(db_uri)
         if uri.scheme == 'postgresql':
-            wait_for_tcp(uri.netloc.hostname, 5432)
+            wait_for_tcp(uri.netloc.hostname, _POSTGRES_TCP_PORT)
+
+    broker_uri = app.config.get('CELERY_BROKER_URL')
+    if broker_uri is not None:
+        url = URL(broker_uri)
+        if url.scheme == 'amqp':
+            wait_for_tcp(uri.netloc.hostname, _RABBITMQ_TCP_PORT)
 
 
 

@@ -18,7 +18,7 @@ _logger = logbook.Logger(__name__)
 
 _DEFAULT_PORT = 6789
 
-_PROJS_ROOT = os.path.join(os.path.dirname(__file__), '_projects')
+PROJECTS_ROOT = os.path.join(os.path.dirname(__file__), '_projects')
 
 
 template_env = TemplateEnvironment(loader=FileSystemLoader(
@@ -37,7 +37,7 @@ class Project(object):
         self.projdir = os.path.join(_projs_root, self._name)
         if not os.path.isdir(self.projdir):
             shutil.copytree(os.path.join(
-                _PROJS_ROOT, self._name), self.projdir)
+                PROJECTS_ROOT, self._name), self.projdir)
 
     def cmd(self, cmd, **kwargs):
         assert not cmd.startswith(

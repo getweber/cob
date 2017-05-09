@@ -29,9 +29,9 @@ DEFAULT_CONFIG = {
 
 class Project(object):
 
-    def __init__(self):
+    def __init__(self, root='.'):
         super(Project, self).__init__()
-        self.root = os.path.abspath('.')
+        self.root = os.path.abspath(root)
         self._static = {}
 
         config_filename = os.path.join(self.root, COB_CONFIG_FILE_NAME)

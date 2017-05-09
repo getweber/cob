@@ -4,6 +4,7 @@ import yaml
 import logbook
 
 from .base import SubsystemBase
+from ..exceptions import MountpointConflict
 from ..utils.parsing import parse_front_matter
 
 _logger = logbook.Logger(__name__)
@@ -16,7 +17,23 @@ class SubsystemsManager(object):
         self.project = project
         self._subsystems = {}
         self._load_project_subsystems()
+        self._validate_config()
 
+
+    def _validate_config(self):
+        mountpoints_to_grains = {}
+        for subsystem in self._subsystems.values():
+            for grain in subsystem.grains:
+                if grain.mountpoint is not None:
+                    mountpoints_to_grains.setdefault(grain.mountpoint, []).append(grain)
+
+        for mountpoint, grains in mountpoints_to_grains.items():
+            assert len(grains) > 0 # pylint: disable=len-as-condition
+            if len(grains) == 1:
+                continue
+            subsystems = {grain.subsystem for grain in grains}
+            if len(subsystems) > 1 or not grains[0].subsystem.SUPPORTS_OVERLAYS:
+                raise MountpointConflict('Mount point {} used more than once'.format(mountpoint))
 
     def _load_project_subsystems(self):
         roots = [self.project.root]
