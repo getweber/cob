@@ -10,6 +10,18 @@ class EmberSubsystem(FrontendSubsystem):
 
     NAME = 'frontend-ember'
 
+    def get_docker_pre_install_steps(self):
+        return [
+            'RUN npm install -g ember-cli bower',
+        ]
+
+
+    def get_docker_install_steps(self):
+        return [
+            'RUN cd {} && npm install && bower install --allow-root && ember build --environment=production'.format(grain.get_path_from('/app'))
+            for grain in self.grains
+        ]
+
     def configure_grain(self, grain, flask_app): # pylint: disable=unused-argument
         mountpoint = ensure_trailing_slash(grain.config.get('mountpoint', '/'))
         self.project.add_static_location(mountpoint + 'assets', os.path.join(grain.path, 'dist/assets'))

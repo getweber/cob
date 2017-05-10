@@ -27,18 +27,19 @@ RUN wget https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py
 RUN $PYTHON_EXECUTABLE /tmp/get-pip.py
 RUN $PYTHON_EXECUTABLE -m pip install -U virtualenv pip setuptools
 
-{% if project.subsystems.has_subsystem('frontend-ember') %}
-RUN npm install -g ember-cli bower
-{% endif %}
+{% for subsystem in project.subsystems %}
+{% for line in subsystem.get_docker_pre_install_steps() %}
+{{line}}
+{% endfor %}
+{% endfor %}
 
 ADD . /app
 
-
-{% if project.subsystems.has_subsystem('frontend-ember') %}
-{% for grain in project.subsystems['frontend-ember'].grains %}
-RUN cd {{ grain.get_path_from('/app') }} && npm install && bower install --allow-root && ember build --environment=production
+{% for subsystem in project.subsystems %}
+{% for line in subsystem.get_docker_install_steps() %}
+{{line}}
 {% endfor %}
-{% endif %}
+{% endfor %}
 
 WORKDIR /app
 

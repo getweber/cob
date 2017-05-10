@@ -29,6 +29,12 @@ class SubsystemBase(metaclass=SubsystemMeta):
     def add_grain(self, path, config):
         self.grains.append(LoadedGrain(self, path, config))
 
+    def get_docker_pre_install_steps(self):
+        return ()
+
+    def get_docker_install_steps(self):
+        return ()
+
     def activate(self, flask_app):
         pass
 
