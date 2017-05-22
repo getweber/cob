@@ -41,3 +41,6 @@ class TasksSubsystem(SubsystemBase):
             queue_name = getattr(task, 'queue', None)
             if queue_name is not None:
                 self.queues.add(queue_name)
+
+    def iter_locations(self):
+        return None

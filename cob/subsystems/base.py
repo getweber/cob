@@ -3,6 +3,7 @@ import os
 import emport
 
 from ..exceptions import BadMountpoint
+from ..utils.url import Mountpoint
 
 _SUBSYSTEM_BY_NAME = {}
 
@@ -48,6 +49,10 @@ class SubsystemBase(metaclass=SubsystemMeta):
     def configure_tmux_window(self, windows):
         pass
 
+    def iter_locations(self):
+        raise NotImplementedError() # pragma: no cover
+
+
 
 class LoadedGrain(object):
 
@@ -56,9 +61,11 @@ class LoadedGrain(object):
         self.subsystem = subsystem
         self.path = path
         self.config = config
-        self.mountpoint = config.get('mountpoint')
-        if self.mountpoint is not None and self.mountpoint != '/' and self.mountpoint.endswith('/'):
-            raise BadMountpoint('Mountpoint for grain {} should not end with /'.format(self.path))
+        self.mountpoint = self.config.get('mountpoint', None)
+        if self.mountpoint is not None:
+            if self.mountpoint != '/' and self.mountpoint.endswith('/'):
+                raise BadMountpoint('Mountpoint for grain {} should not end with /'.format(self.path))
+            self.mountpoint = Mountpoint(self.mountpoint)
 
     def get_path_from(self, project_root):
         our_proj_root = self.subsystem.project.root

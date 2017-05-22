@@ -3,6 +3,8 @@ import logbook
 from flask import Blueprint
 from .base import SubsystemBase
 
+from ..locations import Location
+
 _logger = logbook.Logger(__name__)
 
 class FlaskBlueprintSubsystem(SubsystemBase):
@@ -24,3 +26,8 @@ class FlaskBlueprintSubsystem(SubsystemBase):
         url_prefix = grain.config.get('mountpoint', '/')
         _logger.trace('registering {}:{} under {}', grain, name, url_prefix)
         flask_app.register_blueprint(blueprint, url_prefix=url_prefix)
+
+    def iter_locations(self):
+        assert self.grains
+        for grain in self.grains:
+            yield Location(grain.mountpoint)

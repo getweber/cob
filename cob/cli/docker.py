@@ -175,7 +175,7 @@ def _wait_for_services(app):
 def start_nginx(print_config):
     project = get_project()
     template = load_template('nginx_config')
-    config = template.render({'use_ssl': False, 'hostname': None, 'project': project})
+    config = template.render({'use_ssl': False, 'hostname': None, 'project': project, 'os': os})
 
     if print_config:
         print(config)

@@ -1,7 +1,7 @@
 import os
 
 from .base import SubsystemBase
-from ..utils.url import ensure_trailing_slash
+from ..locations import Location
 
 class FrontendSubsystem(SubsystemBase): # pylint: disable=abstract-method
     pass
@@ -22,10 +22,27 @@ class EmberSubsystem(FrontendSubsystem):
             for grain in self.grains
         ]
 
-    def configure_grain(self, grain, flask_app): # pylint: disable=unused-argument
-        mountpoint = ensure_trailing_slash(grain.config.get('mountpoint', '/'))
-        self.project.add_static_location(mountpoint + 'assets', os.path.join(grain.path, 'dist/assets'))
-        self.project.add_static_location(mountpoint, os.path.join(grain.path, 'dist/index.html'), frontend_app=self._is_location_type_auto(grain))
+    def add_grain(self, path, config):
+        config.setdefault('mountpoint', '/')
+        return super().add_grain(path, config)
+
+    def configure_grain(self, grain, flask_app):
+        pass
+
+    def iter_locations(self):
+        assert self.grains
+        for grain in self.grains:
+            yield Location(
+                mountpoint=grain.mountpoint.join('assets'),
+                fs_paths=[os.path.join(grain.path, 'dist/assets')],
+                is_static=True,
+            )
+            yield Location(
+                mountpoint=grain.mountpoint,
+                fs_paths=[os.path.join(grain.path, 'dist/index.html')],
+                is_frontend_app=self._is_location_type_auto(grain),
+                is_static=True,
+            )
 
     def _is_location_type_auto(self, grain):
         config_filename = os.path.join(grain.path, 'config', 'environment.js')
