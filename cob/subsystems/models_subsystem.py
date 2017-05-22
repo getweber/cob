@@ -17,9 +17,12 @@ class ModelsSubsystem(SubsystemBase):
 
     def activate(self, flask_app):
 
-        database_uri = os.environ.get('COB_DATABASE_URI', 'sqlite:///{}'.format(os.path.join(self.project.root, '.cob', 'db.sqlite')))
+        env_override = os.environ.get('COB_DATABASE_URI')
+        if env_override:
+            flask_app.config['SQLALCHEMY_DATABASE_URI'] = env_override
+        else:
+            flask_app.config.setdefault('SQLALCHEMY_DATABASE_URI', 'sqlite:///{}'.format(os.path.join(self.project.root, '.cob', 'db.sqlite')))
 
-        flask_app.config.setdefault('SQLALCHEMY_DATABASE_URI', database_uri)
         context.db = SQLAlchemy(flask_app)
         Migrate(flask_app, context.db).init_app(flask_app)
         super(ModelsSubsystem, self).activate(flask_app)
