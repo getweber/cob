@@ -9,8 +9,7 @@ from .defs import COB_CONFIG_FILE_NAME
 from .exceptions import NotInProject
 from .subsystems.manager import SubsystemsManager
 from .utils.config import merge_config, load_overrides
-from .utils.static_files import StaticLocation
-from .utils.url import ensure_trailing_slash
+from .utils.url import sort_paths_specific_to_generic
 
 from flask.helpers import send_from_directory
 from flask import abort
@@ -74,25 +73,31 @@ class Project(object):
         self.subsystems.configure_app(app)
         self._configure_static_locations(app)
 
-    def add_static_location(self, url_path, fs_path, frontend_app=False):
-        self._static.setdefault(url_path, StaticLocation(url_path, frontend_app=frontend_app)).add_fs_path(fs_path)
+    def get_sorted_locations(self):
+        return sort_paths_specific_to_generic(
+            self._iter_all_locations(),
+            key=lambda location: location.mountpoint.path)
+
+    def _iter_all_locations(self):
+        for subsystem in self.subsystems:
+            location_iterator = subsystem.iter_locations()
+            if location_iterator is None:
+                continue
+            yield from location_iterator
 
     def _configure_static_locations(self, flask_app):
 
-        for location in self._static.values():
+        for location in self.get_sorted_locations():
+            if not location.is_static():
+                continue
 
-            url_path = ensure_trailing_slash(location.url_path)
-
-            if location.frontend_app:
-                flask_app.route(ensure_trailing_slash(url_path), defaults={'path': location.fs_paths[0]})(
+            if location.is_frontend_app():
+                flask_app.route(str(location.mountpoint), defaults={'path': location.fs_paths[0]})(
                     _static_alias_view)
             else:
-                flask_app.route(url_path + '<path:filename>',
+                flask_app.route(str(location.mountpoint.join('<path:filename>')),
                                 defaults={'search_locations': location.fs_paths})(_static_view)
 
-
-    def iter_static_locations(self):
-        yield from self._static.values()
 
 def _static_view(filename, search_locations):
     for location in search_locations:

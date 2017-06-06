@@ -13,3 +13,6 @@ class FlaskBlueprintSubsystem(SubsystemBase):
             raise RuntimeError('Multiple template dirs not supported yet')
 
         flask_app.template_folder = grain.path
+
+    def iter_locations(self):
+        return None
