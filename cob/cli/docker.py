@@ -11,7 +11,9 @@ from tempfile import mkdtemp
 
 import gunicorn.app.base
 from urlobject import URLObject as URL
+from werkzeug.contrib.fixers import ProxyFix
 import yaml
+
 
 from ..ctx import context
 from ..app import build_app
@@ -102,6 +104,7 @@ def start_wsgi():
     ensure_project_bootstrapped()
     project = get_project()
     app = build_app()
+    app.wsgi_app = ProxyFix(app.wsgi_app)
 
     _wait_for_services(app)
 
