@@ -1,6 +1,6 @@
 from uuid import uuid4
 from .app import build_app
-from .utils.network import wait_for_services
+from .utils.network import wait_for_app_services
 
 from celery import Celery
 from celery.loaders.base import BaseLoader
@@ -13,7 +13,7 @@ class CobLoader(BaseLoader):
     def on_worker_init(self):
         # this will make the tasks grains to be properly loaded and discovered
         app = build_app()
-        wait_for_services(app)
+        wait_for_app_services(app)
 
 
 celery_app = Celery('cob-celery', loader=CobLoader)

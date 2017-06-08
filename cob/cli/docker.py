@@ -102,7 +102,7 @@ def start_wsgi():
     app = build_app()
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
-    wait_for_services(app)
+    wait_for_app_services(app)
 
     if project.subsystems.has_database():
         with app.app_context():
