@@ -51,6 +51,8 @@ def generate():
 
     if is_develop():
         sdist_file_name = _build_cob_sdist()
+    else:
+        sdist_file_name = None
 
     with open(".Dockerfile", "w") as f:
         f.write(template.render(
