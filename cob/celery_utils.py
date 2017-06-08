@@ -16,7 +16,7 @@ class CobLoader(BaseLoader):
         wait_for_app_services(app)
 
 
-celery_app = Celery('cob-celery', loader=CobLoader)
+celery_app = Celery('cob-celery', backend='rpc://', loader=CobLoader)
 
 
 def task(*, every=None, schedule=None, schedule_name=None, **kwargs):
