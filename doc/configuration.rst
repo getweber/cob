@@ -34,3 +34,17 @@ You can easily add configuration to Flask's config by specifying it in the ``fla
   ...
   flask_config:
       SQLALCHEMY_DATABASE_URI: sqlite:////path/to/db.db
+
+Deployment Configuration
+------------------------
+
+Several aspects of Cob's deployment can be configured via the project's configuration files.
+
+Gunicorn Options
+~~~~~~~~~~~~~~~~
+
+By adding a ``gunicorn`` dictionary to your project's YAML file, you can control Gunicorn options directly::
+
+  # .cob-project.yml
+  gunicorn:
+      max_requests: 20
