@@ -99,7 +99,7 @@ def start_wsgi():
     _ensure_secret_config()
     ensure_project_bootstrapped()
     project = get_project()
-    app = build_app()
+    app = build_app(config_overrides={'PROPAGATE_EXCEPTIONS': True})
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
     wait_for_app_services(app)
@@ -262,6 +262,7 @@ def _generate_compose_file(*, http_port=None):
 
         services['rabbitmq'] = {
             'image': 'rabbitmq',
+            #'command': 'bash -c "sleep 15 && rabbitmq-server"',
         }
         services['worker'] = {
             'image': project.name,
