@@ -2,8 +2,10 @@ import os
 
 import click
 
+from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
 from ..project import get_project
+from ..utils.network import wait_for_app_services
 
 
 @click.group()
@@ -14,6 +16,8 @@ def celery():
 def start_worker():
     ensure_project_bootstrapped(reenter=False)
     project = get_project()
+    app = build_app()
+    wait_for_app_services(app)
     celery_cmd = project.build_venv_command('celery')
     tasks_subsystem = project.subsystems.tasks
     assert tasks_subsystem.grains
