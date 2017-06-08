@@ -31,7 +31,7 @@ def wait_for_tcp(hostname, port, timeout_seconds=600):
                 return
 
 
-def wait_for_services(app):
+def wait_for_app_services(app):
     db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', None)
     if db_uri is not None:
         uri = URL(db_uri)
