@@ -10,7 +10,6 @@ import subprocess
 from tempfile import mkdtemp
 
 import gunicorn.app.base
-from urlobject import URLObject as URL
 from werkzeug.contrib.fixers import ProxyFix
 import yaml
 
@@ -20,7 +19,7 @@ from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
 from .utils import exec_or_error
 from ..utils.develop import is_develop, cob_root
-from ..utils.network import wait_for_tcp
+from ..utils.network import wait_for_app_services, wait_for_tcp
 from ..utils.templates import load_template
 from ..project import get_project
 
@@ -31,9 +30,6 @@ _COB_VERSION = pkg_resources.get_distribution('cob').version  # pylint: disable=
 
 _logger = logbook.Logger(__name__)
 _CUSTOM_DOCKERFILE = "custom.docker"
-
-_POSTGRES_TCP_PORT = 5432
-_RABBITMQ_TCP_PORT = 5672
 
 def _get_user_steps():
     if not os.path.isfile(_CUSTOM_DOCKERFILE):
@@ -106,7 +102,7 @@ def start_wsgi():
     app = build_app()
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
-    _wait_for_services(app)
+    wait_for_app_services(app)
 
     if project.subsystems.has_database():
         with app.app_context():
@@ -156,21 +152,6 @@ def _ensure_secret_config():
 
 def _generate_secret_string(length=50):
     return "".join([random.choice(string.ascii_letters) for i in range(length)])
-
-
-def _wait_for_services(app):
-    db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', None)
-    if db_uri is not None:
-        uri = URL(db_uri)
-        if uri.scheme == 'postgresql':
-            wait_for_tcp(uri.netloc.hostname, _POSTGRES_TCP_PORT)
-
-    broker_uri = app.config.get('CELERY_BROKER_URL')
-    if broker_uri is not None:
-        url = URL(broker_uri)
-        if url.scheme == 'amqp':
-            wait_for_tcp(uri.netloc.hostname, _RABBITMQ_TCP_PORT)
-
 
 
 @docker.command(name='nginx-start')
