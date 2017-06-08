@@ -12,3 +12,7 @@ dist
 .eggs
 AUTHORS
 ChangeLog
+.Dockerfile
+.cob
+.cob-sdist.tar.gz
+celerybeat-schedule

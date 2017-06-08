@@ -6,6 +6,7 @@ import pytest
 
 
 def test_adding_deps(tmpdir):
+    assert 'COB_NO_REENTRY' not in os.environ
     with pytest.raises(ImportError):
         import pact
 
@@ -16,7 +17,7 @@ def test_adding_deps(tmpdir):
 
     with yaml.open('a', ensure=True) as f:
         print('name: testproj', file=f)
-    _cob_on(projdir, 'bootstrap')
+    _run_cob(projdir, 'bootstrap')
 
     assert os.path.exists(python)
 
@@ -26,13 +27,14 @@ def test_adding_deps(tmpdir):
         print('deps:', file=f)
         print('  - pact', file=f)
 
-    _cob_on(projdir, 'bootstrap')
+    _run_cob(projdir, 'bootstrap')
     assert subprocess.call([python, '-c', 'import pact']) == 0
 
 
-def _cob_on(cwd, cmd):
-    x = os.environ.pop('COB_NO_REENTRY')
-    try:
-        subprocess.check_call([sys.executable, '-m', 'cob.cli.main', '-vvvvv', str(cmd)], cwd=str(cwd))
-    finally:
-        os.environ['COB_NO_REENTRY'] = x
+def _run_cob(cwd, cmd):
+
+    subprocess.check_call(
+        [sys.executable, '-m', 'cob.cli.main', '-vvvvv', str(cmd)],
+        cwd=str(cwd),
+        env={**os.environ, 'COB_DEVELOP': '1'},
+    )

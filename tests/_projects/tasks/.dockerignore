@@ -1,0 +1,6 @@
+.cob
+.Dockerfile
+.git
+*/node_modules/*
+*/bower_components/*
+*/tmp/*

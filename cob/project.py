@@ -6,7 +6,10 @@ import yaml
 import logbook
 
 from .defs import COB_CONFIG_FILE_NAME
+from .exceptions import NotInProject
 from .subsystems.manager import SubsystemsManager
+from .utils.config import merge_config, load_overrides
+from .utils.url import sort_paths_specific_to_generic
 
 from flask.helpers import send_from_directory
 from flask import abort
@@ -16,19 +19,39 @@ _projet = None
 _logger = logbook.Logger(__name__)
 
 
+DEFAULT_CONFIG = {
+    'flask_config': {
+        'SQLALCHEMY_TRACK_MODIFICATIONS': False,
+    },
+}
+
+
 class Project(object):
 
-    def __init__(self):
+    def __init__(self, root='.'):
         super(Project, self).__init__()
-        self.root = os.path.abspath('.')
-        with open(os.path.join(self.root, COB_CONFIG_FILE_NAME)) as f:
-            self.config = yaml.load(f)
+        self.root = os.path.abspath(root)
+        self._static = {}
+
+        config_filename = os.path.join(self.root, COB_CONFIG_FILE_NAME)
+
+        if not os.path.isfile(config_filename):
+            raise NotInProject('You do not seem to be in a Cob project directory')
+
+        with open(config_filename) as f:
+            config = merge_config(DEFAULT_CONFIG, yaml.load(f))
+
+        self.config = load_overrides(config)
+
         self.name = self.config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
 
-        self.static_locations = {}
-        self.static_aliases = {}
         self._initialized = False
+
+    def build_venv_command(self, cmd):
+        cmd, *remainder = cmd.split()
+        returned = os.path.abspath(os.path.join(self.root, '.cob', 'env', 'bin', cmd))
+        return ' '.join([returned, *remainder])
 
     def get_deps(self):
         return set(self.config.get('deps') or ())
@@ -50,24 +73,30 @@ class Project(object):
         self.subsystems.configure_app(app)
         self._configure_static_locations(app)
 
-    def add_static_location(self, url_path, fs_path):
-        self.static_locations.setdefault(
-            url_path, []).append(os.path.abspath(fs_path))
+    def get_sorted_locations(self):
+        return sort_paths_specific_to_generic(
+            self._iter_all_locations(),
+            key=lambda location: location.mountpoint.path)
 
-    def add_static_file_alias(self, url_path, fs_path):
-        assert url_path not in self.static_aliases
-        self.static_aliases[url_path] = os.path.abspath(fs_path)
+    def _iter_all_locations(self):
+        for subsystem in self.subsystems:
+            location_iterator = subsystem.iter_locations()
+            if location_iterator is None:
+                continue
+            yield from location_iterator
 
     def _configure_static_locations(self, flask_app):
-        for url_path, fs_paths in self.static_locations.items():
-            if not url_path.endswith('/'):
-                url_path += '/'
-            flask_app.route(url_path + '<path:filename>',
-                            defaults={'search_locations': fs_paths})(_static_view)
 
-        for url_path, fs_path in self.static_aliases.items():
-            flask_app.route(url_path, defaults={'path': fs_path})(
-                _static_alias_view)
+        for location in self.get_sorted_locations():
+            if not location.is_static():
+                continue
+
+            if location.is_frontend_app():
+                flask_app.route(str(location.mountpoint), defaults={'path': location.fs_paths[0]})(
+                    _static_alias_view)
+            else:
+                flask_app.route(str(location.mountpoint.join('<path:filename>')),
+                                defaults={'search_locations': location.fs_paths})(_static_view)
 
 
 def _static_view(filename, search_locations):
@@ -82,7 +111,7 @@ def _static_view(filename, search_locations):
     abort(404)
 
 
-def _static_alias_view(path):
+def _static_alias_view(path, ignored=None): # pylint: disable=unused-argument
     return send_from_directory(os.path.dirname(path), os.path.basename(path))
 
 

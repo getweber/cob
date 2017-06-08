@@ -15,12 +15,6 @@ def setup_logging():
     logbook.StderrHandler(level=logbook.TRACE).push_application()
 
 
-@pytest.fixture(scope='session', autouse=True)
-def prevent_bootstrapping():
-    os.environ[_PREVENT_REENTRY_ENV_VAR] = 'true'
-    os.environ[_COB_DEVELOP_MODE] = 'true'
-
-
 @pytest.fixture
 def project_name():
     return 'proj{}'.format(str(uuid4()).replace('-', '_'))

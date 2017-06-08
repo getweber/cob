@@ -89,7 +89,7 @@ how this works you can read about it :ref:`here <environments>`.
 
 After the setup is done, your server will run on the default port::
 
-  $ curl http://127.0.0.1/api/todos
+  $ curl http://127.0.0.1/api/tasks
   { 
       "data": []
   }
@@ -195,7 +195,7 @@ tasks from the database:
      from .models import db, Task
      
      
-     @route('/todos')
+     @route('/tasks')
      def get_all():
          return jsonify({
             'data': [
@@ -203,11 +203,11 @@ tasks from the database:
                 for task in Task.query.all()
             ]})
      
-     @route('/todos', methods=['POST'])
+     @route('/tasks', methods=['POST'])
      def create_todo():
          data = request.get_json()['data']
          task = Task(
-             description = data['description']
+             description = data['attributes']['description']
          )
          db.session.add(task)
          db.session.commit()
@@ -243,9 +243,11 @@ your project root, and create your first test file -- let's name it
 
     def test_add_todo(webapp):
         message = 'some message'
-        webapp.post('/api/todos', data_json={
+        webapp.post('/api/tasks', data_json={
             'data': {
-                'description': message,
+                'attributes': {
+                    'description': message,
+                }
             }})
         all_todos = webapp.get('/api/todos')['data']
         last_todo = all_todos[-1]['attributes']
@@ -262,4 +264,257 @@ project root.
          your project. All options and arguments are forwarded to
          pytest for maximum flexibility.
 
+Adding Third-Party Components
+-----------------------------
 
+Cob is aimed at being the backbone of your webapp. Most web
+applications eventually need to bring in and use third party
+components or libraries, and Cob makes that easy to do.
+
+We are going to improve our Todo app by using a third-part tool for
+serialization, `marshmallow
+<http://marshmallow.readthedocs.io/en/latest/>`_. The first 
+order of business is to get Cob to install this dependency whenever
+our project is being bootstrapped. This can be done easily by
+appending it to the ``deps`` section of ``.cob-project.yml``::
+
+  # .cob-project.yml
+  ...
+  deps:
+      - marshmallow
+
+Now we can use this library to serialize our data, for instance create
+a file named ``schemas.py`` with the following:
+
+.. code-block:: python
+       
+  from marshmallow import Schema, fields, post_dump, post_load, pre_load
+  from .models import Task
+  
+  
+  class JSONAPISchema(Schema):
+  
+      @post_dump(pass_many=True)
+      def wrap_with_envelope(self, data, many): # pylint: disable=unused-argument
+          return {'data': data}
+  
+      @post_dump(pass_many=False)
+      def wrap_objet(self, obj):
+          return {'id': obj.pop('id'), 'attributes': obj, 'type': self.Meta.model.__name__.lower()}
+  
+      @post_load
+      def make_object(self, data):
+          return self.Meta.model(**data)
+  
+      @pre_load
+      def preload_object(self, data):
+          data = data.get('data', {})
+          returned = dict(data.get('attributes', {}))
+          returned['id'] = data.get('id')
+          return returned
+  
+  
+  class TaskSchema(JSONAPISchema):
+      id = fields.Integer(dump_only=True)
+      description = fields.Str(required=True)
+      done = fields.Boolean()
+  
+      class Meta:
+          model = Task
+  
+  tasks = TaskSchema(strict=True)
+
+And use it in ``backend.py``:
+
+.. code-block:: python
+
+  from cob import route
+  from flask import jsonify, request
+  
+  from .models import db, Task
+  from .schemas import tasks as tasks_schema
+  
+  @route('/tasks')
+  def get_all():
+      return jsonify(tasks_schema.dump(Task.query.all(), many=True).data)
+  
+  @route('/tasks', methods=['POST'])
+  def create_todo():
+      json = request.get_json()
+      if json is None:
+          return "No JSON provided", 400
+  
+      result = tasks_schema.load(json)
+      if result.errors:
+          return jsonify(result.errors), 400
+      db.session.add(result.data)
+      db.session.commit()
+      return jsonify(tasks_schema.dump(result.data).data)
+
+
+Building a UI
+-------------
+
+Cob makes it easy to integrate front-end code in the same repository as
+your backend, and helps you build, test and deploy it too. 
+
+Setting Up
+~~~~~~~~~~
+
+In our example we will be using `Ember <https://www.emberjs.com/>`_ to
+use our UI. We'll start by creating our front-end grain::
+
+  $ cob generate grain --type frontend-ember webapp
+
+.. note:: In order for the above to work, you need to have
+          `Ember CLI <https://ember-cli.com/>`_ installed on your
+          system
+
+This will bootstrap your ``webapp`` subdirectory with our UI code, and
+take care of initial setup.
+
+While this looks like black magic, what happens here is quite simple -
+Cob creates a directory called ``webapp``, and places a ``.cob.yml``
+file inside it, letting Cob know that this is a grain of type
+``frontend-ember``::
+
+  # In webapp/.cob.yml
+  type: frontend-ember
+
+The ``.cob.yml`` file is just a different way to write the markup we
+used in the first comment line of our previous grains. Once we marked
+our webapp directory in this way, Cob knows how to treat it as one
+containing Ember front-end code.
+
+Writing our Front-end Logic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We won't dive in to how to develop using Ember, so we'll just create a
+minimal front-end app for displaying and adding our TODOs.
+
+.. note:: We won't cover Ember here in depth -- for more information
+          you can refer to the excellent `Ember Guides
+          <https://guides.emberjs.com/v2.12.0/>`_. For now, just take
+          our word for it
+
+
+.. code-block:: javascript
+
+  // webapp/app/routes/tasks.js
+  import Ember from 'ember';
+  
+  export default Ember.Route.extend({
+  
+      model() {
+          return this.store.findAll('task');
+      },
+  
+      setupController(controller, model) {
+          this._super(...arguments);
+          controller.set('tasks', model);
+      },
+  });
+
+
+.. code-block:: javascript
+
+  // webapp/app/controllers/tasks.js
+  import Ember from 'ember';
+  
+  export default Ember.Controller.extend({
+  
+      new_task: '',
+  
+      actions: {
+          add_task() {
+              let task = this.store.createRecord('task', {
+                  description: this.get('new_task'),
+              });
+              task.save();
+          }
+      }
+  });
+
+
+.. code-block:: javascript
+
+  // webapp/app/models/task.js  
+  import DS from 'ember-data';
+  
+  export default DS.Model.extend({
+  
+      description: DS.attr(),
+      done: DS.attr('boolean'),
+  });
+
+.. code-block:: javascript
+
+  // webapp/app/adapters/application.js
+  import DS from 'ember-data';
+  
+  export default DS.JSONAPIAdapter.extend({
+      namespace: '/api',
+  });
+
+And finally our template::
+
+  <!-- webapp/app/templates/tasks.hbs -->
+  {{#each tasks as |task| }}
+    <div class="task">
+      <h3>{{task.description}}</h3>
+    </div>
+  {{/each}}
+  
+  {{input value=new_task}}
+  <button {{action "add_task"}}>Add</button>
+
+
+Developing Front-end and Backend Simultaneously
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that we have multiple components to track during development (our
+Flask app and our Front-end compilation) we can make use of yet
+another handy tool Cob provides for us: ``cob develop``::
+
+  $ cob develop
+
+This command will fire up ``tmux`` (you'll have to have it installed
+beforehand though), with two windows -- one for running the backend
+server and the other running ``ember build --watch`` to compile your
+front-end. Cool huh?
+
+
+Deploying your Application
+--------------------------
+
+Cob uses **Docker** for deploying apps. It is the best way to
+guarantee reproducible, composable setups and also allow reuse between
+development and deployment.
+
+Cob separates deployment to two stages: building your deployment image
+and running it.
+
+Building your Application Image
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From your project directory, run::
+  
+  $ cob docker build
+
+This will create a basic Docker image, labeled ``todos`` by default
+(Cob uses the app name from the project's configuration to name to
+label its images), and that image will be later on used for running
+your app.
+
+Running your Application in Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To run your app via ``docker-compose``, running its various pieces
+properly linked, run::
+
+  $ cob docker run
+
+This will start your app in the foreground.
+
+.. seealso:: For more information on deploying your apps with Cob, see
+             the :ref:`deployment` section of the docs

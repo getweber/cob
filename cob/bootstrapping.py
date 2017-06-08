@@ -1,10 +1,10 @@
+import functools
 import os
 import subprocess
 import sys
 
 import click
 import logbook
-import venv
 import yaml
 
 from .defs import COB_CONFIG_FILE_NAME
@@ -18,7 +18,7 @@ _COB_REFRESH_ENV = 'COB_REFRESH_ENV'
 _VIRTUALENV_PATH = '.cob/env'
 _INSTALLED_DEPS = '.cob/_installed_deps.yml'
 
-def ensure_project_bootstrapped():
+def ensure_project_bootstrapped(*, reenter=True):
     if not os.path.isfile(COB_CONFIG_FILE_NAME):
         _logger.trace('Project is not a cob project')
         return
@@ -26,7 +26,8 @@ def ensure_project_bootstrapped():
         _logger.trace('{} found in environ. Not reentering.', _PREVENT_REENTRY_ENV_VAR)
         return
     _ensure_virtualenv()
-    _reenter()
+    if reenter:
+        _reenter()
 
 def get_virtualenv_binary_path(name):
     return os.path.join(_VIRTUALENV_PATH, 'bin', name)
@@ -45,12 +46,19 @@ def _ensure_virtualenv():
         _logger.trace('Creating virtualenv in {}', _VIRTUALENV_PATH)
         if not os.path.isdir(venv_parent_dir):
             os.makedirs(venv_parent_dir)
-        venv.create(_VIRTUALENV_PATH)
+        _create_virtualenv(_VIRTUALENV_PATH)
 
-    subprocess.check_call([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'ensurepip'])
+    _in_env = functools.partial(os.path.join, _VIRTUALENV_PATH, 'bin')
+
+    if not os.path.isfile(_in_env('pip')):
+        subprocess.check_call([_in_env('python'), '-m', 'ensurepip'])
     if is_develop():
         _logger.trace('Using development version of cob')
-        _virtualenv_pip_install(['-e', cob_root()])
+        sdist_path = os.environ.get('COB_DEVELOP_SDIST')
+        if sdist_path is None:
+            _virtualenv_pip_install(['-e', cob_root()])
+        else:
+            _virtualenv_pip_install([sdist_path])
     else:
         _logger.trace('Installing cob form Pypi')
         _virtualenv_pip_install(['-U', 'cob'])
@@ -59,6 +67,29 @@ def _ensure_virtualenv():
     _virtualenv_pip_install(['-U', *deps])
     with open(_INSTALLED_DEPS, 'w') as f:
         yaml.dump(deps, f)
+
+def _create_virtualenv(path):
+    if 'VIRTUAL_ENV' in os.environ:
+        click.echo(click.style('You are attempting to use Cob from a virtual environment. Cob will try to locate your global Python installation to avoid '
+                               'unintended consequences', fg='yellow'))
+        interpreter = _locate_original_interpreter()
+    else:
+        interpreter = sys.executable
+
+    subprocess.check_call([interpreter, '-m', 'virtualenv', path])
+
+def _locate_original_interpreter():
+    if not os.environ.get('COB_FORCE_CURRENT_INTERPRETER'):
+        for path in ('/usr/local/bin', '/usr/bin'):
+            for option in ('python{0.major}.{0.minor}', 'python{0.major}'):
+                optional = os.path.join(path, option.format(sys.version_info))
+                if os.path.isfile(optional):
+                    return optional
+    else:
+        click.echo(click.style('Current interpreter is forced (COB_FORCE_CURRENT_INTERPRETER is set)', fg='yellow'))
+
+    click.echo(click.style('Could not locate global Python interpreter. Using current interpreter as fallback', fg='yellow'))
+    return sys.executable
 
 def _needs_refresh():
     if _COB_REFRESH_ENV in os.environ:

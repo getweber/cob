@@ -2,6 +2,9 @@ import os
 
 import emport
 
+from ..exceptions import BadMountpoint
+from ..utils.url import Mountpoint
+
 _SUBSYSTEM_BY_NAME = {}
 
 class SubsystemMeta(type):
@@ -16,6 +19,7 @@ class SubsystemMeta(type):
 class SubsystemBase(metaclass=SubsystemMeta):
 
     SUBSYSTEM_BY_NAME = _SUBSYSTEM_BY_NAME
+    SUPPORTS_OVERLAYS = False
 
     def __init__(self, manager):
         super(SubsystemBase, self).__init__()
@@ -25,6 +29,12 @@ class SubsystemBase(metaclass=SubsystemMeta):
 
     def add_grain(self, path, config):
         self.grains.append(LoadedGrain(self, path, config))
+
+    def get_docker_pre_install_steps(self):
+        return ()
+
+    def get_docker_install_steps(self):
+        return ()
 
     def activate(self, flask_app):
         pass
@@ -39,6 +49,10 @@ class SubsystemBase(metaclass=SubsystemMeta):
     def configure_tmux_window(self, windows):
         pass
 
+    def iter_locations(self):
+        raise NotImplementedError() # pragma: no cover
+
+
 
 class LoadedGrain(object):
 
@@ -47,6 +61,16 @@ class LoadedGrain(object):
         self.subsystem = subsystem
         self.path = path
         self.config = config
+        self.mountpoint = self.config.get('mountpoint', None)
+        if self.mountpoint is not None:
+            if self.mountpoint != '/' and self.mountpoint.endswith('/'):
+                raise BadMountpoint('Mountpoint for grain {} should not end with /'.format(self.path))
+            self.mountpoint = Mountpoint(self.mountpoint)
+
+    def get_path_from(self, project_root):
+        our_proj_root = self.subsystem.project.root
+        relpath = os.path.relpath(self.path, our_proj_root)
+        return os.path.abspath(os.path.join(project_root, relpath))
 
     def load(self):
         if os.path.isfile(self.path):
@@ -54,7 +78,6 @@ class LoadedGrain(object):
         main = self.config.get('main', 'main')
         if not main.endswith('.py'):
             main += '.py'
-        print("Importing %s" % os.path.join(self.path, main))
         return emport.import_file(os.path.join(self.path, main))
 
     def load_python_symbol_by_name(self, symbol):
