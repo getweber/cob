@@ -32,7 +32,7 @@ class ModelsSubsystem(SubsystemBase):
 
 
     def configure_grain(self, grain, flask_app): # pylint: disable=unused-argument
-        _logger.trace('Found models: {m.path}', grain)
+        _logger.trace('Found models: {.path}', grain)
         grain.load()
 
     def iter_locations(self):
