@@ -1,23 +1,9 @@
 from uuid import uuid4
-from .app import build_app
-
-from celery import Celery
-from celery.loaders.base import BaseLoader
-
-
-# Cob's loader. Used to correctly locate tasks
-
-class CobLoader(BaseLoader):
-
-    def on_worker_init(self):
-        # this will make the tasks grains to be properly loaded and discovered
-        build_app()
-
-
-celery_app = Celery('cob-celery', backend='rpc://', loader=CobLoader)
 
 
 def task(*, every=None, schedule=None, schedule_name=None, **kwargs):
+    from .app import celery_app
+
     if every is None and schedule is None:
         return celery_app.task(**kwargs)
 
