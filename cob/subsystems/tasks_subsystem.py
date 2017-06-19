@@ -12,7 +12,7 @@ class TasksSubsystem(SubsystemBase):
 
 
     def activate(self, flask_app):
-        from ..celery_utils import celery_app
+        from ..celery.app import celery_app
         self._config = self.project.config.get('celery', {})
 
         # ensure critical celery config exists
@@ -36,7 +36,7 @@ class TasksSubsystem(SubsystemBase):
     def configure_app(self, flask_app):
         super().configure_app(flask_app)
 
-        from ..celery_utils import celery_app
+        from ..celery.app import celery_app
         for task in celery_app.tasks.values():
             queue_name = getattr(task, 'queue', None)
             if queue_name is not None:

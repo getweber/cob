@@ -2,10 +2,6 @@ import os
 
 import click
 
-from ..bootstrapping import ensure_project_bootstrapped
-from ..project import get_project
-from ..utils.network import wait_for_app_services
-
 
 @click.group()
 def celery():
@@ -13,6 +9,10 @@ def celery():
 
 @celery.command(name='start-worker')
 def start_worker():
+    from ..bootstrapping import ensure_project_bootstrapped
+    from ..project import get_project
+    from ..utils.network import wait_for_app_services
+
     from ..app import build_app
 
     ensure_project_bootstrapped()
@@ -23,5 +23,5 @@ def start_worker():
     tasks_subsystem = project.subsystems.tasks
     assert tasks_subsystem.grains
     argv = [celery_cmd]
-    argv.extend('-A cob.celery_utils worker --loglevel=DEBUG -E -B -Q {}'.format(','.join(tasks_subsystem.get_queue_names())).split())
+    argv.extend('-A cob.celery.app worker --loglevel=DEBUG -E -B -Q {}'.format(','.join(tasks_subsystem.get_queue_names())).split())
     os.execv(celery_cmd, argv)
