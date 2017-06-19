@@ -15,7 +15,7 @@ def celery():
 def start_worker():
     from ..app import build_app
 
-    ensure_project_bootstrapped(reenter=False)
+    ensure_project_bootstrapped()
     project = get_project()
     app = build_app()
     wait_for_app_services(app)
