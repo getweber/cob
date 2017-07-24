@@ -55,4 +55,4 @@ Developing with Front-end Compilation
 
 Developing back-end and front-end code in tandem requires some additional ergonomics. Cob supports the ``tmux`` command for running a complete development environment inside tmux.
 
-After creating your grains, run ``cob tmux start`` to start your tmux development session.
+After creating your grains, run ``cob develop`` to start your tmux development session.
