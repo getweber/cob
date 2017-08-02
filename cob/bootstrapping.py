@@ -14,6 +14,7 @@ from .project import get_project
 _logger = logbook.Logger(__name__)
 
 _PREVENT_REENTRY_ENV_VAR = 'COB_NO_REENTRY'
+_USE_PRE_ENV_VAR = 'COB_USE_PRE'
 _COB_REFRESH_ENV = 'COB_REFRESH_ENV'
 _VIRTUALENV_PATH = '.cob/env'
 _INSTALLED_DEPS = '.cob/_installed_deps.yml'
@@ -61,7 +62,10 @@ def _ensure_virtualenv():
             _virtualenv_pip_install([sdist_path])
     else:
         _logger.trace('Installing cob form Pypi')
-        _virtualenv_pip_install(['-U', 'cob'])
+        args = ['-U', 'cob']
+        if os.environ.get(_USE_PRE_ENV_VAR):
+            args.append('--pre')
+        _virtualenv_pip_install(args)
 
     deps = sorted(get_project().get_deps())
     _virtualenv_pip_install(['-U', *deps])
