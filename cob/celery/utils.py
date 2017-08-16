@@ -1,7 +1,9 @@
 from uuid import uuid4
 
+import functools
 
-def task(*, every=None, schedule=None, schedule_name=None, **kwargs):
+
+def task(*, every=None, schedule=None, schedule_name=None, use_app_context=False, **kwargs):
     from .app import celery_app
 
     if every is None and schedule is None:
@@ -19,6 +21,20 @@ def task(*, every=None, schedule=None, schedule_name=None, **kwargs):
             'task': returned.name,
             'schedule': every if every is not None else schedule,
         }
+        if use_app_context:
+            returned = _wrap_with_app_context(returned)
         return returned
 
     return decorator
+
+
+def _wrap_with_app_context(func):
+
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        from cob.app import build_app
+
+        app = build_app(use_cached=True)
+        with app.app_context():
+            return func(*args, **kwargs)
+    return new_func
