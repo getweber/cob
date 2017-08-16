@@ -15,6 +15,7 @@ _logger = logbook.Logger(__name__)
 
 _PREVENT_REENTRY_ENV_VAR = 'COB_NO_REENTRY'
 _USE_PRE_ENV_VAR = 'COB_USE_PRE'
+_PYPI_INDEX_ENV_VAR = 'COB_INDEX_URL'
 _COB_REFRESH_ENV = 'COB_REFRESH_ENV'
 _VIRTUALENV_PATH = '.cob/env'
 _INSTALLED_DEPS = '.cob/_installed_deps.yml'
@@ -65,6 +66,8 @@ def _ensure_virtualenv():
         args = ['-U', 'cob']
         if os.environ.get(_USE_PRE_ENV_VAR):
             args.append('--pre')
+        if _PYPI_INDEX_ENV_VAR in os.environ:
+            args.extend(['-i'], os.environ[_PYPI_INDEX_ENV_VAR])
         _virtualenv_pip_install(args)
 
     deps = sorted(get_project().get_deps())
