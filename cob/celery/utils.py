@@ -3,32 +3,32 @@ from uuid import uuid4
 import functools
 
 
-def task(*, every=None, schedule=None, schedule_name=None, use_app_context=False, **kwargs):
+def task(_func=None, *, every=None, schedule=None, schedule_name=None, use_app_context=False, **kwargs):
     from .app import celery_app
 
-    if every is None and schedule is None:
-        return celery_app.task(**kwargs)
+    if _func is None:
+        return functools.partial(task, every=every, schedule=schedule, schedule_name=schedule_name, use_app_context=use_app_context, **kwargs)
 
-    if every is not None and schedule is not None:
-        raise RuntimeError("'every' can't be provided along with 'schedule'")
 
-    if schedule_name is None:
-        schedule_name = str(uuid4())
+    if use_app_context:
+        _func = _wrap_with_app_context(_func)
 
-    def decorator(func):
+    returned = celery_app.task(**kwargs)(_func)
 
-        if use_app_context:
-            func = _wrap_with_app_context(func)
 
-        returned = celery_app.task(**kwargs)(func)
+    if every is not None or schedule is not None:
+        if every is not None and schedule is not None:
+            raise RuntimeError("'every' can't be provided along with 'schedule'")
+
+        if schedule_name is None:
+            schedule_name = str(uuid4())
+
         celery_app.conf.beat_schedule[schedule_name] = { # pylint: disable=no-member
             'task': returned.name,
             'schedule': every if every is not None else schedule,
         }
 
-        return returned
-
-    return decorator
+    return returned
 
 
 def _wrap_with_app_context(func):
