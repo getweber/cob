@@ -79,7 +79,9 @@ Tasks Grains
   ...
   $ cat tasks.py
 
-  .. code-block:: python
+
+.. code-block:: python
+
           # cob: type=tasks mountpoint={{mountpoint}}
           from cob import task, periodic_task
           from celery.schedules import crontab

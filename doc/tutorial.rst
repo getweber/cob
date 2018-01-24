@@ -89,7 +89,7 @@ how this works you can read about it :ref:`here <environments>`.
 
 After the setup is done, your server will run on the default port::
 
-  $ curl http://127.0.0.1/api/tasks
+  $ curl http://127.0.0.1/api/todos
   { 
       "data": []
   }
@@ -216,7 +216,7 @@ tasks from the database:
      def create_todo():
          data = request.get_json()['data']
          task = Task(
-             description = data['attributes']['description']
+             description=data['attributes']['description']
          )
          db.session.add(task)
          db.session.commit()
