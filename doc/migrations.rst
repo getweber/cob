@@ -1,3 +1,5 @@
+.. _migrations:
+
 Using Migrations
 ================
 
