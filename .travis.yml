@@ -2,7 +2,7 @@ language: python
 sudo: required
 python:
   - '3.5'
-
+dist: precise
 env:
   global:
     - COB_FORCE_CURRENT_INTERPRETER=1
