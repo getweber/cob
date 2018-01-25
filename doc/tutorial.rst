@@ -153,6 +153,15 @@ our task model:
        description = db.Column(db.Text, nullable=False)
        done = db.Column(db.Boolean, default=False)
 
+.. note:: By default, Cob uses an SQLite database located in the project's `.cob` directory for development, and switches to use Postgres for production (e.g. when being deployed as a docker container). In some cases you may want to use Postgres during development as well. In such cases, make sure you have a local Postgres instance running, and change the relevant DB URL to point at it. This can be done by adding the following to `.cob-project.yml` under your project root directory:
+  
+          .. code-block:: text
+             
+            flask_config:
+                SQLALCHEMY_DATABASE_URI: postgres://localhost/your_db
+
+
+
 Initializing Migrations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
