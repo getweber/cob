@@ -182,10 +182,14 @@ def start_nginx(print_config):
 @docker.command()
 @click.option('--http-port', default=None)
 @click.option('--build', is_flag=True, default=False)
-def run(http_port, build):
+@click.option('-d', '--detach', is_flag=True, default=False)
+def run(http_port, build, detach):
     if build:
         docker_build.callback(sudo=False, extra_build_args='')
-    _exec_docker_compose(['up'], http_port=http_port)
+    cmd = ['up']
+    if detach:
+        cmd.append('-d')
+    _exec_docker_compose(cmd, http_port=http_port)
 
 
 @docker.command()
