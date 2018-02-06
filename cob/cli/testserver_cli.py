@@ -12,5 +12,5 @@ _logger = logbook.Logger(__name__)
 @click.option('--debug/--no-debug', is_flag=True, default=True)
 def testserver(port, debug):
     ensure_project_bootstrapped()
-    flask_app = build_app()
+    flask_app = build_app(config_overrides={'TESTING': True, 'DEBUG': debug})
     flask_app.run(port=port, debug=debug)
