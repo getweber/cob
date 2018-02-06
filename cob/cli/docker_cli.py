@@ -17,6 +17,7 @@ import yaml
 from ..ctx import context
 from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
+from ..exceptions import MissingDependency
 from .utils import exec_or_error
 from ..utils.develop import is_develop, cob_root
 from ..utils.network import wait_for_app_services, wait_for_tcp
@@ -208,6 +209,8 @@ def _exec_docker_compose(cmd, **kwargs):
     with open(compose_filename, 'w') as f:
         f.write(_generate_compose_file(**kwargs))
     docker_compose = shutil.which('docker-compose')
+    if not docker_compose:
+        raise MissingDependency("docker-compose is not installed in this system. Please install it to use cob")
     os.execv(docker_compose, [docker_compose, '-f',
                               compose_filename, '-p', project.name] + cmd)
 
