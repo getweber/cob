@@ -23,3 +23,7 @@ class BadMountpoint(CobConflict):
 
 class MountpointConflict(CobConflict):
     pass
+
+
+class MissingDependency(CobExecutionError):
+    pass
