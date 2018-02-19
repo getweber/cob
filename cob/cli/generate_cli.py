@@ -48,6 +48,7 @@ def after_generate_grain_frontend_ember(*, name):
     else:
         click.echo('Generating new Ember project')
         subprocess.check_call('ember init', cwd=name, shell=True)
+        subprocess.check_call('npm install', cwd=name, shell=True)
 
 
 @generate.command()
@@ -139,11 +140,12 @@ class SkeletonFile(Skeleton):
         self._path = path
 
     def generate(self, dest_path):
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(self._path)))
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(self._path)),
+                                 keep_trailing_newline=True)
         template = env.get_template(os.path.basename(self._path))
         normalized_path = os.path.relpath(dest_path) if not os.path.isabs(dest_path) else dest_path
         click.echo('Generating {}'.format(normalized_path))
         if os.path.exists(dest_path):
             raise click.ClickException("{} already exists".format(normalized_path))
-        with open(dest_path, 'w') as f:
+        with open(normalized_path, 'w') as f:
             f.write(template.render(**_ctx))

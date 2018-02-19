@@ -16,7 +16,12 @@ lets you easily generate a new project::
   $ cob generate grain --type frontend-ember ./webapp
 
 This will create the new grain and even, if ember-cli is detected in
-your environment, run ``ember init`` for you.
+your environment, run ``ember init`` and ``npm install`` for you.
+
+.. note:: After generating the grain, you can use all regular ``ember-cli`` commands. You only have
+          to make sure that you run them from within the grain directory -- otherwise they will not
+          work as expected.
+
 
 The Mount Point
 +++++++++++++++

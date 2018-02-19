@@ -17,7 +17,9 @@ import yaml
 from ..ctx import context
 from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
+from ..exceptions import MissingDependency
 from .utils import exec_or_error
+from ..utils.docker import get_full_commmand as get_full_docker_command
 from ..utils.develop import is_develop, cob_root
 from ..utils.network import wait_for_app_services, wait_for_tcp
 from ..utils.templates import load_template
@@ -80,17 +82,14 @@ def _build_cob_sdist():
 
 
 @docker.command(name='build')
-@click.option('--sudo', is_flag=True, help="Run docker build with sudo")
+@click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
 @click.option('--extra-build-args', '-e', default="", help="Arguments to pass to docker build")
 def docker_build(sudo, extra_build_args):
     project = get_project()
     generate.callback()
 
-    cmd = "{}docker build -t {} -f .Dockerfile {} .".format(
-        "sudo " if sudo else "",
-        project.name,
-        extra_build_args)
-
+    cmd = get_full_docker_command("docker build -t {} -f .Dockerfile {} .".format(project.name, extra_build_args),
+                                  should_sudo=sudo)
     exec_or_error(cmd, shell=True)
 
 
@@ -182,10 +181,14 @@ def start_nginx(print_config):
 @docker.command()
 @click.option('--http-port', default=None)
 @click.option('--build', is_flag=True, default=False)
-def run(http_port, build):
+@click.option('-d', '--detach', is_flag=True, default=False)
+def run(http_port, build, detach):
     if build:
         docker_build.callback(sudo=False, extra_build_args='')
-    _exec_docker_compose(['up'], http_port=http_port)
+    cmd = ['up']
+    if detach:
+        cmd.append('-d')
+    _exec_docker_compose(cmd, http_port=http_port)
 
 
 @docker.command()
@@ -204,6 +207,9 @@ def _exec_docker_compose(cmd, **kwargs):
     with open(compose_filename, 'w') as f:
         f.write(_generate_compose_file(**kwargs))
     docker_compose = shutil.which('docker-compose')
+    if not docker_compose:
+        raise MissingDependency("docker-compose is not installed in this system. Please install it to use cob")
+    docker_compose = get_full_docker_command(docker_compose)
     os.execv(docker_compose, [docker_compose, '-f',
                               compose_filename, '-p', project.name] + cmd)
 

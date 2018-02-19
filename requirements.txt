@@ -13,6 +13,7 @@ Jinja2
 gossip
 gunicorn
 Logbook
+mitba
 psycopg2
 PyYAML
 pytest
