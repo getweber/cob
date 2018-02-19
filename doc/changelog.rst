@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* :release:`0.15.0 <19-2-2018>`
+* :feature:`59` Front-end ember grains now run npm install
+* :feature:`47` Cob now handles cases where docker requires sudo more elegantly
+* :feature:`-` Many small fixes and improvements
 * :release:`0.14.0 <19-10-2017>`
 * :feature:`43` Add option to pass arbitrary arguments to celery start-worker
 * :feature:`40` Added ability to make background tasks run in app context
