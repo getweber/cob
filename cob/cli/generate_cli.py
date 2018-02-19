@@ -48,6 +48,7 @@ def after_generate_grain_frontend_ember(*, name):
     else:
         click.echo('Generating new Ember project')
         subprocess.check_call('ember init', cwd=name, shell=True)
+        subprocess.check_call('npm install', cwd=name, shell=True)
 
 
 @generate.command()
