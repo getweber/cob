@@ -10,8 +10,8 @@ def test_ember_assets():
 
 def test_ember_non_root_uri():
     with Project('ember_non_root_uri').server_context() as app:
-        assert app.get('/') == 'root resource here'
-        assert 'link rel="stylesheet"' in app.get('/ui/')
+        assert app.get('/').text == 'root resource here'
+        assert 'link rel="stylesheet"' in app.get('/ui/').text
 
 
 def _iter_assets(app):
