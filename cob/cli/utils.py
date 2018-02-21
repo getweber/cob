@@ -1,8 +1,6 @@
 import functools
-import subprocess
 
 from ..app import build_app
-from ..exceptions import CobExecutionError
 from ..bootstrapping import ensure_project_bootstrapped
 
 
