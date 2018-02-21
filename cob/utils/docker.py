@@ -16,5 +16,5 @@ def get_full_commmand(cmd, should_sudo=None):
     if should_sudo is None:
         should_sudo = _check_if_sudo_needed()
     if should_sudo:
-        cmd = "sudo " + cmd
+        cmd = 'sudo -p "Please enter your password to run docker: " ' + cmd
     return cmd
