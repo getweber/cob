@@ -93,7 +93,10 @@ class Project(object):
         finally:
             _logger.debug('Killing server')
             if p.poll() is None:
-                p.terminate()
+                try:
+                    p.terminate()
+                except PermissionError:
+                    subprocess.check_call('sudo -p "Enter password to kill docker-compose process: " kill -9 {}'.format(p.pid), shell=True)
             p.wait()
 
     def _wait_for_server(self, port, timeout_seconds=30, process=None):
