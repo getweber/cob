@@ -1,3 +1,6 @@
+import os
+import shutil
+
 from mitba import cached_function
 import subprocess
 
@@ -16,5 +19,8 @@ def get_full_commmand(cmd, should_sudo=None):
     if should_sudo is None:
         should_sudo = _check_if_sudo_needed()
     if should_sudo:
-        cmd = 'sudo -p "Please enter your password to run docker: " ' + cmd
+        cmd[:0] = ['sudo', '-p', 'Please enter your password to run docker: ']
+
+    if not os.path.isabs(cmd[0]):
+        cmd[0] = shutil.which(cmd[0])
     return cmd

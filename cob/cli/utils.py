@@ -14,10 +14,3 @@ def appcontext_command(func):
             return func(*args, **kwargs)
 
     return new_func
-
-
-def exec_or_error(*args, **kwargs):
-    returned = subprocess.Popen(*args, **kwargs)
-    if returned.wait() != 0:
-        raise CobExecutionError('Error executing command')
-    return returned
