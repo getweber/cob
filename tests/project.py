@@ -54,7 +54,8 @@ class Project(object):
     def _build(self):
         if self._name not in _built_dockers:
             _logger.debug('Building docker image for {._name}...', self)
-            self._run_cob(['docker', 'build']).wait()
+            res = self._run_cob(['docker', 'build']).wait()
+            assert res == 0, 'cob docker build failed!'
             _built_dockers.add(self._name)
         else:
             _logger.debug('Docker image for {._name} already built', self)
