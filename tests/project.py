@@ -18,7 +18,7 @@ _logger = logbook.Logger(__name__)
 
 _DEFAULT_PORT = 6789
 
-PROJECTS_ROOT = os.path.join(os.path.dirname(__file__), '_projects')
+PROJECTS_ROOT = os.path.join(os.path.dirname(__file__), '..', '_test_projects')
 
 
 template_env = TemplateEnvironment(loader=FileSystemLoader(
