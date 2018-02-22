@@ -26,6 +26,9 @@ class Mountpoint:
     def __str__(self):
         return self.path
 
+    def __repr__(self):
+        return '<{}>'.format(self)
+
     def __hash__(self):
         return hash(self.path)
 
