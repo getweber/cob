@@ -45,6 +45,9 @@ script:
   - pylint --rcfile=.pylintrc cob
   - py.test tests
 
+after_failure:
+  - docker images
+
 deploy:
   provider: pypi
   user: vmalloc
