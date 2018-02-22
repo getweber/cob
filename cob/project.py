@@ -92,7 +92,7 @@ class Project(object):
                 continue
 
             if location.is_frontend_app():
-                flask_app.route(str(location.mountpoint), defaults={'path': location.fs_paths[0]})(
+                flask_app.route('{}<path:ignored>'.format(location.mountpoint), defaults={'path': location.fs_paths[0]})(
                     _static_alias_view)
             else:
                 flask_app.route('{}<path:filename>'.format(location.mountpoint),
