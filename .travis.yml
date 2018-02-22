@@ -42,8 +42,8 @@ install:
   - pip install pylint
 
 script:
-  - py.test tests
   - pylint --rcfile=.pylintrc cob
+  - py.test tests
 
 deploy:
   provider: pypi
