@@ -88,6 +88,7 @@ def docker_build(sudo, extra_build_args):
     generate.callback()
     cmd = get_full_docker_command(['docker', 'build', '-t', project.name, '-f', '.Dockerfile', '.', *extra_build_args.split()],
                                   should_sudo=sudo)
+    _logger.debug('Running Command: {}', ' '.join(cmd))
     os.execv(cmd[0], cmd)
 
 
