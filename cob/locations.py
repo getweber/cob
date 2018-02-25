@@ -15,3 +15,6 @@ class Location:
 
     def is_static(self):
         return self._is_static
+
+    def __repr__(self):
+        return '<Location {!r} ({})>'.format(self.mountpoint, self.fs_paths)
