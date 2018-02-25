@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`21` Cob now uses multi-stage docker building to reduce image size and speed up the build process
 * :release:`0.15.0 <19-2-2018>`
 * :feature:`59` Front-end ember grains now run npm install
 * :feature:`47` Cob now handles cases where docker requires sudo more elegantly

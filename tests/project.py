@@ -18,7 +18,7 @@ _logger = logbook.Logger(__name__)
 
 _DEFAULT_PORT = 6789
 
-PROJECTS_ROOT = os.path.join(os.path.dirname(__file__), '_projects')
+PROJECTS_ROOT = os.path.join(os.path.dirname(__file__), '..', '_test_projects')
 
 
 template_env = TemplateEnvironment(loader=FileSystemLoader(
@@ -54,7 +54,8 @@ class Project(object):
     def _build(self):
         if self._name not in _built_dockers:
             _logger.debug('Building docker image for {._name}...', self)
-            self._run_cob(['docker', 'build']).wait()
+            res = self._run_cob(['docker', 'build']).wait()
+            assert res == 0, 'cob docker build failed!'
             _built_dockers.add(self._name)
         else:
             _logger.debug('Docker image for {._name} already built', self)
@@ -93,10 +94,13 @@ class Project(object):
         finally:
             _logger.debug('Killing server')
             if p.poll() is None:
-                p.terminate()
+                try:
+                    p.terminate()
+                except PermissionError:
+                    subprocess.check_call('sudo -p "Enter password to kill docker-compose process: " kill -9 {}'.format(p.pid), shell=True)
             p.wait()
 
-    def _wait_for_server(self, port, timeout_seconds=30, process=None):
+    def _wait_for_server(self, port, timeout_seconds=60, process=None):
         end_time = time.time() + timeout_seconds
         while time.time() < end_time:
             try:

@@ -10,17 +10,31 @@ class EmberSubsystem(FrontendSubsystem):
 
     NAME = 'frontend-ember'
 
-    def get_docker_pre_install_steps(self):
-        return [
-            'RUN npm install -g ember-cli bower',
+    def get_docker_preamble_steps(self):
+        returned = [
+            'FROM node:7 as frontend-builder',
+            'RUN npm install -g ember-cli',
         ]
 
+        for grain, path in self._iter_grain_frontend_builder_paths():
+            returned.extend([
+                'ADD {} {}'.format(grain.relpath, path),
+                'RUN cd {} && yarn install && ember build --environment=production'.format(path),
+            ])
+        return returned
 
     def get_docker_install_steps(self):
-        return [
-            'RUN cd {} && npm install && bower install --allow-root && ember build --environment=production'.format(grain.get_path_from('/app'))
-            for grain in self.grains
-        ]
+        returned = []
+        for grain, path in self._iter_grain_frontend_builder_paths():
+            returned.append(
+                'COPY --from=frontend-builder {}/dist {}/dist'.format(
+                    path, grain.get_path_from('/app')))
+        return returned
+
+    def _iter_grain_frontend_builder_paths(self):
+        for index, grain in enumerate(self.grains, 1):
+            path = '/frontend-{}'.format(index)
+            yield grain, path
 
     def add_grain(self, path, config):
         config.setdefault('mountpoint', '/')

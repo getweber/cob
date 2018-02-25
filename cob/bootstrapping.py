@@ -132,11 +132,3 @@ def _reenter():
     argv[:1] = [os.path.abspath(os.path.join(_VIRTUALENV_PATH, 'bin', 'python')), '-m', 'cob.cli.main']
     _logger.trace('Running in {}: {}...', _VIRTUALENV_PATH, argv)
     os.execve(argv[0], argv, {_PREVENT_REENTRY_ENV_VAR: 'true', **os.environ})
-
-def _which(bin):
-    for directory in os.environ['PATH'].split(':'):
-        full_path = os.path.join(directory, bin)
-        if os.path.isfile(full_path):
-            return full_path
-
-    raise ValueError('Could not find a python interpreter named {}'.format(bin))

@@ -30,7 +30,7 @@ class SubsystemBase(metaclass=SubsystemMeta):
     def add_grain(self, path, config):
         self.grains.append(LoadedGrain(self, path, config))
 
-    def get_docker_pre_install_steps(self):
+    def get_docker_preamble_steps(self):
         return ()
 
     def get_docker_install_steps(self):
@@ -60,6 +60,7 @@ class LoadedGrain(object):
         super(LoadedGrain, self).__init__()
         self.subsystem = subsystem
         self.path = path
+        self.relpath = os.path.relpath(self.path, self.subsystem.project.root)
         self.config = config
         self.mountpoint = self.config.get('mountpoint', None)
         if self.mountpoint is not None:
@@ -68,9 +69,7 @@ class LoadedGrain(object):
             self.mountpoint = Mountpoint(self.mountpoint)
 
     def get_path_from(self, project_root):
-        our_proj_root = self.subsystem.project.root
-        relpath = os.path.relpath(self.path, our_proj_root)
-        return os.path.abspath(os.path.join(project_root, relpath))
+        return os.path.abspath(os.path.join(project_root, self.relpath))
 
     def load(self):
         if os.path.isfile(self.path):

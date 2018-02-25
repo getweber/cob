@@ -9,9 +9,6 @@ env:
     - DOCKER_COMPOSE_VERSION=1.11.2
     - DOCKER_HOST=tcp://127.0.0.1:2375
 
-services:
-  - docker
-
 before_install:
 
   # fix pip
@@ -20,6 +17,8 @@ before_install:
   - sudo $(which python) ./get-pip.py
   - sudo $(which python) -m pip install -U pip setuptools virtualenv
 
+  # update docker
+  - curl https://releases.rancher.com/install-docker/17.10.sh | sudo bash -
 
   # fix docker-compose version
   - sudo rm /usr/local/bin/docker-compose
@@ -28,13 +27,6 @@ before_install:
   - sudo mv docker-compose /usr/local/bin
   - docker-compose --version
 
-  # update to Docker 1.13
-  - sudo sh -c 'echo "deb https://apt.dockerproject.org/repo ubuntu-$(lsb_release -cs) main" > /etc/apt/sources.list.d/docker.list'
-  - curl -fsSL https://apt.dockerproject.org/gpg | sudo apt-key add -
-  - sudo apt-key fingerprint 58118E89F3A912897C070ADBF76221572C52609D
-  - sudo apt-get update
-  - sudo apt-get -y install "docker-engine=1.13.1-0~ubuntu-$(lsb_release -cs)"
-
 
 install:
   - pip install -e .
@@ -42,8 +34,11 @@ install:
   - pip install pylint
 
 script:
-  - py.test tests
   - pylint --rcfile=.pylintrc cob
+  - py.test tests
+
+after_failure:
+  - docker images
 
 deploy:
   provider: pypi
