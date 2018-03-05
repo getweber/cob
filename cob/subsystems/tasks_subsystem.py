@@ -22,7 +22,7 @@ class TasksSubsystem(SubsystemBase):
         if override_broker_url is not None:
             self._config['broker_url'] = override_broker_url
 
-        celery_app.conf.broker_url = self._config['broker_url']
+        celery_app.conf.update(self._config)
         self.queues = set()
 
     def get_queue_names(self):
