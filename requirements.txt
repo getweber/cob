@@ -5,6 +5,7 @@ celery
 click
 emport>=1.2.0
 gossip
+halo
 Flask
 Flask-Migrate
 Flask-SQLAlchemy

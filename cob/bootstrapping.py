@@ -1,7 +1,10 @@
 import functools
 import os
+import halo
 import subprocess
 import sys
+import tempfile
+import time
 
 import click
 import logbook
@@ -87,7 +90,7 @@ def _create_virtualenv(path):
     else:
         interpreter = sys.executable
 
-    subprocess.check_call([interpreter, '-m', 'virtualenv', path])
+    _execute_long_command([interpreter, '-m', 'virtualenv', path], 'Creating virtualenv')
 
 def _locate_original_interpreter():
     if not os.environ.get('COB_FORCE_CURRENT_INTERPRETER'):
@@ -120,9 +123,25 @@ def _get_installed_deps():
     with open(_INSTALLED_DEPS) as f:
         return set(yaml.load(f.read()))
 
+def _execute_long_command(cmd, message):
+    with tempfile.NamedTemporaryFile(delete=False) as fp, \
+         subprocess.Popen(cmd, stdout=fp, stderr=subprocess.STDOUT) as proc, \
+         halo.Halo(text=message, spinner='dots') as spinner:
+        _logger.trace(message)
+        while True:
+            retcode = proc.poll()
+            if retcode is not None:
+                break
+            time.sleep(0.1)
+        if retcode != 0:
+            spinner.fail()
+            raise click.ClickException('Execution failed with {}\nCommand: {}\nLogs can be found: {}'.format(
+                retcode, ' '.join(cmd).strip(), fp.name))
+        spinner.succeed()
+
 def _virtualenv_pip_install(argv):
-    _logger.trace('Installing cob in virtualenv...')
-    subprocess.check_call([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'pip', 'install', *argv])
+    msg = 'Installing {} in virtualenv'.format(', '.join(arg for arg in argv if not arg.startswith('-')))
+    _execute_long_command([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'pip', 'install', *argv], msg)
 
 def _reenter():
     if _is_in_project_virtualenv():
