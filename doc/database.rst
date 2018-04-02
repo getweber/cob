@@ -52,7 +52,7 @@ If your project **does not** use migrations, you can quickly create all tables a
   $ cob db createall
 
 However, the recommended practice for long-lasting projects is to use migrations. For projects using
-migrations, creating the DB is done via ``cob db migrate``, which is described in the
+migrations, creating the DB is done via ``cob migrate up``, which is described in the
 :ref:`migrations` chapter of this guide.
 
 .. note:: Cob takes care of migrations automatically during deployment - the statement above about
