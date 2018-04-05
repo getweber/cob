@@ -1,12 +1,18 @@
-from click import ClickException
+import sys
+import click
 
 
 class CobException(Exception):
     pass
 
 
-class CobExecutionError(CobException, ClickException):
+class CobExecutionError(CobException, click.ClickException):
     exit_code = -1
+
+    def show(self, file=None):
+        if file is not None:
+            file = sys.stderr
+        click.echo(click.style('Error: {}'.format(self.format_message()), fg='red'), file=file)
 
 
 class NotInProject(CobExecutionError):
