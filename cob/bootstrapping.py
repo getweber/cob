@@ -4,8 +4,6 @@ import halo
 import subprocess
 import sys
 import tempfile
-import time
-
 import click
 import logbook
 import yaml
@@ -124,20 +122,28 @@ def _get_installed_deps():
     with open(_INSTALLED_DEPS) as f:
         return set(yaml.load(f.read()))
 
+_LONG_EXECUTION_ERROR = """Execution failed with {rc}
+Command: {cmd}
+Logs can be found:
+    Stdout: {stdout}
+    Stderr: {stderr}
+"""
+
 def _execute_long_command(cmd, message):
-    with tempfile.NamedTemporaryFile(delete=False) as fp, \
-         subprocess.Popen(cmd, stdout=fp, stderr=subprocess.STDOUT) as proc, \
+    with tempfile.NamedTemporaryFile(delete=False) as fp_out, \
+         tempfile.NamedTemporaryFile(delete=False) as fp_err, \
+         subprocess.Popen(cmd, stdout=fp_out, stderr=fp_err) as proc, \
          halo.Halo(text=message, spinner='dots') as spinner:
         _logger.trace(message)
-        while True:
-            retcode = proc.poll()
-            if retcode is not None:
-                break
-            time.sleep(0.1)
+        retcode = proc.wait()
         if retcode != 0:
             spinner.fail()
-            raise click.ClickException('Execution failed with {}\nCommand: {}\nLogs can be found: {}'.format(
-                retcode, ' '.join(cmd).strip(), fp.name))
+            fp_err.flush()
+            fp_err.seek(0)
+            for line in fp_err:
+                click.echo(click.style(line.decode('utf8'), fg='red'), file=sys.stderr)
+            raise click.ClickException(_LONG_EXECUTION_ERROR.format(rc=retcode, cmd=' '.join(cmd).strip(),
+                                                                    stdout=fp_out.name, stderr=fp_err.name))
         spinner.succeed()
 
 def _virtualenv_pip_install(argv):
