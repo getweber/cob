@@ -78,7 +78,8 @@ def _ensure_virtualenv():
         _virtualenv_pip_install(args)
 
     deps = sorted(get_project().get_deps())
-    _virtualenv_pip_install(['-U', *deps])
+    if deps:
+        _virtualenv_pip_install(['-U', *deps])
     with open(_INSTALLED_DEPS, 'w') as f:
         yaml.dump(deps, f)
 
