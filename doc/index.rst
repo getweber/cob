@@ -26,7 +26,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   tutorial
+   getting_started
    basic_grains
    static_files
    database
