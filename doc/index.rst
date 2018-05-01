@@ -32,6 +32,7 @@ Contents:
    database
    migrations
    frontend
+   services
    hooks
    configuration
    deployment

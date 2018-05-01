@@ -7,6 +7,7 @@ import logbook
 
 from .defs import COB_CONFIG_FILE_NAME
 from .exceptions import NotInProject
+from .service_manager import Services
 from .subsystems.manager import SubsystemsManager
 from .utils.config import merge_config, load_overrides
 from .utils.url import sort_paths_specific_to_generic
@@ -45,8 +46,12 @@ class Project(object):
 
         self.name = self.config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
+        self.services = Services(self)
 
         self._initialized = False
+
+    def is_dockerized(self):
+        return bool(os.environ.get('COB_DOCKERIZED'))
 
     def build_venv_command(self, cmd):
         cmd, *remainder = cmd.split()

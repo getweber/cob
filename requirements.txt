@@ -18,5 +18,6 @@ mitba
 psycopg2
 PyYAML
 pytest
+redis
 sentinels
 virtualenv

@@ -279,4 +279,9 @@ def _generate_compose_file(*, http_port=None):
             'environment': common_environment,
         }
 
+    if project.services.redis:
+        services['redis'] = {
+            'image': 'redis',
+        }
+
     return yaml.safe_dump(config, allow_unicode=True, default_flow_style=False)
