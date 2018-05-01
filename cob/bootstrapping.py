@@ -24,8 +24,8 @@ _INSTALLED_DEPS = '.cob/_installed_deps.yml'
 
 def ensure_project_bootstrapped(*, reenter=True):
     if not os.path.isfile(COB_CONFIG_FILE_NAME):
-        _logger.trace('Project is not a cob project')
-        return
+        raise RuntimeError('Project is not a cob project')
+
     if _PREVENT_REENTRY_ENV_VAR in os.environ:
         _logger.trace('{} found in environ. Not reentering.', _PREVENT_REENTRY_ENV_VAR)
         return
