@@ -5,7 +5,7 @@ import sys
 import logbook
 import click
 
-
+from cob.exceptions import CobExecutionError
 from cob.bootstrapping import ensure_project_bootstrapped
 
 @click.group()
@@ -20,7 +20,10 @@ def main(verbose, quiet):
 @main.add_command
 @click.command()
 def bootstrap():
-    ensure_project_bootstrapped()
+    try:
+        ensure_project_bootstrapped()
+    except RuntimeError as e:
+        raise CobExecutionError(str(e))
 
 
 @main.add_command
