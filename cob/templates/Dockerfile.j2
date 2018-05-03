@@ -29,6 +29,7 @@ RUN $PYTHON_EXECUTABLE /tmp/get-pip.py
 RUN $PYTHON_EXECUTABLE -m pip install -U virtualenv pip setuptools
 
 ADD . /app
+RUN rm -rf /app/.cob
 
 {% for subsystem in project.subsystems %}
 {% for line in subsystem.get_docker_install_steps() %}
@@ -38,6 +39,7 @@ ADD . /app
 
 WORKDIR /app
 
+ENV COB_DOCKERIZED 1
 {% if is_develop %}
 ENV COB_DEVELOP=1 COB_DEVELOP_SDIST=/app/{{cob_sdist_filename}}
 RUN $PYTHON_EXECUTABLE -m pip install $COB_DEVELOP_SDIST
