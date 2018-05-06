@@ -83,13 +83,16 @@ def _build_cob_sdist():
 @docker.command(name='build')
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
 @click.option('--extra-build-args', '-e', default="", help="Arguments to pass to docker build")
-def docker_build(sudo, extra_build_args):
+def docker_build(sudo, extra_build_args, use_exec=True):
     project = get_project()
     generate.callback()
     cmd = get_full_docker_command(['docker', 'build', '-t', project.name, '-f', '.Dockerfile', '.', *extra_build_args.split()],
                                   should_sudo=sudo)
     _logger.debug('Running Command: {}', ' '.join(cmd))
-    os.execv(cmd[0], cmd)
+    if use_exec:
+        os.execv(cmd[0], cmd)
+    else:
+        subprocess.check_call(cmd)
 
 
 @docker.command(name='wsgi-start')
@@ -183,7 +186,7 @@ def start_nginx(print_config):
 @click.option('-d', '--detach', is_flag=True, default=False)
 def run(http_port, build, detach):
     if build:
-        docker_build.callback(sudo=False, extra_build_args='')
+        docker_build.callback(sudo=False, extra_build_args='', use_exec=False)
     cmd = ['up']
     if detach:
         cmd.append('-d')
