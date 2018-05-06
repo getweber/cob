@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`66` Support the ``--image-name`` parameter in ``cob docker run`` to override the image used
 * :feature:`67` Support redis
 * :release:`0.16.0 <25-2-2018>`
 * :feature:`21` Cob now uses multi-stage docker building to reduce image size and speed up the build process

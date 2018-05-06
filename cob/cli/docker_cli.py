@@ -184,13 +184,14 @@ def start_nginx(print_config):
 @click.option('--http-port', default=None)
 @click.option('--build', is_flag=True, default=False)
 @click.option('-d', '--detach', is_flag=True, default=False)
-def run(http_port, build, detach):
+@click.option('--image-name', default=None, help='Image to use for the main docker containers')
+def run(http_port, build, detach, image_name):
     if build:
         docker_build.callback(sudo=False, extra_build_args='', use_exec=False)
     cmd = ['up']
     if detach:
         cmd.append('-d')
-    _exec_docker_compose(cmd, http_port=http_port)
+    _exec_docker_compose(cmd, http_port=http_port, image_name=image_name)
 
 
 @docker.command()
@@ -216,12 +217,16 @@ def _exec_docker_compose(cmd, **kwargs):
 
 
 @docker.command()
-def compose():
-    print(_generate_compose_file())
+@click.option('--image-name', default=None)
+def compose(image_name):
+    print(_generate_compose_file(image_name=image_name))
 
 
-def _generate_compose_file(*, http_port=None):
+def _generate_compose_file(*, http_port=None, image_name=None):
     project = get_project()
+
+    if image_name is None:
+        image_name = project.name
 
     config = {
         'version': '3',
@@ -239,7 +244,7 @@ def _generate_compose_file(*, http_port=None):
     services = config['services'] = {
 
         'wsgi':  {
-            'image': project.name,
+            'image': image_name,
             'command': 'cob docker wsgi-start',
             'environment': common_environment,
             'depends_on': [],
@@ -249,7 +254,7 @@ def _generate_compose_file(*, http_port=None):
         },
 
         'nginx': {
-            'image': project.name,
+            'image': image_name,
             'command': 'cob docker nginx-start',
             'ports': ['{}:80'.format(http_port or 8000)],
             'depends_on': ['wsgi'],
@@ -277,7 +282,7 @@ def _generate_compose_file(*, http_port=None):
             #'command': 'bash -c "sleep 15 && rabbitmq-server"',
         }
         services['worker'] = {
-            'image': project.name,
+            'image': image_name,
             'command': 'cob celery start-worker',
             'environment': common_environment,
         }
