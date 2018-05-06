@@ -31,6 +31,7 @@ Contents:
    static_files
    database
    migrations
+   background_tasks
    frontend
    services
    hooks
