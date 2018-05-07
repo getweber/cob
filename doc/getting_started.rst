@@ -3,7 +3,8 @@ Getting Started
 
 In this section we will explore building a complete webapp with Cob. We will cover the most frequent tasks often tackled when starting an app from scratch, and will also cover how to deploy your app once it's ready for prime time.
 
-Our examples will focus around building a TODO app, which will have all the parts a modern full-stack app has: a modern front-end UI, a backend for API calls, static files and assets, database integration and background tasks.
+Our examples will focus around building a TODO app, which will have all the parts a modern
+full-stack app has: a modern front-end UI, a backend for API calls, static files and assets and database integration.
 
 
 First Steps
