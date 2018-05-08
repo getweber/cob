@@ -18,6 +18,7 @@ from ..ctx import context
 from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
 from ..exceptions import MissingDependency
+from ..utils.config import get_etc_config_path
 from ..utils.docker import get_full_commmand as get_full_docker_command
 from ..utils.develop import is_develop, cob_root
 from ..utils.network import wait_for_app_services, wait_for_tcp
@@ -225,6 +226,8 @@ def compose(image_name):
 def _generate_compose_file(*, http_port=None, image_name=None):
     project = get_project()
 
+    local_override_path = get_etc_config_path(project.name)
+
     if image_name is None:
         image_name = project.name
 
@@ -291,5 +294,9 @@ def _generate_compose_file(*, http_port=None, image_name=None):
         services['redis'] = {
             'image': 'redis',
         }
+
+    if local_override_path.is_dir():
+        for service_config in services.values():
+            service_config.setdefault('volumes', []).append('{0}:{0}'.format(local_override_path))
 
     return yaml.safe_dump(config, allow_unicode=True, default_flow_style=False)

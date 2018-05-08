@@ -8,13 +8,14 @@ def test_merge_config():
 
 
 def test_merge_config_recursive():
-    a = {'a': 'b', 'c': {'x': 'y'}}
-    b = {'a2': 'b2', 'c': {'x2': 'y2'}}
+    a = {'a': 'b', 'c': {'x': 'y', 'd': {'z': 1}}}
+    b = {'a2': 'b2', 'c': {'x2': 'y2', 'd': {'z2': 4}}}
     result = merge_config(a, b)
     assert result == {
         'a': 'b',
         'a2': 'b2',
-        'c': {'x': 'y', 'x2': 'y2'}}
+        'c': {'x': 'y', 'x2': 'y2', 'd': {'z': 1, 'z2': 4}},
+    }
     assert result is not a
     assert result['c'] is not a['c']
 
