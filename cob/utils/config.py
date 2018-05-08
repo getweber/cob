@@ -14,8 +14,11 @@ def load_overrides(root, *, environ=None):
                 root = merge_config(root, yaml.load(f))
     return root
 
-def merge_config(parent, *children):
-    returned = copy.deepcopy(parent)
+def merge_config(parent, *children, in_place=False):
+    if in_place:
+        returned = parent
+    else:
+        returned = copy.deepcopy(parent)
     for child in children:
         for key, value in child.items():
             if isinstance(value, dict):
@@ -24,7 +27,7 @@ def merge_config(parent, *children):
                 else:
                     if not isinstance(returned[key], dict):
                         raise ValueError('Cannot merge dictionaries: value of {!r} is not a dictionary'.format(key))
-                    returned[key].update(value)
+                    merge_config(returned[key], value, in_place=True)
             else:
                 returned[key] = copy.deepcopy(value)
     return returned
