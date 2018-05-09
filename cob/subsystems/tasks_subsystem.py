@@ -26,7 +26,14 @@ class TasksSubsystem(SubsystemBase):
         self.queues = set()
 
     def get_queue_names(self):
-        names = {queue_name for grain in self.grains for queue_name in grain.config.get('queue_names', [])}
+        names = set()
+        for grain in self.grains:
+            queue_names = grain.config.get('queue_names')
+            if not queue_names:
+                continue
+            if not isinstance(queue_names, list):
+                queue_names = queue_names.split(',')
+            names.update(queue_names)
         names.add('celery')
         return sorted(names)
 
