@@ -59,3 +59,30 @@ models or rely on the current Flask app. You can opt for having your tasks run w
                 @task(use_app_context=True)
                 def my_first_task():
                     print('task here')
+
+Configuring Celery
+------------------
+
+Queue Names
+~~~~~~~~~~~
+
+You can control the queue names which are loaded into the worker by adding ``queue_names`` to your
+grain config. For example:
+
+.. code-block:: python
+
+                # cob: type=tasks queue_names=queue1,queue2
+                ...
+
+
+Adding Worker Arguments
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can control arguments to the Celery workers by setting ``celery.worker_args`` in your project's
+config::
+
+  # .cob-project.yml
+  ...
+  celery:
+     ...
+     worker_args: -c 4

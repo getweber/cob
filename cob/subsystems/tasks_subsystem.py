@@ -13,16 +13,16 @@ class TasksSubsystem(SubsystemBase):
 
     def activate(self, flask_app):
         from ..celery.app import celery_app
-        self._config = self.project.config.get('celery', {})
+        self.config = self.project.config.get('celery', {})
 
         # ensure critical celery config exists
-        self._config.setdefault('broker_url', 'amqp://guest:guest@localhost/')
+        self.config.setdefault('broker_url', 'amqp://guest:guest@localhost/')
 
         override_broker_url = os.environ.get('COB_CELERY_BROKER_URL')
         if override_broker_url is not None:
-            self._config['broker_url'] = override_broker_url
+            self.config['broker_url'] = override_broker_url
 
-        celery_app.conf.update(self._config)
+        celery_app.conf.update(self.config)
         self.queues = set()
 
     def get_queue_names(self):

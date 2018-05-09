@@ -25,5 +25,6 @@ def start_worker(additional_args):
     assert tasks_subsystem.grains
     argv = [celery_cmd]
     argv.extend('-A cob.celery.app worker --loglevel=DEBUG -E -B -Q {}'.format(','.join(tasks_subsystem.get_queue_names())).split())
+    argv.extend(tasks_subsystem.config.get('additional_args', '').split())
     argv.extend(additional_args)
     os.execv(celery_cmd, argv)

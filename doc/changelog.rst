@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`76` Support ``celery.additional_args`` to control additional worker arguments through configuration
 * :feature:`66` Support the ``--image-name`` parameter in ``cob docker run`` to override the image used
 * :feature:`67` Support redis
 * :release:`0.16.0 <25-2-2018>`
