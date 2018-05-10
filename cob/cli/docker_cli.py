@@ -52,7 +52,8 @@ def generate():
     template = load_template('Dockerfile')
 
     if is_develop():
-        sdist_file_name = _build_cob_sdist()
+        sdist_file_name = os.path.join(proj.root, '.cob-sdist.tar.gz')
+        _build_cob_sdist(filename=sdist_file_name)
     else:
         sdist_file_name = None
 
@@ -62,23 +63,27 @@ def generate():
             deployment_base_image='ubuntu:16.04',
             python_version='3.6',
             is_develop=is_develop(),
-            cob_sdist_filename=sdist_file_name,
+            cob_sdist_filename=os.path.basename(sdist_file_name),
             cob_root=cob_root() if is_develop() else None,
             user_steps=_get_user_steps()))
 
 
-def _build_cob_sdist():
-    tmpdir = mkdtemp()
-    try:
-        subprocess.check_call(
-            'python setup.py sdist -d {}'.format(tmpdir), cwd=cob_root(), shell=True)
-        [distfile] = os.listdir(tmpdir)
-        returned = '.cob-sdist.tar.gz'
-        shutil.move(os.path.join(tmpdir, distfile),
-                    os.path.join(get_project().root, returned))
-    finally:
-        shutil.rmtree(tmpdir)
-    return returned
+def _build_cob_sdist(filename):
+
+    sdist_filename = os.environ.get('COB_SDIST_FILENAME')
+
+    if sdist_filename is not None:
+        shutil.copy(sdist_filename, filename)
+    else:
+        tmpdir = mkdtemp()
+        try:
+            subprocess.check_call(
+                'python setup.py sdist -d {}'.format(tmpdir), cwd=cob_root(), shell=True)
+            [distfile] = os.listdir(tmpdir)
+            sdist_filename = os.path.join(tmpdir, distfile)
+            shutil.move(sdist_filename, str(filename))
+        finally:
+            shutil.rmtree(tmpdir)
 
 
 @docker.command(name='build')

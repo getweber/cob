@@ -37,7 +37,9 @@ class Project(object):
         config_filename = os.path.join(self.root, COB_CONFIG_FILE_NAME)
 
         if not os.path.isfile(config_filename):
-            raise NotInProject('You do not seem to be in a Cob project directory')
+            raise NotInProject('You do not seem to be in a Cob project directory (Currently in {})'.format(
+                self.root
+            ))
 
         with open(config_filename) as f:
             config = merge_config(DEFAULT_CONFIG, yaml.load(f))
