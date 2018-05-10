@@ -6,6 +6,7 @@ python:
 env:
   global:
     - COB_FORCE_CURRENT_INTERPRETER=1
+    - COB_DEVELOP=1
     - DOCKER_COMPOSE_VERSION=1.11.2
     - DOCKER_HOST=tcp://127.0.0.1:2375
 
@@ -32,10 +33,11 @@ install:
   - pip install -e .
   - pip install -r test_requirements.txt
   - pip install pylint
+  - python scripts/prebuild_images.py
 
 script:
   - pylint --rcfile=.pylintrc cob
-  - py.test tests
+  - py.test tests --prebuilt
 
 after_failure:
   - docker images

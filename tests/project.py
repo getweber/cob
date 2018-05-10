@@ -13,6 +13,8 @@ from jinja2 import Environment as TemplateEnvironment
 from jinja2 import FileSystemLoader
 import requests
 
+from . import conftest
+
 
 _logger = logbook.Logger(__name__)
 
@@ -52,13 +54,13 @@ class Project(object):
         return ProjectPath(self, path)
 
     def _build(self):
-        if self._name not in _built_dockers:
+        if self._name in _built_dockers or conftest.config.getoption('--prebuilt'):
+            _logger.debug('Docker image for {._name} already built', self)
+        else:
             _logger.debug('Building docker image for {._name}...', self)
             res = self._run_cob(['docker', 'build']).wait()
             assert res == 0, 'cob docker build failed!'
             _built_dockers.add(self._name)
-        else:
-            _logger.debug('Docker image for {._name} already built', self)
 
     @contextmanager
     def server_context(self):
