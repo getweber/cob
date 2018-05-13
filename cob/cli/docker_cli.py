@@ -63,7 +63,7 @@ def generate():
             deployment_base_image='ubuntu:16.04',
             python_version='3.6',
             is_develop=is_develop(),
-            cob_sdist_filename=os.path.basename(sdist_file_name),
+            cob_sdist_filename=os.path.basename(sdist_file_name) if sdist_file_name else None,
             cob_root=cob_root() if is_develop() else None,
             user_steps=_get_user_steps()))
 
