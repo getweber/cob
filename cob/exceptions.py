@@ -34,5 +34,10 @@ class MountpointConflict(CobConflict):
 class MissingDependency(CobExecutionError):
     pass
 
+
 class UnknownSubsystem(CobExecutionError):
+    pass
+
+
+class TestsFailed(CobExecutionError):
     pass

@@ -34,6 +34,7 @@ Contents:
    background_tasks
    frontend
    services
+   testing
    hooks
    configuration
    deployment

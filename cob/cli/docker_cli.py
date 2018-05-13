@@ -17,7 +17,7 @@ import yaml
 from ..ctx import context
 from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
-from ..exceptions import MissingDependency
+from ..exceptions import MissingDependency, TestsFailed
 from ..utils.config import get_etc_config_path
 from ..utils.docker import get_full_commmand as get_full_docker_command
 from ..utils.develop import is_develop, cob_root
@@ -89,10 +89,13 @@ def _build_cob_sdist(filename):
 @docker.command(name='build')
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
 @click.option('--extra-build-args', '-e', default="", help="Arguments to pass to docker build")
-def docker_build(sudo, extra_build_args, use_exec=True):
+@click.option('--release', is_flag=True, default=False)
+def docker_build(sudo, extra_build_args="", use_exec=True, image_name=None, release=False):
     project = get_project()
+    if image_name is None:
+        image_name = '{}:{}'.format(project.name, 'latest' if release else 'dev')
     generate.callback()
-    cmd = get_full_docker_command(['docker', 'build', '-t', project.name, '-f', '.Dockerfile', '.', *extra_build_args.split()],
+    cmd = get_full_docker_command(['docker', 'build', '-t', image_name, '-f', '.Dockerfile', '.', *extra_build_args.split()],
                                   should_sudo=sudo)
     _logger.debug('Running Command: {}', ' '.join(cmd))
     if use_exec:
@@ -193,7 +196,7 @@ def start_nginx(print_config):
 @click.option('--image-name', default=None, help='Image to use for the main docker containers')
 def run(http_port, build, detach, image_name):
     if build:
-        docker_build.callback(sudo=False, extra_build_args='', use_exec=False)
+        docker_build.callback(sudo=False, use_exec=False)
     cmd = ['up']
     if detach:
         cmd.append('-d')
@@ -214,10 +217,8 @@ def _exec_docker_compose(cmd, **kwargs):
     project = get_project()
     compose_filename = '/tmp/__{}-docker-compose.yml'.format(project.name)
     with open(compose_filename, 'w') as f:
-        f.write(_generate_compose_file(**kwargs))
-    docker_compose = shutil.which('docker-compose')
-    if not docker_compose:
-        raise MissingDependency("docker-compose is not installed in this system. Please install it to use cob")
+        f.write(_generate_compose_file_string(**kwargs))
+    docker_compose = _get_docker_compose_executable()
     cmd = get_full_docker_command([docker_compose, '-f', compose_filename, '-p', project.name, *cmd])
     os.execv(cmd[0], cmd)
 
@@ -225,16 +226,16 @@ def _exec_docker_compose(cmd, **kwargs):
 @docker.command()
 @click.option('--image-name', default=None)
 def compose(image_name):
-    print(_generate_compose_file(image_name=image_name))
+    print(_generate_compose_file_string(_generate_compose_file_dict(image_name=image_name)))
 
 
-def _generate_compose_file(*, http_port=None, image_name=None):
+def _generate_compose_file_dict(*, http_port=None, image_name=None):
     project = get_project()
 
     local_override_path = get_etc_config_path(project.name)
 
     if image_name is None:
-        image_name = project.name
+        image_name = '{}:dev'.format(project.name)
 
     config = {
         'version': '3',
@@ -304,4 +305,52 @@ def _generate_compose_file(*, http_port=None, image_name=None):
         for service_config in services.values():
             service_config.setdefault('volumes', []).append('{0}:{0}'.format(local_override_path))
 
-    return yaml.safe_dump(config, allow_unicode=True, default_flow_style=False)
+    return config
+
+
+def _generate_compose_file_string(*args, **kwargs):
+    config = _generate_compose_file_dict(*args, **kwargs)
+    return _dump_yaml(config)
+
+
+def _dump_yaml(config, *, stream=None):
+    return yaml.safe_dump(config, stream, allow_unicode=True, default_flow_style=False)
+
+
+@docker.command()
+@click.option('build_image', '--no-build', is_flag=True, default=True)
+@click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
+def test(build_image, sudo):
+    project = get_project()
+    image_name = "{}:testing".format(project.name)
+    if build_image:
+        docker_build.callback(sudo=sudo, use_exec=False, image_name=image_name)
+    compose_file_dict = _generate_compose_file_dict(image_name=image_name)
+    compose_file_dict['services'].pop('nginx')
+    test_config = compose_file_dict['services'].pop('wsgi')
+
+    test_config['tty'] = True
+    test_config['depends_on'] = sorted(set(compose_file_dict['services']) - {'test'})
+    test_config['stdin_open'] = True
+    compose_file_dict['services']['test'] = test_config
+
+    compose_filename = '/tmp/__{}-test-docker-compose.yml'.format(project.name)
+    with open(compose_filename, 'w') as f:
+        _dump_yaml(compose_file_dict, stream=f)
+    docker_compose = _get_docker_compose_executable()
+    docker_compose_name = '{}-test'.format(project.name)
+    cmd = get_full_docker_command([
+        docker_compose, '-f', compose_filename, '-p', docker_compose_name, 'run',
+        '-w', '/app', '-v', '{}:/localdir'.format(os.path.abspath('.')),
+        'test',
+        'bash', '-c', "rsync -rvP --delete --exclude .cob /localdir/ /app/ && cob test"])
+    p = subprocess.Popen(cmd)
+    if p.wait() != 0:
+        raise TestsFailed('Tests failed')
+
+
+def _get_docker_compose_executable():
+    returned = shutil.which('docker-compose')
+    if not returned:
+        raise MissingDependency("docker-compose is not installed in this system. Please install it to use cob")
+    return returned
