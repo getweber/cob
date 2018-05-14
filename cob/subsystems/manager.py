@@ -4,7 +4,7 @@ import yaml
 import logbook
 
 from .base import SubsystemBase
-from ..exceptions import MountpointConflict
+from ..exceptions import MountpointConflict, UnknownSubsystem
 from ..utils.parsing import parse_front_matter
 
 _logger = logbook.Logger(__name__)
@@ -55,7 +55,10 @@ class SubsystemsManager(object):
                     _logger.trace('Will traverse into bundle {}', path)
                     roots.append(path)
                     continue
-                subsystem_cls = self._get_subsystem_by_grain_type(grain_type)
+                try:
+                    subsystem_cls = self._get_subsystem_by_grain_type(grain_type)
+                except UnknownSubsystem:
+                    raise UnknownSubsystem('Grain {} uses an unknown subsystem type: {!r}'.format(path, grain_type)) from None
                 subsystem = self._subsystems.get(subsystem_cls.NAME)
                 if subsystem is None:
                     subsystem = self._subsystems[
@@ -84,7 +87,10 @@ class SubsystemsManager(object):
             subsystem.configure_app(flask_app)
 
     def _get_subsystem_by_grain_type(self, grain_type):
-        return SubsystemBase.SUBSYSTEM_BY_NAME[grain_type]
+        try:
+            return SubsystemBase.SUBSYSTEM_BY_NAME[grain_type]
+        except KeyError:
+            raise UnknownSubsystem('Unknown subsystem type: {!r}'.format(grain_type))
 
     def __iter__(self):
         return iter(self._subsystems.values())
