@@ -37,6 +37,7 @@ install:
 
 after_failure:
   - docker images
+  - docker ps -a
 
 jobs:
   include:
