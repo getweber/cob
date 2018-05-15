@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 import shutil
 import socket
 import subprocess
@@ -47,8 +48,8 @@ class Project(object):
         return subprocess.check_call(cmd, shell=True, cwd=self.projdir, **kwargs)
 
     def cob_develop_cmd(self, cmd, **kwargs):
-        return self.cmd('{} {}'.format(
-            os.path.join(os.path.dirname(sys.executable), 'cob'), cmd), env={'COB_DEVELOP': '1'}, **kwargs)
+        root = Path(sys.executable).parent
+        return self.cmd(f'{root / "cob"} {cmd}', env={'COB_DEVELOP': '1'}, **kwargs)
 
     def on(self, path):
         return ProjectPath(self, path)
@@ -99,14 +100,14 @@ class Project(object):
                 try:
                     p.terminate()
                 except PermissionError:
-                    subprocess.check_call('sudo -p "Enter password to kill docker-compose process: " kill -9 {}'.format(p.pid), shell=True)
+                    subprocess.check_call(f'sudo -p "Enter password to kill docker-compose process: " kill -9 {p.pid}', shell=True)
             p.wait()
 
     def _wait_for_server(self, port, timeout_seconds=60, process=None):
         end_time = time.time() + timeout_seconds
         while time.time() < end_time:
             try:
-                resp = requests.get('http://127.0.0.1:{}'.format(port))
+                resp = requests.get(f'http://127.0.0.1:{port}')
             except (socket.error, requests.ConnectionError) as e:
                 if process is not None and process.poll() is not None:
                     raise RuntimeError('Process exited!')
@@ -169,7 +170,7 @@ class RunningProject(object):
 
         assert_success = kwargs.pop('assert_success', True)
 
-        returned = requests.request(method, 'http://127.0.0.1:{.port}/{}'.format(self, path), *args, **kwargs)
+        returned = requests.request(method, f'http://127.0.0.1:{self.port}/{path}', *args, **kwargs)
         if assert_success:
             assert returned.ok
 

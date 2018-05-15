@@ -22,7 +22,7 @@ class FlaskBlueprintSubsystem(SubsystemBase):
             if isinstance(blueprint, Blueprint):
                 break
         else:
-            raise RuntimeError('Could not find any blueprint in {}'.format(grain.path))
+            raise RuntimeError(f'Could not find any blueprint in {grain.path}')
         url_prefix = grain.config.get('mountpoint', '/')
         _logger.trace('registering {}:{} under {}', grain, name, url_prefix)
         flask_app.register_blueprint(blueprint, url_prefix=url_prefix)

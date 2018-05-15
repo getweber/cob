@@ -22,9 +22,9 @@ def list_routes(server_name):
         for rule in sorted(app.url_map.iter_rules(), key=lambda rule: rule.endpoint):
             options = {}
             for arg in rule.arguments:
-                options[arg] = "[{0}]".format(arg)
+                options[arg] = f"[{arg}]"
 
             methods = ','.join(rule.methods)
             url = flask.url_for(rule.endpoint, **options)
-            click.echo("{:50s} {:20s} ".format(rule.endpoint, methods), nl=False)
+            click.echo(f"{rule.endpoint:50s} {methods:20s} ", nl=False)
             click.echo(click.style(urllib.parse.unquote(url), fg='green'))

@@ -37,7 +37,7 @@ def _get_tmux_config():
         subsystem.configure_tmux_window(windows)
 
     return {
-        'session_name': 'cob-{}'.format(get_project().name),
+        'session_name': f'cob-{project.name}',
         'windows': windows,
     }
 
@@ -51,8 +51,8 @@ def _window(window_name, commands, *, layout='even-horizontal'):
     }
 
 def _project_cmd(proj, cmd):
-    env = ' '.join('{}={}'.format(key, os.environ[key])
+    env = ' '.join(f'{key}={os.environ[key]}'
                    for key in ('COB_DEVELOP', 'COB_NO_REENTRY')
                    if key in os.environ)
 
-    return 'cd {} && source .cob/env/bin/activate && {} {}'.format(proj.root, env, cmd)
+    return f'cd {proj.root} && source .cob/env/bin/activate && {env} {cmd}'.format(proj.root, env, cmd)

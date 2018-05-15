@@ -18,22 +18,20 @@ class EmberSubsystem(FrontendSubsystem):
 
         for grain, path in self._iter_grain_frontend_builder_paths():
             returned.extend([
-                'ADD {} {}'.format(grain.relpath, path),
-                'RUN cd {} && yarn install && ember build --environment=production'.format(path),
+                f'ADD {grain.relpath} {path}',
+                f'RUN cd {path} && yarn install && ember build --environment=production',
             ])
         return returned
 
     def get_docker_install_steps(self):
         returned = []
         for grain, path in self._iter_grain_frontend_builder_paths():
-            returned.append(
-                'COPY --from=frontend-builder {}/dist {}/dist'.format(
-                    path, grain.get_path_from('/app')))
+            returned.append(f'COPY --from=frontend-builder {path}/dist {grain.get_path_from("/app")}/dist')
         return returned
 
     def _iter_grain_frontend_builder_paths(self):
         for index, grain in enumerate(self.grains, 1):
-            path = '/frontend-{}'.format(index)
+            path = f'/frontend-{index}'
             yield grain, path
 
     def add_grain(self, path, config):
@@ -72,8 +70,8 @@ class EmberSubsystem(FrontendSubsystem):
     def configure_tmux_window(self, windows):
         for grain in self.grains:
             windows.append({
-                'window_name': 'frontend({})'.format(os.path.basename(grain.path)),
+                'window_name': f'frontend({os.path.basename(grain.path)})',
                 'panes': [
-                    'cd "{}" && ember build --watch'.format(grain.path),
+                    f'cd "{grain.path}" && ember build --watch',
                 ],
             })

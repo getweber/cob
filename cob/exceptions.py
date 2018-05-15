@@ -12,7 +12,7 @@ class CobExecutionError(CobException, click.ClickException):
     def show(self, file=None):
         if file is not None:
             file = sys.stderr
-        click.echo(click.style('Error: {}'.format(self.format_message()), fg='red'), file=file)
+        click.echo(click.style(f'Error: {self.format_message()}', fg='red'), file=file)
 
 
 class NotInProject(CobExecutionError):

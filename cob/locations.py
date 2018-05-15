@@ -17,4 +17,4 @@ class Location:
         return self._is_static
 
     def __repr__(self):
-        return '<Location {!r} ({})>'.format(self.mountpoint, self.fs_paths)
+        return f'<Location {self.mountpoint!r} ({self.fs_paths})>'

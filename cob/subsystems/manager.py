@@ -33,7 +33,7 @@ class SubsystemsManager(object):
                 continue
             subsystems = {grain.subsystem for grain in grains}
             if len(subsystems) > 1 or not grains[0].subsystem.SUPPORTS_OVERLAYS:
-                raise MountpointConflict('Mount point {} used more than once'.format(mountpoint))
+                raise MountpointConflict(f'Mount point {mountpoint} used more than once')
 
     def _load_project_subsystems(self):
         roots = [self.project.root]
@@ -58,7 +58,7 @@ class SubsystemsManager(object):
                 try:
                     subsystem_cls = self._get_subsystem_by_grain_type(grain_type)
                 except UnknownSubsystem:
-                    raise UnknownSubsystem('Grain {} uses an unknown subsystem type: {!r}'.format(path, grain_type)) from None
+                    raise UnknownSubsystem(f'Grain {path} uses an unknown subsystem type: {grain_type!r}') from None
                 subsystem = self._subsystems.get(subsystem_cls.NAME)
                 if subsystem is None:
                     subsystem = self._subsystems[
@@ -90,7 +90,7 @@ class SubsystemsManager(object):
         try:
             return SubsystemBase.SUBSYSTEM_BY_NAME[grain_type]
         except KeyError:
-            raise UnknownSubsystem('Unknown subsystem type: {!r}'.format(grain_type))
+            raise UnknownSubsystem(f'Unknown subsystem type: {grain_type!r}')
 
     def __iter__(self):
         return iter(self._subsystems.values())

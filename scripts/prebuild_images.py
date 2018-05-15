@@ -38,9 +38,9 @@ def main():
             with proj_yaml.open() as f:
                 name = yaml.load(f.read()).get('name')
                 if name is None:
-                    sys.exit('Project {} does not have a name configured'.format(project_dir.stem))
+                    sys.exit(f'Project {project_dir.stem} does not have a name configured')
                 if name in project_names:
-                    sys.exit('Project name {} is already in use (found in {})'.format(name, project_dir))
+                    sys.exit(f'Project name {name} is already in use (found in {project_dir})')
                 project_names.add(name)
 
             projects.append(proj_yaml)
@@ -53,7 +53,7 @@ def main():
         with log.open('w') as logfile:
             _logger.info('Building {}...', project_dir)
             processes.append(
-                subprocess.Popen('{} -m cob.cli.main docker build'.format(sys.executable), cwd=str(project_dir), stderr=subprocess.STDOUT, stdout=logfile, shell=True)
+                subprocess.Popen(f'{sys.executable} -m cob.cli.main docker build', cwd=project_dir, stderr=subprocess.STDOUT, stdout=logfile, shell=True)
             )
     success = True
 
@@ -63,7 +63,7 @@ def main():
             result = p.wait()
             if result != 0:
                 success = False
-                click.echo(click.style('Build failed for {}. More details below'.format(project), fg='red'))
+                click.echo(click.style(f'Build failed for {project}. More details below', fg='red'))
                 with log.open() as f:
                     for line in f:
                         click.echo(click.style(line, fg='yellow'))
