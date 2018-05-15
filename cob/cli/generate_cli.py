@@ -34,7 +34,7 @@ def _get_grain_types():
 @click.option('grain_type', '-t', '--type', default='views', type=click.Choice(_get_grain_types()))
 @click.argument('name')
 def grain(grain_type, name, mountpoint):
-    _generate('grain-{}'.format(grain_type), name, {
+    _generate(f'grain-{grain_type}', name, {
         'name': name,
         'mountpoint': mountpoint,
     })
@@ -83,7 +83,7 @@ def _generate(skeleton_name, dest_path, ctx):
     try:
         s = load_skeleton(skeleton_name)
     except UnknownSkeleton:
-        raise click.ClickException('Unknown skeleton: {}'.format(skeleton_name))
+        raise click.ClickException(f'Unknown skeleton: {skeleton_name}')
     if s.is_single_file() and not dest_path.endswith('.py'):
         dest_path += '.py'
     with template_context(ctx):
@@ -144,8 +144,8 @@ class SkeletonFile(Skeleton):
                                  keep_trailing_newline=True)
         template = env.get_template(os.path.basename(self._path))
         normalized_path = os.path.relpath(dest_path) if not os.path.isabs(dest_path) else dest_path
-        click.echo('Generating {}'.format(normalized_path))
+        click.echo(f'Generating {normalized_path}')
         if os.path.exists(dest_path):
-            raise click.ClickException("{} already exists".format(normalized_path))
+            raise click.ClickException(f"{normalized_path} already exists")
         with open(normalized_path, 'w') as f:
             f.write(template.render(**_ctx))

@@ -11,7 +11,7 @@ def _check_if_sudo_needed():
     err = proc.communicate()[1].decode('utf-8')
     if proc.returncode == 0:
         return False
-    assert 'permission denied' in err.lower(), "'docker ps' failed on {}".format(err)
+    assert 'permission denied' in err.lower(), f"'docker ps' failed on {err}"
     return True
 
 

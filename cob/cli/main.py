@@ -48,7 +48,7 @@ def _add_all_subcommands():
             'list',
             'migrate',
     ]:
-        mod = __import__('cob.cli.{}_cli'.format(name), fromlist=[''])
+        mod = __import__(f'cob.cli.{name}_cli', fromlist=[''])
         cmd = getattr(mod, name)
         main.add_command(cmd)
 

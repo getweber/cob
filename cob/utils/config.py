@@ -6,13 +6,13 @@ import yaml
 
 
 def get_etc_config_path(project_name):
-    return Path('/etc/cob/conf.d/{}'.format(project_name))
+    return Path('/etc/cob/conf.d') / project_name
 
 
 def get_config_override_locations(project_name):
     return [
         get_etc_config_path(project_name),
-        Path('~/.config/cob/projects/{}'.format(project_name)).expanduser(),
+        Path('~/.config/cob/projects').expanduser() / project_name,
     ]
 
 
@@ -54,7 +54,7 @@ def merge_config(parent, *children, in_place=False):
                     returned[key] = value.copy()
                 else:
                     if not isinstance(returned[key], dict):
-                        raise ValueError('Cannot merge dictionaries: value of {!r} is not a dictionary'.format(key))
+                        raise ValueError(f'Cannot merge dictionaries: value of {key!r} is not a dictionary')
                     merge_config(returned[key], value, in_place=True)
             else:
                 returned[key] = copy.deepcopy(value)

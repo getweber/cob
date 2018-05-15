@@ -68,7 +68,7 @@ def _ensure_virtualenv():
         args = ['-U', 'cob']
         if os.environ.get(_COB_VERSION_ENV_VAR):
             version = os.environ[_COB_VERSION_ENV_VAR]
-            args[-1] += '=={}'.format(version)
+            args[-1] += f'=={version}'
         if os.environ.get(_USE_PRE_ENV_VAR):
             args.append('--pre')
         if _PYPI_INDEX_ENV_VAR in os.environ:

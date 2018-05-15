@@ -10,7 +10,6 @@ def test_models(with_migrations):
         app.post('/index/purge')
         assert app.get('/index/list_models').json() == []
         app.post('/index/add_model')
-        assert len(app.get('/index/list_models').json()) > 0
+        assert len(app.get('/index/list_models').json()) > 0 # pylint: disable=len-as-condition
         assert int(subprocess.check_output(
-            "docker exec {0}_db_1 psql {1} -A -t -U {1}  -c 'select count(*) from person'".format(
-                project_name.replace('_', ''), project_name).strip(), shell=True)) == 1
+            f"docker exec {project_name.replace('_', '')}_db_1 psql {project_name} -A -t -U {project_name}  -c 'select count(*) from person'", shell=True)) == 1

@@ -11,7 +11,7 @@ def is_develop():
 def cob_root():
     assert is_develop()
     returned = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    assert os.path.basename(returned) == 'cob', 'Unable to properly detect cob root (__file__ == {!r}'.format(__file__)
+    assert os.path.basename(returned) == 'cob', f'Unable to properly detect cob root (__file__ == {__file__!r}'
     return returned
 
 

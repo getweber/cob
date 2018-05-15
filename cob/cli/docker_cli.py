@@ -78,7 +78,7 @@ def _build_cob_sdist(filename):
         tmpdir = mkdtemp()
         try:
             subprocess.check_call(
-                'python setup.py sdist -d {}'.format(tmpdir), cwd=cob_root(), shell=True)
+                f'python setup.py sdist -d {tmpdir}', cwd=cob_root(), shell=True)
             [distfile] = os.listdir(tmpdir)
             sdist_filename = os.path.join(tmpdir, distfile)
             shutil.move(sdist_filename, str(filename))
@@ -93,7 +93,7 @@ def _build_cob_sdist(filename):
 def docker_build(sudo, extra_build_args="", use_exec=True, image_name=None, release=False):
     project = get_project()
     if image_name is None:
-        image_name = '{}:{}'.format(project.name, 'latest' if release else 'dev')
+        image_name = f'{project.name}:{"latest" if release else "dev"}'.format(project.name, 'latest' if release else 'dev')
     generate.callback()
     cmd = get_full_docker_command(['docker', 'build', '-t', image_name, '-f', '.Dockerfile', '.', *extra_build_args.split()],
                                   should_sudo=sudo)
@@ -162,7 +162,7 @@ def _ensure_secret_config():
     with open(secret_file, 'w') as f:
         f.write('flask_config:\n')
         for secret_name in ('SECRET_KEY', 'SECURITY_PASSWORD_SALT'):
-            f.write('  {}: {!r}\n'.format(secret_name, _generate_secret_string()))
+            f.write(f'  {secret_name}: {_generate_secret_string()!r}\n')
 
 
 def _generate_secret_string(length=50):
@@ -215,7 +215,7 @@ def logs():
 
 def _exec_docker_compose(cmd, **kwargs):
     project = get_project()
-    compose_filename = '/tmp/__{}-docker-compose.yml'.format(project.name)
+    compose_filename = f'/tmp/__{project.name}-docker-compose.yml'
     with open(compose_filename, 'w') as f:
         f.write(_generate_compose_file_string(**kwargs))
     docker_compose = _get_docker_compose_executable()
@@ -235,7 +235,7 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None):
     local_override_path = get_etc_config_path(project.name)
 
     if image_name is None:
-        image_name = '{}:dev'.format(project.name)
+        image_name = f'{project.name}:dev'
 
     config = {
         'version': '3',
@@ -265,7 +265,7 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None):
         'nginx': {
             'image': image_name,
             'command': 'cob docker nginx-start',
-            'ports': ['{}:80'.format(http_port or 8000)],
+            'ports': [f'{http_port or 8000}:80'],
             'depends_on': ['wsgi'],
         }
     }
@@ -322,7 +322,7 @@ def _dump_yaml(config, *, stream=None):
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
 def test(build_image, sudo):
     project = get_project()
-    image_name = "{}:testing".format(project.name)
+    image_name = f"{project.name}:testing"
     if build_image:
         docker_build.callback(sudo=sudo, use_exec=False, image_name=image_name)
     compose_file_dict = _generate_compose_file_dict(image_name=image_name)
@@ -334,14 +334,14 @@ def test(build_image, sudo):
     test_config['stdin_open'] = True
     compose_file_dict['services']['test'] = test_config
 
-    compose_filename = '/tmp/__{}-test-docker-compose.yml'.format(project.name)
+    compose_filename = f'/tmp/__{project.name}-test-docker-compose.yml'
     with open(compose_filename, 'w') as f:
         _dump_yaml(compose_file_dict, stream=f)
     docker_compose = _get_docker_compose_executable()
-    docker_compose_name = '{}-test'.format(project.name)
+    docker_compose_name = f'{project.name}-test'
     cmd = get_full_docker_command([
         docker_compose, '-f', compose_filename, '-p', docker_compose_name, 'run',
-        '-w', '/app', '-v', '{}:/localdir'.format(os.path.abspath('.')),
+        '-w', '/app', '-v', f'{os.path.abspath(".")}:/localdir',
         'test',
         'bash', '-c', "rsync -rvP --delete --exclude .cob /localdir/ /app/ && cob test"])
     p = subprocess.Popen(cmd)

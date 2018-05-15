@@ -37,7 +37,7 @@ def setup_logging():
 
 @pytest.fixture
 def project_name():
-    return 'proj{}'.format(str(uuid4()).replace('-', '_'))
+    return f'proj{str(uuid4()).replace("-", "_")}'
 
 
 @pytest.fixture

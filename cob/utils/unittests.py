@@ -56,7 +56,7 @@ class Webapp(object):
         if path.startswith("/"):
             path = path[1:]
             assert not path.startswith("/")
-        returned = requests.request(method, "http://{0}/{1}".format(self.hostname, path), *args, **kwargs)
+        returned = requests.request(method, f"http://{self.hostname}/{path}", *args, **kwargs)
         if raw_response:
             return returned
 
