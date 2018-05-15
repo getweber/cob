@@ -35,9 +35,9 @@ install:
   - pip install -r test_requirements.txt
   - pip install pylint
 
-
 after_failure:
   - docker images
+  - docker ps -a
 
 jobs:
   include:

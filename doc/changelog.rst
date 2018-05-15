@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* :feature:`50` ``cob docker test`` can now be used to run your tests inside a working
+  docker-compose setup
 * :feature:`76` Support ``celery.additional_args`` to control additional worker arguments through configuration
 * :feature:`66` Support the ``--image-name`` parameter in ``cob docker run`` to override the image used
 * :feature:`67` Support redis
