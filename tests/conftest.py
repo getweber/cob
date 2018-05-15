@@ -1,4 +1,3 @@
-import os
 from uuid import uuid4
 
 import logbook
@@ -6,8 +5,6 @@ import logbook
 import pytest
 
 from .project import Project
-from cob.bootstrapping import _PREVENT_REENTRY_ENV_VAR
-from cob.utils.develop import _COB_DEVELOP_MODE
 
 
 config = None
