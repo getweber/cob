@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`77` Cob now required Python 3.6
 * :feature:`50` ``cob docker test`` can now be used to run your tests inside a working
   docker-compose setup
 * :feature:`76` Support ``celery.additional_args`` to control additional worker arguments through configuration
