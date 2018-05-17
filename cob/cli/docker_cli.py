@@ -17,9 +17,9 @@ import yaml
 from ..ctx import context
 from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
-from ..exceptions import MissingDependency, TestsFailed
+from ..exceptions import TestsFailed
 from ..utils.config import get_etc_config_path
-from ..utils.docker import get_full_commmand as get_full_docker_command
+from ..utils.docker import docker_cmd, docker_compose_cmd
 from ..utils.develop import is_develop, cob_root
 from ..utils.network import wait_for_app_services, wait_for_tcp
 from ..utils.templates import load_template
@@ -95,13 +95,9 @@ def docker_build(sudo, extra_build_args="", use_exec=True, image_name=None, rele
     if image_name is None:
         image_name = f'{project.name}:{"latest" if release else "dev"}'.format(project.name, 'latest' if release else 'dev')
     generate.callback()
-    cmd = get_full_docker_command(['docker', 'build', '-t', image_name, '-f', '.Dockerfile', '.', *extra_build_args.split()],
-                                  should_sudo=sudo)
-    _logger.debug('Running Command: {}', ' '.join(cmd))
-    if use_exec:
-        os.execv(cmd[0], cmd)
-    else:
-        subprocess.check_call(cmd)
+    cmd = docker_cmd.build(['-t', image_name, '-f', '.Dockerfile', '.', *extra_build_args.split()]).force_sudo(sudo)
+    _logger.debug('Running Command: {}', cmd)
+    cmd.run(use_exec=use_exec)
 
 
 @docker.command(name='wsgi-start')
@@ -218,9 +214,8 @@ def _exec_docker_compose(cmd, **kwargs):
     compose_filename = f'/tmp/__{project.name}-docker-compose.yml'
     with open(compose_filename, 'w') as f:
         f.write(_generate_compose_file_string(**kwargs))
-    docker_compose = _get_docker_compose_executable()
-    cmd = get_full_docker_command([docker_compose, '-f', compose_filename, '-p', project.name, *cmd])
-    os.execv(cmd[0], cmd)
+    cmd = docker_compose_cmd.args(['-f', compose_filename, '-p', project.name, *cmd])
+    cmd.execv()
 
 
 @docker.command()
@@ -337,20 +332,11 @@ def test(build_image, sudo):
     compose_filename = f'/tmp/__{project.name}-test-docker-compose.yml'
     with open(compose_filename, 'w') as f:
         _dump_yaml(compose_file_dict, stream=f)
-    docker_compose = _get_docker_compose_executable()
     docker_compose_name = f'{project.name}-test'
-    cmd = get_full_docker_command([
-        docker_compose, '-f', compose_filename, '-p', docker_compose_name, 'run',
+    cmd = docker_compose_cmd.args([
+        '-f', compose_filename, '-p', docker_compose_name, 'run',
         '-w', '/app', '-v', f'{os.path.abspath(".")}:/localdir',
         'test',
         'bash', '-c', "rsync -rvP --delete --exclude .cob /localdir/ /app/ && cob test"])
-    p = subprocess.Popen(cmd)
-    if p.wait() != 0:
+    if cmd.popen().wait() != 0:
         raise TestsFailed('Tests failed')
-
-
-def _get_docker_compose_executable():
-    returned = shutil.which('docker-compose')
-    if not returned:
-        raise MissingDependency("docker-compose is not installed in this system. Please install it to use cob")
-    return returned
