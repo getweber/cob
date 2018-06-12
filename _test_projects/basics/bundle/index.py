@@ -7,8 +7,3 @@ from flask import jsonify
 @route('/')
 def index():
     return 'hey'
-
-
-@route('/config')
-def render_config():
-    return jsonify(get_project().config)

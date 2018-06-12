@@ -83,6 +83,9 @@ class DockerCommand:
     def popen(self, *args, **kwargs):
         return subprocess.Popen(self.to_split_command(), *args, **kwargs)
 
+    def check_output(self, *args, **kwargs):
+        return subprocess.check_output(self.to_split_command(), *args, **kwargs)
+
     def run(self, use_exec=False):
         if use_exec:
             self.execv()

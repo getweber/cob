@@ -3,6 +3,7 @@ import click
 import flask_migrate
 import logbook
 import multiprocessing
+from pathlib import Path
 import random
 import shutil
 import string
@@ -220,15 +221,14 @@ def _exec_docker_compose(cmd, **kwargs):
 
 @docker.command(name='generate-docker-compose-file')
 @click.option('--image-name', default=None)
-def generate_docker_compose_file(image_name):
+@click.option('--force-config-override', is_flag=True, default=False)
+def generate_docker_compose_file(image_name, force_config_override):
     """Prints out a docker-compose.yml for this project"""
-    print(_generate_compose_file_string(image_name=image_name))
+    print(_generate_compose_file_string(image_name=image_name, force_config_override=force_config_override))
 
 
-def _generate_compose_file_dict(*, http_port=None, image_name=None):
+def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config_override=False):
     project = get_project()
-
-    local_override_path = get_etc_config_path(project.name)
 
     if image_name is None:
         image_name = f'{project.name}:dev'
@@ -297,9 +297,10 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None):
             'image': 'redis',
         }
 
-    if local_override_path.is_dir():
+    config_override_path = get_etc_config_path(project.name)
+    if force_config_override or config_override_path.is_dir():
         for service_config in services.values():
-            service_config.setdefault('volumes', []).append('{0}:{0}'.format(local_override_path))
+            service_config.setdefault('volumes', []).append('{0}:{0}'.format(config_override_path))
 
     return config
 
@@ -341,3 +342,18 @@ def test(build_image, sudo):
         'bash', '-c', "rsync -rvP --delete --exclude .cob /localdir/ /app/ && cob test"])
     if cmd.popen().wait() != 0:
         raise TestsFailed('Tests failed')
+
+
+@docker.command(name="run-image", help='Runs a cob project in a pre-built docker image')
+@click.argument('image_name')
+def run_image(image_name):
+    project = get_project()
+    cmd = docker_cmd.run(['--rm', image_name, 'cob', 'docker', 'generate-docker-compose-file', '--image-name', image_name])
+    if get_etc_config_path(project.name).is_dir():
+        cmd.args(['--force-config-override'])
+    compose_file_contents = cmd.check_output()
+    compose_path = Path('/tmp') / f"__cob_docker_compose_{image_name.replace(':', '__')}.yml"
+    with compose_path.open('wb') as f:
+        f.write(compose_file_contents)
+    cmd = docker_compose_cmd.args(['-f', compose_path, 'up'])
+    cmd.execv()
