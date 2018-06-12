@@ -46,8 +46,8 @@ def docker():
     pass
 
 
-@docker.command()
-def generate():
+@docker.command(name="generate-docker-file")
+def generate_dockerfile():
     proj = get_project()
     template = load_template('Dockerfile')
 
@@ -94,7 +94,7 @@ def docker_build(sudo, extra_build_args="", use_exec=True, image_name=None, rele
     project = get_project()
     if image_name is None:
         image_name = f'{project.name}:{"latest" if release else "dev"}'.format(project.name, 'latest' if release else 'dev')
-    generate.callback()
+    generate_dockerfile.callback()
     cmd = docker_cmd.build(['-t', image_name, '-f', '.Dockerfile', '.', *extra_build_args.split()]).force_sudo(sudo)
     _logger.debug('Running Command: {}', cmd)
     cmd.run(use_exec=use_exec)
@@ -218,10 +218,11 @@ def _exec_docker_compose(cmd, **kwargs):
     cmd.execv()
 
 
-@docker.command()
+@docker.command(name='generate-docker-compose-file')
 @click.option('--image-name', default=None)
-def compose(image_name):
-    print(_generate_compose_file_string(_generate_compose_file_dict(image_name=image_name)))
+def generate_docker_compose_file(image_name):
+    """Prints out a docker-compose.yml for this project"""
+    print(_generate_compose_file_string(image_name=image_name))
 
 
 def _generate_compose_file_dict(*, http_port=None, image_name=None):
@@ -303,8 +304,8 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None):
     return config
 
 
-def _generate_compose_file_string(*args, **kwargs):
-    config = _generate_compose_file_dict(*args, **kwargs)
+def _generate_compose_file_string(**kwargs):
+    config = _generate_compose_file_dict(**kwargs)
     return _dump_yaml(config)
 
 
