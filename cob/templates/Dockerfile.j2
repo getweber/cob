@@ -41,13 +41,13 @@ WORKDIR /app
 
 ENV COB_DOCKERIZED 1
 {% if is_develop %}
-ENV COB_DEVELOP=1 COB_DEVELOP_SDIST=/app/{{cob_sdist_filename}}
+ENV COB_DEVELOP_SDIST=/app/{{cob_sdist_filename}}
 RUN $PYTHON_EXECUTABLE -m pip install $COB_DEVELOP_SDIST
 {% else %}
 RUN $PYTHON_EXECUTABLE -m pip install cob
 {% endif %}
 
-RUN cob -vvv bootstrap
+RUN {% if is_develop %}COB_DEVELOP=1{% endif %} cob -vvv bootstrap
 
 ## nginx configuration
 RUN rm -rf /etc/nginx/conf.d/* /etc/nginx/sites-enabled/*
