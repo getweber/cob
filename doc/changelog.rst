@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`51` Support `cob docker deploy` command to conveniently deploy dockerized cob projects on systemd
 * :feature:`82` Added `cob docker run-image` to run a prebuilt cob image without requiring dependencies
 * :feature:`77` Cob now required Python 3.6
 * :feature:`50` ``cob docker test`` can now be used to run your tests inside a working

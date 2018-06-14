@@ -8,6 +8,7 @@ import random
 import shutil
 import string
 import subprocess
+import sys
 from tempfile import mkdtemp
 
 import gunicorn.app.base
@@ -346,14 +347,54 @@ def test(build_image, sudo):
 
 @docker.command(name="run-image", help='Runs a cob project in a pre-built docker image')
 @click.argument('image_name')
-def run_image(image_name):
-    project = get_project()
+@click.option('background', '-d', '--detach', is_flag=True, default=False)
+def run_image(image_name, background):
+    compose_path = _generate_compose_file_from_image(image_name)
+    cmd = docker_compose_cmd.args(['-f', compose_path, 'up'])
+    if background:
+        cmd = cmd.args(['-d'])
+    cmd.execv()
+
+
+@docker.command(name="stop-image")
+@click.argument('image_name')
+def stop_image(image_name):
+    compose_path = _generate_compose_file_from_image(image_name)
+    docker_compose_cmd.args(['-f', compose_path, 'down']).execv()
+
+
+def _generate_compose_file_from_image(image_name):
+    project_name = _get_project_name_from_image(image_name)
     cmd = docker_cmd.run(['--rm', image_name, 'cob', 'docker', 'generate-docker-compose-file', '--image-name', image_name])
-    if get_etc_config_path(project.name).is_dir():
+    if get_etc_config_path(project_name).is_dir():
         cmd.args(['--force-config-override'])
     compose_file_contents = cmd.check_output()
     compose_path = Path('/tmp') / f"__cob_docker_compose_{image_name.replace(':', '__')}.yml"
     with compose_path.open('wb') as f:
         f.write(compose_file_contents)
-    cmd = docker_compose_cmd.args(['-f', compose_path, 'up'])
-    cmd.execv()
+    return compose_path
+
+
+@docker.command(name='deploy', help='Deploys an dockerized cob app image to the local systemd-based machine')
+@click.argument('image_name')
+def deploy_image(image_name):
+    click.echo(f'Obtaining project information for {image_name}...')
+    project_name = _get_project_name_from_image(image_name)
+    unit_template = load_template('systemd_unit')
+    filename = Path('/etc/systemd/system') / f'{project_name}-docker.service'
+    click.echo(f'Writing systemd unit file under {filename}...')
+    if filename.exists():
+        click.confirm(f'{filename} already exists. Overwrite?', abort=True)
+
+    tmp_filename = Path(mkdtemp()) / 'systemd-unit'
+    with tmp_filename.open('w') as f: # pylint: disable=no-member
+        f.write(unit_template.render(project_name=project_name, image_name=image_name, cob=f'{sys.executable} -m cob.cli.main'))
+
+    subprocess.check_call(f'sudo -p "Enter password to deploy service" mv {tmp_filename} {filename}', shell=True)
+    click.echo(f'Starting systemd service {filename.stem}...')
+    subprocess.check_call('sudo systemctl daemon-reload', shell=True)
+    subprocess.check_call(f'sudo systemctl enable --now {filename.name}', shell=True)
+
+
+def _get_project_name_from_image(image_name):
+    return docker_cmd.run(['--rm', image_name, 'cob', 'info', 'project-name']).check_output(encoding='utf-8').strip()

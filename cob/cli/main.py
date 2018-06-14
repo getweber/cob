@@ -44,6 +44,7 @@ def _add_all_subcommands():
             'develop',
             'docker',
             'generate',
+            'info',
             'testserver',
             'list',
             'migrate',

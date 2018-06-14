@@ -77,7 +77,6 @@ class DockerCommand:
 
     def execv(self):
         cmd = self.to_split_command()
-        print('Got', cmd)
         os.execv(cmd[0], cmd)
 
     def popen(self, *args, **kwargs):

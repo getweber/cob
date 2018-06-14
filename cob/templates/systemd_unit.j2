@@ -1,0 +1,14 @@
+[Unit]
+Description={{project_name}}
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=-{{cob}} docker stop-image {{image_name}}
+ExecStart={{cob}} docker run-image {{image_name}} -d
+ExecStop={{cob}} docker stop-image {{image_name}}
+
+[Install]
+WantedBy=multi-user.target
