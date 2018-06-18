@@ -222,10 +222,11 @@ def _exec_docker_compose(cmd, **kwargs):
 
 @docker.command(name='generate-docker-compose-file')
 @click.option('--image-name', default=None)
+@click.option('--http-port', type=int, default=None)
 @click.option('--force-config-override', is_flag=True, default=False)
-def generate_docker_compose_file(image_name, force_config_override):
+def generate_docker_compose_file(image_name, force_config_override, http_port):
     """Prints out a docker-compose.yml for this project"""
-    print(_generate_compose_file_string(image_name=image_name, force_config_override=force_config_override))
+    print(_generate_compose_file_string(image_name=image_name, force_config_override=force_config_override, http_port=http_port))
 
 
 def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config_override=False):
@@ -349,8 +350,8 @@ def test(build_image, sudo):
 @click.argument('image_name')
 @click.option('background', '-d', '--detach', is_flag=True, default=False)
 def run_image(image_name, background):
-    compose_path = _generate_compose_file_from_image(image_name)
-    cmd = docker_compose_cmd.args(['-f', compose_path, 'up'])
+    project_name, compose_path = _generate_compose_file_from_image(image_name)
+    cmd = docker_compose_cmd.args(['-p', project_name, '-f', compose_path, 'up'])
     if background:
         cmd = cmd.args(['-d'])
     cmd.execv()
@@ -359,20 +360,20 @@ def run_image(image_name, background):
 @docker.command(name="stop-image")
 @click.argument('image_name')
 def stop_image(image_name):
-    compose_path = _generate_compose_file_from_image(image_name)
-    docker_compose_cmd.args(['-f', compose_path, 'down']).execv()
+    project_name, compose_path = _generate_compose_file_from_image(image_name)
+    docker_compose_cmd.args(['-p', project_name, '-f', compose_path, 'down']).execv()
 
 
 def _generate_compose_file_from_image(image_name):
     project_name = _get_project_name_from_image(image_name)
-    cmd = docker_cmd.run(['--rm', image_name, 'cob', 'docker', 'generate-docker-compose-file', '--image-name', image_name])
+    cmd = docker_cmd.run(['--rm', image_name, 'cob', 'docker', 'generate-docker-compose-file', '--image-name', image_name, '--http-port', '80'])
     if get_etc_config_path(project_name).is_dir():
         cmd.args(['--force-config-override'])
     compose_file_contents = cmd.check_output()
     compose_path = Path('/tmp') / f"__cob_docker_compose_{image_name.replace(':', '__')}.yml"
     with compose_path.open('wb') as f:
         f.write(compose_file_contents)
-    return compose_path
+    return project_name, compose_path
 
 
 @docker.command(name='deploy', help='Deploys an dockerized cob app image to the local systemd-based machine')
