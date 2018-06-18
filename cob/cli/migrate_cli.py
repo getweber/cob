@@ -37,4 +37,4 @@ def up():
 @migrate.command()
 @appcontext_command
 def down():
-    flask_migrate.upgrade()
+    flask_migrate.downgrade()
