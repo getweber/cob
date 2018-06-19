@@ -321,7 +321,7 @@ def _dump_yaml(config, *, stream=None):
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
 def test(build_image, sudo):
     project = get_project()
-    image_name = f"{project.name}:testing"
+    image_name = f"{project.name}:dev"
     if build_image:
         docker_build.callback(sudo=sudo, use_exec=False, image_name=image_name)
     compose_file_dict = _generate_compose_file_dict(image_name=image_name)
