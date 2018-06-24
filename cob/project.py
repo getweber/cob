@@ -50,6 +50,9 @@ class Project(object):
 
         self._initialized = False
 
+    def get_docker_image_name(self):
+        return self.config.get('docker', {}).get('image_name', self.name)
+
     def is_dockerized(self):
         return bool(os.environ.get('COB_DOCKERIZED'))
 
