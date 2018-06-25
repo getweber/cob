@@ -23,16 +23,31 @@ inside the docker containers comprising your app, meaning it will run very simil
 
 This is done by running ``cob docker test``.
 
-Tagging Images
---------------
+Tagging and Pushing Images
+--------------------------
+
+In most cases you would probably like to tag your released images and upload them to a Docker registry. This can be done by setting the *image name* for your project before building images.
+
+Under ``.cob-project.yml``, add the ``docker.image_name`` configuration::
+
+  # .cob-project.yml
+  ...
+  docker:
+      image_name: "your.server.com:4567/myproject"
+
+Now when you build or test your project, the docker image created will be ``your.server.com:4567/myproject:dev``
 
 Once you're satisfied with a built image, you can tag it directly through docker as your "latest" version::
 
-  $ docker tag myproject:dev myproject:latest
+  $ docker tag your.server.com:4567/myproject:dev your.server.com:4567/myproject:latest
+
+Then you can push your image to the repository with a standard ``docker push`` command::
+
+  $ docker push your.server.com:4567/myproject:latest
 
 
 Deploying on Systemd-based Systems
-----------------------------------
+-------------------------------
 
 If your target machine is based on *systemd* (e.g. recent Ubuntu Server releases, CentOS 7.x etc.), you can deploy a dockerized cob project by running::
 

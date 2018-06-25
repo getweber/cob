@@ -1,8 +1,8 @@
-from uuid import uuid4
-
 import logbook
-
+from pathlib import Path
 import pytest
+from uuid import uuid4
+import yaml
 
 from .project import Project
 
@@ -42,3 +42,22 @@ def empty_project(tmpdir, project_name):
     returned = Project(tmpdir, project_name)
     returned.generate_project()
     return returned
+
+
+class _ProjectFactory:
+
+    def __init__(self, root):
+        self.root = root
+        self.config = {}
+
+    def build(self):
+        from cob.project import Project
+        with (self.root / '.cob-project.yml').open('w') as f:
+            yaml.dump(self.config, f)
+        return Project(self.root)
+
+
+@pytest.fixture
+def project_factory(tmpdir):
+    tmpdir = Path(tmpdir)
+    return _ProjectFactory(tmpdir)

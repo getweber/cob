@@ -62,7 +62,7 @@ def generate_dockerfile():
     with open(".Dockerfile", "w") as f:
         f.write(template.render(
             project=proj,
-            deployment_base_image='ubuntu:16.04',
+            deployment_base_image='python:3.6-jessie',
             python_version='3.6',
             is_develop=is_develop(),
             cob_sdist_filename=os.path.basename(sdist_file_name) if sdist_file_name else None,
@@ -95,7 +95,7 @@ def _build_cob_sdist(filename):
 def docker_build(sudo, extra_build_args="", use_exec=True, image_name=None, release=False):
     project = get_project()
     if image_name is None:
-        image_name = f'{project.name}:{"latest" if release else "dev"}'.format(project.name, 'latest' if release else 'dev')
+        image_name = f'{project.get_docker_image_name()}:{"latest" if release else "dev"}'.format(project.name, 'latest' if release else 'dev')
     generate_dockerfile.callback()
     cmd = docker_cmd.build(['-t', image_name, '-f', '.Dockerfile', '.', *extra_build_args.split()]).force_sudo(sudo)
     _logger.debug('Running Command: {}', cmd)
@@ -233,7 +233,7 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
     project = get_project()
 
     if image_name is None:
-        image_name = f'{project.name}:dev'
+        image_name = f'{project.get_docker_image_name()}:dev'
 
     config = {
         'version': '3',
@@ -321,7 +321,7 @@ def _dump_yaml(config, *, stream=None):
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
 def test(build_image, sudo):
     project = get_project()
-    image_name = f"{project.name}:dev"
+    image_name = f"{project.get_docker_image_name()}:dev"
     if build_image:
         docker_build.callback(sudo=sudo, use_exec=False, image_name=image_name)
     compose_file_dict = _generate_compose_file_dict(image_name=image_name)
