@@ -1,6 +1,18 @@
 Changelog
 =========
 
+* :release:`0.18.0 <25-06-2018>`
+* :feature:`51` Support `cob docker deploy` command to conveniently deploy dockerized cob projects on systemd
+* :feature:`82` Added `cob docker run-image` to run a prebuilt cob image without requiring dependencies
+* :feature:`77` Cob now required Python 3.6
+* :feature:`50` ``cob docker test`` can now be used to run your tests inside a working
+  docker-compose setup
+* :feature:`76` Support ``celery.additional_args`` to control additional worker arguments through configuration
+* :feature:`66` Support the ``--image-name`` parameter in ``cob docker run`` to override the image used
+* :feature:`67` Support redis
+* :release:`0.17.0 <05-03-2018>`
+* :feature:`-` Allow passing celery configuration in project yaml
+* :release:`0.16.0 <25-2-2018>`
 * :feature:`21` Cob now uses multi-stage docker building to reduce image size and speed up the build process
 * :release:`0.15.0 <19-2-2018>`
 * :feature:`59` Front-end ember grains now run npm install

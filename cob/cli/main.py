@@ -5,7 +5,7 @@ import sys
 import logbook
 import click
 
-
+from cob.exceptions import CobExecutionError
 from cob.bootstrapping import ensure_project_bootstrapped
 
 @click.group()
@@ -20,7 +20,10 @@ def main(verbose, quiet):
 @main.add_command
 @click.command()
 def bootstrap():
-    ensure_project_bootstrapped()
+    try:
+        ensure_project_bootstrapped()
+    except RuntimeError as e:
+        raise CobExecutionError(str(e))
 
 
 @main.add_command
@@ -41,11 +44,12 @@ def _add_all_subcommands():
             'develop',
             'docker',
             'generate',
+            'info',
             'testserver',
             'list',
             'migrate',
     ]:
-        mod = __import__('cob.cli.{}_cli'.format(name), fromlist=[''])
+        mod = __import__(f'cob.cli.{name}_cli', fromlist=[''])
         cmd = getattr(mod, name)
         main.add_command(cmd)
 

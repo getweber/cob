@@ -1,8 +1,9 @@
 import functools
 import os
+import halo
 import subprocess
 import sys
-
+import tempfile
 import click
 import logbook
 import yaml
@@ -23,8 +24,8 @@ _INSTALLED_DEPS = '.cob/_installed_deps.yml'
 
 def ensure_project_bootstrapped(*, reenter=True):
     if not os.path.isfile(COB_CONFIG_FILE_NAME):
-        _logger.trace('Project is not a cob project')
-        return
+        raise RuntimeError('Project is not a cob project')
+
     if _PREVENT_REENTRY_ENV_VAR in os.environ:
         _logger.trace('{} found in environ. Not reentering.', _PREVENT_REENTRY_ENV_VAR)
         return
@@ -67,7 +68,7 @@ def _ensure_virtualenv():
         args = ['-U', 'cob']
         if os.environ.get(_COB_VERSION_ENV_VAR):
             version = os.environ[_COB_VERSION_ENV_VAR]
-            args[-1] += '=={}'.format(version)
+            args[-1] += f'=={version}'
         if os.environ.get(_USE_PRE_ENV_VAR):
             args.append('--pre')
         if _PYPI_INDEX_ENV_VAR in os.environ:
@@ -75,7 +76,9 @@ def _ensure_virtualenv():
         _virtualenv_pip_install(args)
 
     deps = sorted(get_project().get_deps())
-    _virtualenv_pip_install(['-U', *deps])
+    _logger.trace('Installing dependencies: {}', deps)
+    if deps:
+        _virtualenv_pip_install(['-U', *deps])
     with open(_INSTALLED_DEPS, 'w') as f:
         yaml.dump(deps, f)
 
@@ -87,7 +90,7 @@ def _create_virtualenv(path):
     else:
         interpreter = sys.executable
 
-    subprocess.check_call([interpreter, '-m', 'virtualenv', path])
+    _execute_long_command([interpreter, '-m', 'virtualenv', path], 'Creating virtualenv')
 
 def _locate_original_interpreter():
     if not os.environ.get('COB_FORCE_CURRENT_INTERPRETER'):
@@ -120,9 +123,33 @@ def _get_installed_deps():
     with open(_INSTALLED_DEPS) as f:
         return set(yaml.load(f.read()))
 
+_LONG_EXECUTION_ERROR = """Execution failed with {rc}
+Command: {cmd}
+Logs can be found:
+    Stdout: {stdout}
+    Stderr: {stderr}
+"""
+
+def _execute_long_command(cmd, message):
+    with tempfile.NamedTemporaryFile(delete=False) as fp_out, \
+         tempfile.NamedTemporaryFile(delete=False) as fp_err, \
+         subprocess.Popen(cmd, stdout=fp_out, stderr=fp_err) as proc, \
+         halo.Halo(text=message, spinner='dots') as spinner:
+        _logger.trace(message)
+        retcode = proc.wait()
+        if retcode != 0:
+            spinner.fail()
+            fp_err.flush()
+            fp_err.seek(0)
+            for line in fp_err:
+                click.echo(click.style(line.decode('utf8'), fg='red'), file=sys.stderr)
+            raise click.ClickException(_LONG_EXECUTION_ERROR.format(rc=retcode, cmd=' '.join(cmd).strip(),
+                                                                    stdout=fp_out.name, stderr=fp_err.name))
+        spinner.succeed()
+
 def _virtualenv_pip_install(argv):
-    _logger.trace('Installing cob in virtualenv...')
-    subprocess.check_call([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'pip', 'install', *argv])
+    msg = 'Installing {} in virtualenv'.format(', '.join(arg for arg in argv if not arg.startswith('-')))
+    _execute_long_command([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'pip', 'install', *argv], msg)
 
 def _reenter():
     if _is_in_project_virtualenv():

@@ -3,7 +3,7 @@ from .project import Project
 def test_secret_key_config():
     def _get_secret():
         with Project('basics').server_context() as app:
-            return app.get('config').json()['SECRET_KEY']
+            return app.get('config').json()['flask_config']['SECRET_KEY']
 
     secret = _get_secret()
 

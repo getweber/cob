@@ -35,6 +35,26 @@ You can easily add configuration to Flask's config by specifying it in the ``fla
   flask_config:
       SQLALCHEMY_DATABASE_URI: sqlite:////path/to/db.db
 
+Configuration Loading and Overrides
+-----------------------------------
+
+In addition to the current project's ``.cob-project.yml``, Cob looks in other places to load
+configuration snippets. This allows you to add overrides and overlays used either locally during
+development, or per-server for deployment.
+
+The following locations are scanned for configuration overrides:
+
+* ``/etc/cob/conf.d/<project name>``
+* ``~/.config/cob/projects/<project name>``
+
+This means that if you would like a project named ``testme`` to have a private piece of information
+in its config loaded during deployment and not stored in the source repository, all you have to do
+is add the following::
+
+  SOME_SECRET_CONFIG: 'secret'
+
+In ``/etc/cob/conf.d/testme/000-private.yml`` on your server.
+
 Deployment Configuration
 ------------------------
 

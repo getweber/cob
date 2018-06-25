@@ -3,10 +3,12 @@ import click
 import flask_migrate
 import logbook
 import multiprocessing
+from pathlib import Path
 import random
 import shutil
 import string
 import subprocess
+import sys
 from tempfile import mkdtemp
 
 import gunicorn.app.base
@@ -17,8 +19,9 @@ import yaml
 from ..ctx import context
 from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
-from ..exceptions import MissingDependency
-from ..utils.docker import get_full_commmand as get_full_docker_command
+from ..exceptions import TestsFailed
+from ..utils.config import get_etc_config_path
+from ..utils.docker import docker_cmd, docker_compose_cmd
 from ..utils.develop import is_develop, cob_root
 from ..utils.network import wait_for_app_services, wait_for_tcp
 from ..utils.templates import load_template
@@ -45,51 +48,58 @@ def docker():
     pass
 
 
-@docker.command()
-def generate():
+@docker.command(name="generate-docker-file")
+def generate_dockerfile():
     proj = get_project()
     template = load_template('Dockerfile')
 
     if is_develop():
-        sdist_file_name = _build_cob_sdist()
+        sdist_file_name = os.path.join(proj.root, '.cob-sdist.tar.gz')
+        _build_cob_sdist(filename=sdist_file_name)
     else:
         sdist_file_name = None
 
     with open(".Dockerfile", "w") as f:
         f.write(template.render(
             project=proj,
-            deployment_base_image='ubuntu:latest',
+            deployment_base_image='python:3.6-jessie',
             python_version='3.6',
             is_develop=is_develop(),
-            cob_sdist_filename=sdist_file_name,
+            cob_sdist_filename=os.path.basename(sdist_file_name) if sdist_file_name else None,
             cob_root=cob_root() if is_develop() else None,
             user_steps=_get_user_steps()))
 
 
-def _build_cob_sdist():
-    tmpdir = mkdtemp()
-    try:
-        subprocess.check_call(
-            'python setup.py sdist -d {}'.format(tmpdir), cwd=cob_root(), shell=True)
-        [distfile] = os.listdir(tmpdir)
-        returned = '.cob-sdist.tar.gz'
-        shutil.move(os.path.join(tmpdir, distfile),
-                    os.path.join(get_project().root, returned))
-    finally:
-        shutil.rmtree(tmpdir)
-    return returned
+def _build_cob_sdist(filename):
+
+    sdist_filename = os.environ.get('COB_SDIST_FILENAME')
+
+    if sdist_filename is not None:
+        shutil.copy(sdist_filename, filename)
+    else:
+        tmpdir = mkdtemp()
+        try:
+            subprocess.check_call(
+                f'python setup.py sdist -d {tmpdir}', cwd=cob_root(), shell=True)
+            [distfile] = os.listdir(tmpdir)
+            sdist_filename = os.path.join(tmpdir, distfile)
+            shutil.move(sdist_filename, str(filename))
+        finally:
+            shutil.rmtree(tmpdir)
 
 
 @docker.command(name='build')
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
 @click.option('--extra-build-args', '-e', default="", help="Arguments to pass to docker build")
-def docker_build(sudo, extra_build_args):
+@click.option('--release', is_flag=True, default=False)
+def docker_build(sudo, extra_build_args="", use_exec=True, image_name=None, release=False):
     project = get_project()
-    generate.callback()
-    cmd = get_full_docker_command(['docker', 'build', '-t', project.name, '-f', '.Dockerfile', '.', *extra_build_args.split()],
-                                  should_sudo=sudo)
-    _logger.debug('Running Command: {}', ' '.join(cmd))
-    os.execv(cmd[0], cmd)
+    if image_name is None:
+        image_name = f'{project.get_docker_image_name()}:{"latest" if release else "dev"}'.format(project.name, 'latest' if release else 'dev')
+    generate_dockerfile.callback()
+    cmd = docker_cmd.build(['-t', image_name, '-f', '.Dockerfile', '.', *extra_build_args.split()]).force_sudo(sudo)
+    _logger.debug('Running Command: {}', cmd)
+    cmd.run(use_exec=use_exec)
 
 
 @docker.command(name='wsgi-start')
@@ -150,7 +160,7 @@ def _ensure_secret_config():
     with open(secret_file, 'w') as f:
         f.write('flask_config:\n')
         for secret_name in ('SECRET_KEY', 'SECURITY_PASSWORD_SALT'):
-            f.write('  {}: {!r}\n'.format(secret_name, _generate_secret_string()))
+            f.write(f'  {secret_name}: {_generate_secret_string()!r}\n')
 
 
 def _generate_secret_string(length=50):
@@ -181,13 +191,14 @@ def start_nginx(print_config):
 @click.option('--http-port', default=None)
 @click.option('--build', is_flag=True, default=False)
 @click.option('-d', '--detach', is_flag=True, default=False)
-def run(http_port, build, detach):
+@click.option('--image-name', default=None, help='Image to use for the main docker containers')
+def run(http_port, build, detach, image_name):
     if build:
-        docker_build.callback(sudo=False, extra_build_args='')
+        docker_build.callback(sudo=False, use_exec=False)
     cmd = ['up']
     if detach:
         cmd.append('-d')
-    _exec_docker_compose(cmd, http_port=http_port)
+    _exec_docker_compose(cmd, http_port=http_port, image_name=image_name)
 
 
 @docker.command()
@@ -202,23 +213,27 @@ def logs():
 
 def _exec_docker_compose(cmd, **kwargs):
     project = get_project()
-    compose_filename = '/tmp/__{}-docker-compose.yml'.format(project.name)
+    compose_filename = f'/tmp/__{project.name}-docker-compose.yml'
     with open(compose_filename, 'w') as f:
-        f.write(_generate_compose_file(**kwargs))
-    docker_compose = shutil.which('docker-compose')
-    if not docker_compose:
-        raise MissingDependency("docker-compose is not installed in this system. Please install it to use cob")
-    cmd = get_full_docker_command([docker_compose, '-f', compose_filename, '-p', project.name, *cmd])
-    os.execv(cmd[0], cmd)
+        f.write(_generate_compose_file_string(**kwargs))
+    cmd = docker_compose_cmd.args(['-f', compose_filename, '-p', project.name, *cmd])
+    cmd.execv()
 
 
-@docker.command()
-def compose():
-    print(_generate_compose_file())
+@docker.command(name='generate-docker-compose-file')
+@click.option('--image-name', default=None)
+@click.option('--http-port', type=int, default=None)
+@click.option('--force-config-override', is_flag=True, default=False)
+def generate_docker_compose_file(image_name, force_config_override, http_port):
+    """Prints out a docker-compose.yml for this project"""
+    print(_generate_compose_file_string(image_name=image_name, force_config_override=force_config_override, http_port=http_port))
 
 
-def _generate_compose_file(*, http_port=None):
+def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config_override=False):
     project = get_project()
+
+    if image_name is None:
+        image_name = f'{project.get_docker_image_name()}:dev'
 
     config = {
         'version': '3',
@@ -236,7 +251,7 @@ def _generate_compose_file(*, http_port=None):
     services = config['services'] = {
 
         'wsgi':  {
-            'image': project.name,
+            'image': image_name,
             'command': 'cob docker wsgi-start',
             'environment': common_environment,
             'depends_on': [],
@@ -246,9 +261,9 @@ def _generate_compose_file(*, http_port=None):
         },
 
         'nginx': {
-            'image': project.name,
+            'image': image_name,
             'command': 'cob docker nginx-start',
-            'ports': ['{}:80'.format(http_port or 8000)],
+            'ports': [f'{http_port or 8000}:80'],
             'depends_on': ['wsgi'],
         }
     }
@@ -274,9 +289,113 @@ def _generate_compose_file(*, http_port=None):
             #'command': 'bash -c "sleep 15 && rabbitmq-server"',
         }
         services['worker'] = {
-            'image': project.name,
+            'image': image_name,
             'command': 'cob celery start-worker',
             'environment': common_environment,
         }
 
-    return yaml.safe_dump(config, allow_unicode=True, default_flow_style=False)
+    if project.services.redis:
+        services['redis'] = {
+            'image': 'redis',
+        }
+
+    config_override_path = get_etc_config_path(project.name)
+    if force_config_override or config_override_path.is_dir():
+        for service_config in services.values():
+            service_config.setdefault('volumes', []).append('{0}:{0}'.format(config_override_path))
+
+    return config
+
+
+def _generate_compose_file_string(**kwargs):
+    config = _generate_compose_file_dict(**kwargs)
+    return _dump_yaml(config)
+
+
+def _dump_yaml(config, *, stream=None):
+    return yaml.safe_dump(config, stream, allow_unicode=True, default_flow_style=False)
+
+
+@docker.command()
+@click.option('build_image', '--no-build', is_flag=True, default=True)
+@click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
+def test(build_image, sudo):
+    project = get_project()
+    image_name = f"{project.get_docker_image_name()}:dev"
+    if build_image:
+        docker_build.callback(sudo=sudo, use_exec=False, image_name=image_name)
+    compose_file_dict = _generate_compose_file_dict(image_name=image_name)
+    compose_file_dict['services'].pop('nginx')
+    test_config = compose_file_dict['services'].pop('wsgi')
+
+    test_config['tty'] = True
+    test_config['depends_on'] = sorted(set(compose_file_dict['services']) - {'test'})
+    test_config['stdin_open'] = True
+    compose_file_dict['services']['test'] = test_config
+
+    compose_filename = f'/tmp/__{project.name}-test-docker-compose.yml'
+    with open(compose_filename, 'w') as f:
+        _dump_yaml(compose_file_dict, stream=f)
+    docker_compose_name = f'{project.name}-test'
+    cmd = docker_compose_cmd.args([
+        '-f', compose_filename, '-p', docker_compose_name, 'run',
+        '-w', '/app', '-v', f'{os.path.abspath(".")}:/localdir',
+        'test',
+        'bash', '-c', "rsync -rvP --delete --exclude .cob /localdir/ /app/ && cob test"])
+    if cmd.popen().wait() != 0:
+        raise TestsFailed('Tests failed')
+
+
+@docker.command(name="run-image", help='Runs a cob project in a pre-built docker image')
+@click.argument('image_name')
+@click.option('background', '-d', '--detach', is_flag=True, default=False)
+def run_image(image_name, background):
+    project_name, compose_path = _generate_compose_file_from_image(image_name)
+    cmd = docker_compose_cmd.args(['-p', project_name, '-f', compose_path, 'up'])
+    if background:
+        cmd = cmd.args(['-d'])
+    cmd.execv()
+
+
+@docker.command(name="stop-image")
+@click.argument('image_name')
+def stop_image(image_name):
+    project_name, compose_path = _generate_compose_file_from_image(image_name)
+    docker_compose_cmd.args(['-p', project_name, '-f', compose_path, 'down']).execv()
+
+
+def _generate_compose_file_from_image(image_name):
+    project_name = _get_project_name_from_image(image_name)
+    cmd = docker_cmd.run(['--rm', image_name, 'cob', 'docker', 'generate-docker-compose-file', '--image-name', image_name, '--http-port', '80'])
+    if get_etc_config_path(project_name).is_dir():
+        cmd.args(['--force-config-override'])
+    compose_file_contents = cmd.check_output()
+    compose_path = Path('/tmp') / f"__cob_docker_compose_{image_name.replace(':', '__')}.yml"
+    with compose_path.open('wb') as f:
+        f.write(compose_file_contents)
+    return project_name, compose_path
+
+
+@docker.command(name='deploy', help='Deploys an dockerized cob app image to the local systemd-based machine')
+@click.argument('image_name')
+def deploy_image(image_name):
+    click.echo(f'Obtaining project information for {image_name}...')
+    project_name = _get_project_name_from_image(image_name)
+    unit_template = load_template('systemd_unit')
+    filename = Path('/etc/systemd/system') / f'{project_name}-docker.service'
+    click.echo(f'Writing systemd unit file under {filename}...')
+    if filename.exists():
+        click.confirm(f'{filename} already exists. Overwrite?', abort=True)
+
+    tmp_filename = Path(mkdtemp()) / 'systemd-unit'
+    with tmp_filename.open('w') as f: # pylint: disable=no-member
+        f.write(unit_template.render(project_name=project_name, image_name=image_name, cob=f'{sys.executable} -m cob.cli.main'))
+
+    subprocess.check_call(f'sudo -p "Enter password to deploy service" mv {tmp_filename} {filename}', shell=True)
+    click.echo(f'Starting systemd service {filename.stem}...')
+    subprocess.check_call('sudo systemctl daemon-reload', shell=True)
+    subprocess.check_call(f'sudo systemctl enable --now {filename.name}', shell=True)
+
+
+def _get_project_name_from_image(image_name):
+    return docker_cmd.run(['--rm', image_name, 'cob', 'info', 'project-name']).check_output(encoding='utf-8').strip()

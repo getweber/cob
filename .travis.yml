@@ -1,18 +1,20 @@
 language: python
 sudo: required
 python:
-  - '3.5'
+  - '3.6'
 
 env:
   global:
     - COB_FORCE_CURRENT_INTERPRETER=1
+    - COB_DEVELOP=1
     - DOCKER_COMPOSE_VERSION=1.11.2
     - DOCKER_HOST=tcp://127.0.0.1:2375
+
 
 before_install:
 
   # fix pip
-  - sudo apt-get purge -y python-pip
+  - sudo apt-get purge -y python-pip || true
   - wget https://bootstrap.pypa.io/get-pip.py
   - sudo $(which python) ./get-pip.py
   - sudo $(which python) -m pip install -U pip setuptools virtualenv
@@ -33,19 +35,26 @@ install:
   - pip install -r test_requirements.txt
   - pip install pylint
 
-script:
-  - pylint --rcfile=.pylintrc cob
-  - py.test tests
-
 after_failure:
   - docker images
+  - docker ps -a
 
-deploy:
-  provider: pypi
-  user: vmalloc
-  password:
-    secure: lPRJIhiuniYyIyV2jHHvK3IiQIckld92yYY2rfIutqa3wsdlSTXPGO1snBH0fxvhvfwudWrj1h4l3Ru8SN+s7AQwzMSFVSouU9HLtlxqzyYuL98iCDZa1YI2NNOU+OBByZNgbgldeuWPcIM+loIpte5yaMuW+90lbrYYjO7DFZaXjPhumE+rHfc+hXnRg8j0dnlpXtsVewDHF+6GMNtvG+rxG36ka9WF7JQvM28+1VltbmKQemuwgtBLAasNSaViQo3O3EI/vbWFmB9Rnv9rTV2DTfpWUvqQDtxcOokFi+DVFaEKaUb0gUA8RDUgYm7vdFeg8SiUW/uvjEzRHogPvGgbIHqpmgqKVtpxXTVVSNrp8gU6ElIm/fR/b5716YdWTlBBX840LjazCUcR4RUPHkw8VDIItTmcgYscQcSdX1xfmrc09EY/QcUBuhFNizCJZVvUsjBMr2zeAElQgWeWC5gtEDx4JGVRggcu9wotAArG4krDMo3SOqspE7i+SPkE7QZH8D4M6X8v0qUW4y1Vps5TnoLxe3ffuKD24huyI6KjmFdPfaDVXTGi3YL/98aPnK9y5juf5qjU05SHn7ldTPDxxHqkrziuztHun6OOx3PQna41lYisUww3gg+6Ch3SucUZVWd81278ulFGqrPYgJPlSawBHXa2bxD1dRr6edM=
-  on:
-    tags: true
-    repo: getweber/cob
-    branch: develop
+jobs:
+  include:
+    - script: pylint --rcfile=.pylintrc cob
+    - script: WORKER=1 python scripts/run_parallel_pytest_slice.py
+    - script: WORKER=2 python scripts/run_parallel_pytest_slice.py
+    - script: WORKER=3 python scripts/run_parallel_pytest_slice.py
+    - script: WORKER=4 python scripts/run_parallel_pytest_slice.py
+    - stage: deploy
+      script: echo Deploying to Pypi...
+
+      deploy:
+        provider: pypi
+        user: vmalloc
+        password:
+          secure: lPRJIhiuniYyIyV2jHHvK3IiQIckld92yYY2rfIutqa3wsdlSTXPGO1snBH0fxvhvfwudWrj1h4l3Ru8SN+s7AQwzMSFVSouU9HLtlxqzyYuL98iCDZa1YI2NNOU+OBByZNgbgldeuWPcIM+loIpte5yaMuW+90lbrYYjO7DFZaXjPhumE+rHfc+hXnRg8j0dnlpXtsVewDHF+6GMNtvG+rxG36ka9WF7JQvM28+1VltbmKQemuwgtBLAasNSaViQo3O3EI/vbWFmB9Rnv9rTV2DTfpWUvqQDtxcOokFi+DVFaEKaUb0gUA8RDUgYm7vdFeg8SiUW/uvjEzRHogPvGgbIHqpmgqKVtpxXTVVSNrp8gU6ElIm/fR/b5716YdWTlBBX840LjazCUcR4RUPHkw8VDIItTmcgYscQcSdX1xfmrc09EY/QcUBuhFNizCJZVvUsjBMr2zeAElQgWeWC5gtEDx4JGVRggcu9wotAArG4krDMo3SOqspE7i+SPkE7QZH8D4M6X8v0qUW4y1Vps5TnoLxe3ffuKD24huyI6KjmFdPfaDVXTGi3YL/98aPnK9y5juf5qjU05SHn7ldTPDxxHqkrziuztHun6OOx3PQna41lYisUww3gg+6Ch3SucUZVWd81278ulFGqrPYgJPlSawBHXa2bxD1dRr6edM=
+        on:
+          tags: true
+          repo: getweber/cob
+          branch: develop

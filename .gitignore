@@ -16,3 +16,4 @@ ChangeLog
 .cob
 .cob-sdist.tar.gz
 celerybeat-schedule
+/.pytest_cache

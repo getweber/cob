@@ -65,7 +65,7 @@ class LoadedGrain(object):
         self.mountpoint = self.config.get('mountpoint', None)
         if self.mountpoint is not None:
             if self.mountpoint != '/' and self.mountpoint.endswith('/'):
-                raise BadMountpoint('Mountpoint for grain {} should not end with /'.format(self.path))
+                raise BadMountpoint(f'Mountpoint for grain {self.path} should not end with /')
             self.mountpoint = Mountpoint(self.mountpoint)
 
     def get_path_from(self, project_root):
@@ -90,7 +90,7 @@ class LoadedGrain(object):
         if not os.path.isfile(rel_filename) and not rel_filename.endswith('.py'):
             rel_filename += '.py'
         if not os.path.isfile(rel_filename):
-            raise RuntimeError('File does not exist: {!r}'.format(rel_filename))
+            raise RuntimeError(f'File does not exist: {rel_filename!r}')
         module = emport.import_file(rel_filename)
         return module
 

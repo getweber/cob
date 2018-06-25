@@ -3,30 +3,54 @@
 Deployment
 ==========
 
-cob relies on Docker to perform deployments.
+Deploying Cob applications is easy and straightforward. Cob uses Docker for deployment -- it helps you build a dockerized version of your app, which you can then push to a repository or deploy directly to the local machine.
 
 Building a Docker Image
 -----------------------
 
-First, you'll need to generate the Docker image for your project. You do this by running::
+First, you'll need to build the Docker image for your project. This is done by running::
 
   $ cob docker build
 
-This image will later be used to run the various needed containers.
+This command builds a docker image labeled ``<your project name>>:dev`` by default. This means that if your project is named "todos",
+the image would be named ``todos:dev``.
 
-Running your App in Deployment
-------------------------------
+Testing Dockerized Apps
+-----------------------
 
-The easiest way to run the deployment image locally is to run::
+To make sure no new issues get introduced as a result of packaging your app through Docker, you can run your tests
+inside the docker containers comprising your app, meaning it will run very similarly to how it would run in production.
 
-  $ cob docker run
+This is done by running ``cob docker test``.
 
-The above assumes you already built the deployment image with ``cob
-docker build``, and will use it in a ``docker-compose`` configuration.
+Tagging and Pushing Images
+--------------------------
 
-While this is useful to run in the foreground from within the project
-directory, you may want to generate a docker-compose file for later
-use in other deployment scripts (such as ``systemd`` services). For
-this purpose you can generate the ``docker-compose.yml`` file with::
+In most cases you would probably like to tag your released images and upload them to a Docker registry. This can be done by setting the *image name* for your project before building images.
 
-  $ cob docker compose > /path/to/docker-compose.yml
+Under ``.cob-project.yml``, add the ``docker.image_name`` configuration::
+
+  # .cob-project.yml
+  ...
+  docker:
+      image_name: "your.server.com:4567/myproject"
+
+Now when you build or test your project, the docker image created will be ``your.server.com:4567/myproject:dev``
+
+Once you're satisfied with a built image, you can tag it directly through docker as your "latest" version::
+
+  $ docker tag your.server.com:4567/myproject:dev your.server.com:4567/myproject:latest
+
+Then you can push your image to the repository with a standard ``docker push`` command::
+
+  $ docker push your.server.com:4567/myproject:latest
+
+
+Deploying on Systemd-based Systems
+-------------------------------
+
+If your target machine is based on *systemd* (e.g. recent Ubuntu Server releases, CentOS 7.x etc.), you can deploy a dockerized cob project by running::
+
+  $ cob docker deploy myproject:latest
+
+This will pull off the needed information from the Docker image and create appropriate unit files to run your project.

@@ -24,8 +24,7 @@ def wait_for_tcp(hostname, port, timeout_seconds=600):
             except socket.error as e:
                 _logger.debug('Could not connect ({})', e)
                 if time.time() > end_time:
-                    raise IOError(
-                        'Could not connect to {}:{}'.format(hostname, port))
+                    raise IOError(f'Could not connect to {hostname}:{port}')
                 time.sleep(1)
             else:
                 return

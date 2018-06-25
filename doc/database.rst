@@ -20,17 +20,40 @@ Then you can add your models in my_models.py:
        class Person(db.Model):
 	   id = db.Column(db.Integer, primary_key=True)
 
-To direct cob to the database to use, you can add your database URI to ``.cob-project.yml`` under ``flask_config``::
 
-  name: myproj
-  flask_config:
-      SQLALCHEMY_DATABASE_URI: sqlite:////path/to/db.db
+Controlling the Database URI
+----------------------------
 
+By default, Cob uses an SQLite database located in the project's `.cob` directory for development. In production (when deployed via docker) - it switches to Postgres.
 
-.. note:: By default, Cob uses an SQLite database located in the project's `.cob` directory for development, and switches to use Postgres for production (e.g. when being deployed as a docker container). In some cases you may want to use Postgres during development as well. In such cases, make sure you have a local Postgres instance running, and change the relevant DB URL to point at it (e.g. `postgres://localhost/your_db`)
+In some cases, however, you may want to use Postgres during development as well, or move to use a different database altogether. For such cases, Cob supports setting the database URI explicitly
+through the following methods:
 
-To quickly create your database and its relations, you can run::
+1. You can set your database URI in the configuration file. Simply set ``SQLALCHEMY_DATABASE_URI`` config value in your ``.cob-project.yml`` file:
+
+   .. code-block:: yaml
+
+      name: myproj
+      flask_config:
+          SQLALCHEMY_DATABASE_URI: postgres://db-server/your-db
+
+2. You can override the database URI used by Cob through the ``COB_DATABASE_URI`` environment
+   variable. This method takes precedence over the local project configuration, and therefore is
+   useful for overriding the database connection settings during testing or in CI scenarios.
+
+Database Initialization
+-----------------------
+
+Note that Cob, by default, does not initialize any DB structure for you when run. This means that
+for your code to work, an extra step is required to make sure the database is properly initialized.
+
+If your project **does not** use migrations, you can quickly create all tables and structures using:: 
 
   $ cob db createall
 
-.. warning:: The proper way to initialize your database is through :ref:`migrations`. The ``createall`` command is only intended for quick experimenting if you are not interested in preserving your data for long periods and across revisions
+However, the recommended practice for long-lasting projects is to use migrations. For projects using
+migrations, creating the DB is done via ``cob migrate up``, which is described in the
+:ref:`migrations` chapter of this guide.
+
+.. note:: Cob takes care of migrations automatically during deployment - the statement above about
+          having to initialize your database hold only for the development phase of your project.

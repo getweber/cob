@@ -7,6 +7,7 @@ import logbook
 
 from .defs import COB_CONFIG_FILE_NAME
 from .exceptions import NotInProject
+from .service_manager import Services
 from .subsystems.manager import SubsystemsManager
 from .utils.config import merge_config, load_overrides
 from .utils.url import sort_paths_specific_to_generic
@@ -36,7 +37,7 @@ class Project(object):
         config_filename = os.path.join(self.root, COB_CONFIG_FILE_NAME)
 
         if not os.path.isfile(config_filename):
-            raise NotInProject('You do not seem to be in a Cob project directory')
+            raise NotInProject(f'You do not seem to be in a Cob project directory (Currently in {self.root})')
 
         with open(config_filename) as f:
             config = merge_config(DEFAULT_CONFIG, yaml.load(f))
@@ -45,8 +46,15 @@ class Project(object):
 
         self.name = self.config.get('name', os.path.basename(self.root))
         self.subsystems = SubsystemsManager(self)
+        self.services = Services(self)
 
         self._initialized = False
+
+    def get_docker_image_name(self):
+        return self.config.get('docker', {}).get('image_name', self.name)
+
+    def is_dockerized(self):
+        return bool(os.environ.get('COB_DOCKERIZED'))
 
     def build_venv_command(self, cmd):
         cmd, *remainder = cmd.split()
@@ -92,10 +100,10 @@ class Project(object):
                 continue
 
             if location.is_frontend_app():
-                for alias in (str(location.mountpoint), '{}<path:ignored>'.format(location.mountpoint)):
+                for alias in (str(location.mountpoint), f'{location.mountpoint}<path:ignored>'):
                     flask_app.route(alias, defaults={'path': location.fs_paths[0]})(_static_alias_view)
             else:
-                flask_app.route('{}<path:filename>'.format(location.mountpoint),
+                flask_app.route(f'{location.mountpoint}<path:filename>',
                                 defaults={'search_locations': location.fs_paths})(_static_view)
 
 

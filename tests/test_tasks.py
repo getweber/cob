@@ -8,7 +8,7 @@ def test_tasks():
         task_id = app.get('/start').json()['id']
         end_time = time.time() + timeout_seconds
         while time.time() < end_time:
-            status = app.get('/status/{}'.format(task_id)).json()['completed']
+            status = app.get(f'/status/{task_id}').json()['completed']
             if status:
                 break
         else:
