@@ -304,6 +304,11 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
         for service_config in services.values():
             service_config.setdefault('volumes', []).append('{0}:{0}'.format(config_override_path))
 
+    for service_config in services.values():
+        service_config.setdefault('volumes', []).append(
+            '/etc/localtime:/etc/localtime:ro',
+        )
+
     return config
 
 
