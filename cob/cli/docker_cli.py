@@ -299,7 +299,7 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
             'image': 'redis',
         }
 
-    config_override_path = get_etc_config_path(project.name)
+    config_override_path = get_etc_config_path(project.name).resolve()
     if force_config_override or config_override_path.is_dir():
         for service_config in services.values():
             service_config.setdefault('volumes', []).append('{0}:{0}'.format(config_override_path))
