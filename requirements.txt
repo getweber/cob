@@ -16,7 +16,7 @@ gunicorn
 Logbook
 mitba
 psycopg2
-PyYAML
+PyYAML<4
 pytest
 redis
 sentinels
