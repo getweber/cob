@@ -299,10 +299,15 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
             'image': 'redis',
         }
 
-    config_override_path = get_etc_config_path(project.name)
+    config_override_path = get_etc_config_path(project.name).resolve()
     if force_config_override or config_override_path.is_dir():
         for service_config in services.values():
             service_config.setdefault('volumes', []).append('{0}:{0}'.format(config_override_path))
+
+    for service_config in services.values():
+        service_config.setdefault('volumes', []).append(
+            '/etc/localtime:/etc/localtime:ro',
+        )
 
     return config
 
@@ -370,7 +375,7 @@ def _generate_compose_file_from_image(image_name):
     if get_etc_config_path(project_name).is_dir():
         cmd.args(['--force-config-override'])
     compose_file_contents = cmd.check_output()
-    compose_path = Path('/tmp') / f"__cob_docker_compose_{image_name.replace(':', '__')}.yml"
+    compose_path = Path('/tmp') / f"__cob_docker_compose_{image_name.replace(':', '_').replace('/', '_')}.yml"
     with compose_path.open('wb') as f:
         f.write(compose_file_contents)
     return project_name, compose_path

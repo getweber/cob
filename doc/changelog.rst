@@ -1,6 +1,11 @@
 Changelog
 =========
 
+* :release:`0.18.2 <28-06-2018>`
+* :bug:`-` Fix escaping of image names when using ``cob docker deploy``
+* :release:`0.18.1 <27-06-2018>`
+* :bug:`85` Cob now supports symlinks for /etc/cob/conf.d/PROJNAME
+* :bug:`84` Cob now mounts /etc/localtime inside containers to enforce correct time zone
 * :release:`0.18.0 <25-06-2018>`
 * :feature:`51` Support `cob docker deploy` command to conveniently deploy dockerized cob projects on systemd
 * :feature:`82` Added `cob docker run-image` to run a prebuilt cob image without requiring dependencies
