@@ -51,6 +51,6 @@ Deploying on Systemd-based Systems
 
 If your target machine is based on *systemd* (e.g. recent Ubuntu Server releases, CentOS 7.x etc.), you can deploy a dockerized cob project by running::
 
-  $ cob docker deploy myproject:latest
+  $ cob docker deploy your.server.com:4567/myproject:latest
 
 This will pull off the needed information from the Docker image and create appropriate unit files to run your project.
