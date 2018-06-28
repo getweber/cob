@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import pkg_resources
 import sys
 
 import logbook
@@ -15,6 +16,10 @@ def main(verbose, quiet):
     logbook.NullHandler().push_application()
     logbook.StreamHandler(sys.stderr, level=logbook.WARNING -
                           verbose + quiet, bubble=False).push_application()
+
+@main.command()
+def version():
+    print(pkg_resources.get_distribution('cob').version)
 
 
 @main.add_command
