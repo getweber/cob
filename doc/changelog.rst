@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :release:`0.18.3 <28-06-2018>`
 * :release:`0.18.2 <28-06-2018>`
 * :bug:`-` Fix escaping of image names when using ``cob docker deploy``
 * :release:`0.18.1 <27-06-2018>`
