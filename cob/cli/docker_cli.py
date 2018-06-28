@@ -370,7 +370,7 @@ def _generate_compose_file_from_image(image_name):
     if get_etc_config_path(project_name).is_dir():
         cmd.args(['--force-config-override'])
     compose_file_contents = cmd.check_output()
-    compose_path = Path('/tmp') / f"__cob_docker_compose_{image_name.replace(':', '__')}.yml"
+    compose_path = Path('/tmp') / f"__cob_docker_compose_{image_name.replace(':', '_').replace('/', '_')}.yml"
     with compose_path.open('wb') as f:
         f.write(compose_file_contents)
     return project_name, compose_path
