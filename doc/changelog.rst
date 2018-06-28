@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* :release:`0.18.2 <28-06-2018>`
+* :bug:`-` Fix escaping of image names when using ``cob docker deploy``
 * :release:`0.18.1 <27-06-2018>`
 * :bug:`85` Cob now supports symlinks for /etc/cob/conf.d/PROJNAME
 * :bug:`84` Cob now mounts /etc/localtime inside containers to enforce correct time zone
