@@ -382,14 +382,15 @@ def _generate_compose_file_from_image(image_name):
 
 
 @docker.command(name='deploy', help='Deploys an dockerized cob app image to the local systemd-based machine')
+@click.option('--force', is_flag=True, default=False)
 @click.argument('image_name')
-def deploy_image(image_name):
+def deploy_image(image_name, force):
     click.echo(f'Obtaining project information for {image_name}...')
     project_name = _get_project_name_from_image(image_name)
     unit_template = load_template('systemd_unit')
     filename = Path('/etc/systemd/system') / f'{project_name}-docker.service'
     click.echo(f'Writing systemd unit file under {filename}...')
-    if filename.exists():
+    if filename.exists() and not force:
         click.confirm(f'{filename} already exists. Overwrite?', abort=True)
 
     tmp_filename = Path(mkdtemp()) / 'systemd-unit'

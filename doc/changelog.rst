@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`88` Add ``--force`` to ``cob docker deploy`` to force overwriting unit files
 * :release:`0.18.3 <28-06-2018>`
 * :release:`0.18.2 <28-06-2018>`
 * :bug:`-` Fix escaping of image names when using ``cob docker deploy``
