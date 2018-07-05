@@ -309,6 +309,8 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
             '/etc/localtime:/etc/localtime:ro',
         )
 
+        service_config.setdefault('logging', {'driver': 'syslog'})
+
     return config
 
 
