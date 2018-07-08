@@ -356,11 +356,16 @@ def test(build_image, sudo):
 @docker.command(name="run-image", help='Runs a cob project in a pre-built docker image')
 @click.argument('image_name')
 @click.option('background', '-d', '--detach', is_flag=True, default=False)
-def run_image(image_name, background):
+@click.option('compose_overrides', '-o', '--overlay-compose-file', default=[], multiple=True)
+def run_image(image_name, background, compose_overrides):
     project_name, compose_path = _generate_compose_file_from_image(image_name)
-    cmd = docker_compose_cmd.args(['-p', project_name, '-f', compose_path, 'up'])
+    cmd = docker_compose_cmd.args(['-p', project_name, '-f', compose_path])
+    for compose_override in compose_overrides:
+        cmd.args(['-f', compose_override])
+    cmd.args(['up'])
     if background:
         cmd = cmd.args(['-d'])
+
     cmd.execv()
 
 
