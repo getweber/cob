@@ -68,3 +68,17 @@ By adding a ``gunicorn`` dictionary to your project's YAML file, you can control
   # .cob-project.yml
   gunicorn:
       max_requests: 20
+
+Exposed Ports
+~~~~~~~~~~~~~
+
+When deploying via Docker, Cob automatically exposes port 80 for your webapp, but leaves other ports private.
+
+You can customize this behavior using the ``docker.exposed_ports`` configuration. This configuration value is a mapping, containing the list of exposed ports for each service name::
+
+  # .cob-project.yml
+  docker:
+      exposed_ports:
+          wsgi:
+             - 443
+             - 12345
