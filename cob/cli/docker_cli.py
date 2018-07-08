@@ -311,6 +311,9 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
 
         service_config.setdefault('logging', {'driver': 'syslog'})
 
+    for service_name, service_ports in project.config.get('docker', {}).get('exposed_ports', {}).items():
+        services[service_name].setdefault('ports', []).extend(service_ports)
+
     return config
 
 
