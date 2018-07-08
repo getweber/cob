@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`88` Add option to specify more compose file to ``cob docker run-image``
 * :feature:`89` Add ``--force`` to ``cob docker deploy`` to force overwriting unit files
 * :release:`0.18.4 <05-07-2018>`
 * :release:`0.18.3 <28-06-2018>`
