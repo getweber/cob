@@ -33,7 +33,7 @@ class Docker:
             if not os.path.isabs(cmd):
                 cmd = shutil.which(cmd)
                 if cmd is None:
-                    raise MissingDependency(f'{self._docker.get_command_name()} could not be found')
+                    raise MissingDependency(f'{self._cmdname} could not be found')
                 self._cmd_full_path = cmd
         return self._cmd_full_path
 
