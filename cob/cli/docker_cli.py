@@ -288,7 +288,6 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
 
         services['rabbitmq'] = {
             'image': 'rabbitmq',
-            #'command': 'bash -c "sleep 15 && rabbitmq-server"',
         }
         services['worker'] = {
             'image': image_name,
