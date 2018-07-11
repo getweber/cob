@@ -10,6 +10,14 @@ full-stack app has: a modern front-end UI, a backend for API calls, static files
 First Steps
 -----------
 
+Prerequisites
+~~~~~~~~~~~~~
+
+Cob requires Python 3.6 in order to run, so you'll have to install it on your system. For docker-related operations such as building images, pushing them etc., you'll also need ``docker`` and ``docker-compose`` installed. Due to format changes made in ``docker-compose`` in the past, you'll need version 1.13 or greater of ``docker-compose``.
+
+For deployment requirements, see :ref:`the relevant section in the deployment documentation <deployment_deps>`.
+
+
 Installing Cob
 ~~~~~~~~~~~~~~
 
