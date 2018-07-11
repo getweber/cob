@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* :bug:`96 major` Pin Celery dependency to 4.1.x because of 4.2.x regression
+* :feature:`92` Use journald logging driver when available during docker execution
 * :feature:`88` Add option to specify more compose file to ``cob docker run-image``
 * :feature:`89` Add ``--force`` to ``cob docker deploy`` to force overwriting unit files
 * :feature:`90` Add ``docker.exposed_ports`` configuration for controlling exposed ports in deployment

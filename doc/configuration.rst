@@ -25,6 +25,19 @@ You can access ``some_value`` through the ``config`` project attribute:
 .. note:: Some keys in the project config have special meaning, like the project name stored in the ``name`` key or ``flask_config`` described below. To avoid name clashes, it is wise to store all of your specific configuration under a specific key as a nested structure, such as ``config`` or ``project-config``
 
 
+Managing Dependencies
+---------------------
+
+Apart from the base dependencies needed by cob itself, which takes care of the facilities your project uses (this includes Flask, SQLAlchemy and Celery for example), you can specify additional dependencies your code relies on. This can be done using the ``deps`` configuration value::
+
+  # .cob-project.yml
+  ...
+  deps:
+      - requests>=1.1.0
+
+
+
+
 Flask Config
 ------------
 
