@@ -1,7 +1,7 @@
 # tmuxp uses strict requirement versioning so it comes first
 tmuxp
 
-celery
+celery<4.2.0
 click
 emport>=1.2.0
 gossip
