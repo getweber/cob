@@ -20,7 +20,7 @@ def main():
     with _TRAVIS_YML.open() as f:
         config = yaml.load(f.read())
 
-    num_workers = len([x for x in config['jobs']['include'] if x['script'].strip().startswith('WORKER=')])
+    num_workers = len([x for x in config['jobs']['include'] if str(x['script']).strip().startswith('WORKER=')])
     assert num_workers > 0
 
     tests = [str(test) for index, test in enumerate(tests) if index % num_workers == worker_id - 1]
