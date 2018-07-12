@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`97` Added ``cob shell`` command, allowing users to interactively access their modules and code through IPython or the builtin Python interpreter shell
 * :feature:`94` Added ``cob docker tag-latest`` to tag the recent image as latest, and ``cob docker push`` to push the latest image
 * :bug:`96 major` Pin Celery dependency to 4.1.x because of 4.2.x regression
 * :feature:`92` Use journald logging driver when available during docker execution

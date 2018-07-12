@@ -6,6 +6,7 @@ import sys
 import logbook
 import click
 
+from cob.app import build_app
 from cob.exceptions import CobExecutionError
 from cob.bootstrapping import ensure_project_bootstrapped
 
@@ -40,6 +41,27 @@ def test(pytest_args):
     ensure_project_bootstrapped()
     python_executable = os.path.abspath('.cob/env/bin/python')
     os.execv(python_executable, [python_executable, '-m', 'pytest'] + list(pytest_args))
+
+
+@main.add_command
+@click.command()
+def shell():
+    ensure_project_bootstrapped()
+    app = build_app()
+
+    sys.path[:] = [p for p in sys.path if p not in ('', '.')]
+
+
+    with app.app_context():
+        ns = {'app': app, '__package__': '_cob'}
+        try:
+            from IPython import embed
+        except ImportError:
+            import code
+            code.interact(local=ns)
+        else:
+            embed(user_ns=ns)
+
 
 
 def _add_all_subcommands():
