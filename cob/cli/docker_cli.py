@@ -425,3 +425,17 @@ def _get_project_name_from_image(image_name):
 
 def _is_journald_system():
     return shutil.which('journalctl') is not None
+
+
+@docker.command(name='tag-latest', help='Tags the latest development image as latest')
+def tag_latest():
+    project = get_project()
+    docker_cmd.tag([
+        f'{project.get_docker_image_name()}:dev',
+        f'{project.get_docker_image_name()}:latest']
+    ).execv()
+
+@docker.command(name='push')
+def push():
+    project = get_project()
+    docker_cmd.push([f'{project.get_docker_image_name()}:latest']).execv()

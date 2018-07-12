@@ -70,11 +70,13 @@ Now when you build or test your project, the docker image created will be ``your
 
 Once you're satisfied with a built image, you can tag it directly through docker as your "latest" version::
 
-  $ docker tag your.server.com:4567/myproject:dev your.server.com:4567/myproject:latest
+  $ cob docker tag-latest
 
 Then you can push your image to the repository with a standard ``docker push`` command::
 
-  $ docker push your.server.com:4567/myproject:latest
+  $ cob docker push
+
+.. note:: both ``cob docker tag-latest`` and ``cob docker push`` take the image name from the project's configuration, and are intended as shortcuts for ``docker tag`` and ``docker push``.
 
 
 Deploying on Systemd-based Systems
