@@ -1,60 +1,46 @@
 language: python
 sudo: required
 python:
-  - '3.6'
-
+- '3.6'
 env:
   global:
-    - COB_FORCE_CURRENT_INTERPRETER=1
-    - COB_DEVELOP=1
-    - DOCKER_COMPOSE_VERSION=1.11.2
-    - DOCKER_HOST=tcp://127.0.0.1:2375
-
-
+  - COB_FORCE_CURRENT_INTERPRETER=1
+  - COB_DEVELOP=1
+  - DOCKER_COMPOSE_VERSION=1.11.2
+  - DOCKER_HOST=tcp://127.0.0.1:2375
+  - secure: 1TE4UDcp35WnnjXYhOD5O1axjltF5+oxhgyydwpBxnPOEhWfEogsr6KPJKo5M4hIsEtrr1EvRCYHD4AyAR2nJmkQoagvXRRO9CY5AzdrrRO/yAiBcwwhs1+2wYmTxk4Nz0c/fwPJE1/26nnedmedJ3MO7veDkFPv+MJf3NgR3Nm1wFX8yXzmWcA7A8HalGxR7i7qmhKIIVOaAw7Ru0CclcwYwLNZxXTLBLrmIo/voBHHE2ImuSs4HjB1iV4mWQYE8QvzUbYZ4qNwuwwAHQ5DGh+/wsgszTf8RXgGPcdHg4SzZp+21Xm2aC6DfClRi1/bgLRkevgzexjKp+AfTR1zzDlgIj4kmvytXHms2TKP/aKcwjtAe0FBZ40Oo7EMgUfrdGsUAhpUTSfT/G81mjz0U468s+6KgBDXK7vTFgHDKjHRKsev7qXgaj+eVBaeCDGbcF3O0438zl9LYJ9CgwwaH34kvbBhxsVaDACaQ8YkjUPZsZ+jCqcAiCqtt8Z8HWiQdvBdqDSPHxzj70F7Mo8AOl53pMTUk1eAa0QzakdyX2Ac4weLenKikF1Ps8fWv3WFOVaKnmOhHqotCxR/G/snhipNvbCEbBi06sHDQHp8XDKPfsTfNGuN0KR8lr+BYKaSkC9l29/viTJZh7DcPxeIHuJrr7HNzBP9hnot0LtX9Vo=
+  - secure: dex0amg+LAeZc1MCcp8Lrmn/za94fLpltzo9YCmPQJ8xjA23C6jC/IRmYqtlt/IJTfml4aLlXNyYfMKZuLGWovaE58Tv0MnaLPQh0ThQCzh5k45iM/jZlQp+9npclzRcTkHqLy0RQ4VwWWZsC2b/9qOyCmnp1x+1hQD4Iz5sgOJ6Qae70M/oNJ9bOKDOHVPUWWrHjcrckstlwk7BF8wEPLZJKVGnRTt0MdWtNXDkUj1ciFjZ1RpDWzG8dWDMDaSHUWjX3ZqiUc5DeRiWvN69plRv/eriKkmKk+mjv9kZVAtNk8f/SoRU3XsWqsxSgYwCgtjKsxxjcuFYvtJlJKECk1LC8t5orDC5POKJyHOpv2R8pIMwNXWUnAyKiK/gGR6VqSEOBhThXB3qw6kIze+f7BYRu6/7O255s6FGxdDju8IomJjps0gGJHBK/EiCW4BcxdwHA3kPXtla4aKvG/3GNwZxO1dQ73rpQV8d2NVylCU2nzBuBq0NMIQAm9pjIrk9uSMg8kusgYUl1F3d5anP1ndwplu+fF67aFST/thFJZG5Dfewyr9BTTCwI+J1TEtmLlP1PkDLGr1YElsvWdB7zaKc0uEaH72+4WWRhzx2qeDSA6W6NUS33OBrLt+CHeJL3jdQcS1ZW9iepFIiM9I0vxCZdI7WpdXjsdwk/AlPpzE=
 before_install:
-
-  # fix pip
-  - sudo apt-get purge -y python-pip || true
-  - wget https://bootstrap.pypa.io/get-pip.py
-  - sudo $(which python) ./get-pip.py
-  - sudo $(which python) -m pip install -U pip setuptools virtualenv
-
-  # update docker
-  - curl https://releases.rancher.com/install-docker/17.10.sh | sudo bash -
-
-  # fix docker-compose version
-  - sudo rm /usr/local/bin/docker-compose
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
-  - docker-compose --version
-
-
+- sudo apt-get purge -y python-pip || true
+- wget https://bootstrap.pypa.io/get-pip.py
+- sudo $(which python) ./get-pip.py
+- sudo $(which python) -m pip install -U pip setuptools virtualenv
+- curl https://releases.rancher.com/install-docker/17.10.sh | sudo bash -
+- sudo rm /usr/local/bin/docker-compose
+- curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname
+  -s`-`uname -m` > docker-compose
+- chmod +x docker-compose
+- sudo mv docker-compose /usr/local/bin
+- docker-compose --version
 install:
-  - pip install -e .
-  - pip install -r test_requirements.txt
-  - pip install pylint
-
+- pip install -e .
+- pip install -r test_requirements.txt
+- pip install pylint
 after_failure:
-  - docker images
-  - docker ps -a
-
+- docker images
+- docker ps -a
 jobs:
   include:
-    - script: pylint --rcfile=.pylintrc cob
-    - script: WORKER=1 python scripts/run_parallel_pytest_slice.py
-    - script: WORKER=2 python scripts/run_parallel_pytest_slice.py
-    - script: WORKER=3 python scripts/run_parallel_pytest_slice.py
-    - script: WORKER=4 python scripts/run_parallel_pytest_slice.py
-    - stage: deploy
-      script: echo Deploying to Pypi...
-
-      deploy:
-        provider: pypi
-        user: vmalloc
-        password:
-          secure: lPRJIhiuniYyIyV2jHHvK3IiQIckld92yYY2rfIutqa3wsdlSTXPGO1snBH0fxvhvfwudWrj1h4l3Ru8SN+s7AQwzMSFVSouU9HLtlxqzyYuL98iCDZa1YI2NNOU+OBByZNgbgldeuWPcIM+loIpte5yaMuW+90lbrYYjO7DFZaXjPhumE+rHfc+hXnRg8j0dnlpXtsVewDHF+6GMNtvG+rxG36ka9WF7JQvM28+1VltbmKQemuwgtBLAasNSaViQo3O3EI/vbWFmB9Rnv9rTV2DTfpWUvqQDtxcOokFi+DVFaEKaUb0gUA8RDUgYm7vdFeg8SiUW/uvjEzRHogPvGgbIHqpmgqKVtpxXTVVSNrp8gU6ElIm/fR/b5716YdWTlBBX840LjazCUcR4RUPHkw8VDIItTmcgYscQcSdX1xfmrc09EY/QcUBuhFNizCJZVvUsjBMr2zeAElQgWeWC5gtEDx4JGVRggcu9wotAArG4krDMo3SOqspE7i+SPkE7QZH8D4M6X8v0qUW4y1Vps5TnoLxe3ffuKD24huyI6KjmFdPfaDVXTGi3YL/98aPnK9y5juf5qjU05SHn7ldTPDxxHqkrziuztHun6OOx3PQna41lYisUww3gg+6Ch3SucUZVWd81278ulFGqrPYgJPlSawBHXa2bxD1dRr6edM=
-        on:
-          tags: true
-          repo: getweber/cob
-          branch: develop
+  - script: pylint --rcfile=.pylintrc cob
+  - script: WORKER=1 python scripts/run_parallel_pytest_slice.py
+  - script: WORKER=2 python scripts/run_parallel_pytest_slice.py
+  - script: WORKER=3 python scripts/run_parallel_pytest_slice.py
+  - script: WORKER=4 python scripts/run_parallel_pytest_slice.py
+  - stage: deploy
+    python: 3.6
+    before_install: echo "No before install"
+    install: pip install twine
+    script:
+    - python setup.py sdist bdist_wheel
+    - twine upload -u $PYPI_USERNAME -p $PYPI_PASSWORD dist/*
+    if: tag IS present

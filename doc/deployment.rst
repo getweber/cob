@@ -5,6 +5,36 @@ Deployment
 
 Deploying Cob applications is easy and straightforward. Cob uses Docker for deployment -- it helps you build a dockerized version of your app, which you can then push to a repository or deploy directly to the local machine.
 
+
+Deployment Requirements
+-----------------------
+
+.. _deployment_deps:
+
+Cob has several requirements in order to be successfully deployed on your system/machine.
+
+Python Version
+~~~~~~~~~~~~~~
+
+Cob requires Python 3.6 or newer in order to install and run correctly. If you are deploying on Ubuntu 18.04 or newer, this should already be the case for your system.
+
+For Ubuntu 16.04 or older, it is recommended to use the *deadsnakes* PPA for installing 3.6::
+
+  $ sudo apt-get install -y software-properties-common
+  $ sudo add-apt-repository ppa:deadsnakes/ppa
+  $ sudo apt-get update
+  $ sudo apt-get install -y python3.6
+
+Docker and Docker-Compose
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Deploying a cob app requires *docker* to be installed. In addition, ``docker-compose`` is needed.
+
+.. note:: In some cases docker-compose is bundled with ``docker`` on your platform. However, due to a compatibility issue of the docker-compose format, Cob requires version 1.13 and above, which might not be the case for your installation.
+
+          In any case, it is recommended to follow the `official guide <https://docs.docker.com/compose/install/>`_ for setting up ``docker-compose``.
+
+
 Building a Docker Image
 -----------------------
 
@@ -14,6 +44,7 @@ First, you'll need to build the Docker image for your project. This is done by r
 
 This command builds a docker image labeled ``<your project name>>:dev`` by default. This means that if your project is named "todos",
 the image would be named ``todos:dev``.
+
 
 Testing Dockerized Apps
 -----------------------
@@ -39,15 +70,17 @@ Now when you build or test your project, the docker image created will be ``your
 
 Once you're satisfied with a built image, you can tag it directly through docker as your "latest" version::
 
-  $ docker tag your.server.com:4567/myproject:dev your.server.com:4567/myproject:latest
+  $ cob docker tag-latest
 
 Then you can push your image to the repository with a standard ``docker push`` command::
 
-  $ docker push your.server.com:4567/myproject:latest
+  $ cob docker push
+
+.. note:: both ``cob docker tag-latest`` and ``cob docker push`` take the image name from the project's configuration, and are intended as shortcuts for ``docker tag`` and ``docker push``.
 
 
 Deploying on Systemd-based Systems
--------------------------------
+----------------------------------
 
 If your target machine is based on *systemd* (e.g. recent Ubuntu Server releases, CentOS 7.x etc.), you can deploy a dockerized cob project by running::
 

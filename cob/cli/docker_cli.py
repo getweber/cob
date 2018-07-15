@@ -190,15 +190,16 @@ def start_nginx(print_config):
 @docker.command()
 @click.option('--http-port', default=None)
 @click.option('--build', is_flag=True, default=False)
+@click.option('compose_overrides', '-o', '--overlay-compose-file', default=[], multiple=True)
 @click.option('-d', '--detach', is_flag=True, default=False)
 @click.option('--image-name', default=None, help='Image to use for the main docker containers')
-def run(http_port, build, detach, image_name):
+def run(http_port, build, detach, image_name, compose_overrides):
+    project = get_project()
     if build:
         docker_build.callback(sudo=False, use_exec=False)
-    cmd = ['up']
-    if detach:
-        cmd.append('-d')
-    _exec_docker_compose(cmd, http_port=http_port, image_name=image_name)
+    if image_name is None:
+        image_name = f'{project.get_docker_image_name()}:dev'
+    run_image.callback(image_name=image_name, detach=detach, http_port=http_port, compose_overrides=compose_overrides)
 
 
 @docker.command()
@@ -224,12 +225,13 @@ def _exec_docker_compose(cmd, **kwargs):
 @click.option('--image-name', default=None)
 @click.option('--http-port', type=int, default=None)
 @click.option('--force-config-override', is_flag=True, default=False)
-def generate_docker_compose_file(image_name, force_config_override, http_port):
+@click.option('--log-driver', default='syslog')
+def generate_docker_compose_file(image_name, force_config_override, http_port, log_driver):
     """Prints out a docker-compose.yml for this project"""
-    print(_generate_compose_file_string(image_name=image_name, force_config_override=force_config_override, http_port=http_port))
+    print(_generate_compose_file_string(image_name=image_name, force_config_override=force_config_override, http_port=http_port, log_driver=log_driver))
 
 
-def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config_override=False):
+def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config_override=False, log_driver='syslog'):
     project = get_project()
 
     if image_name is None:
@@ -286,7 +288,6 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
 
         services['rabbitmq'] = {
             'image': 'rabbitmq',
-            #'command': 'bash -c "sleep 15 && rabbitmq-server"',
         }
         services['worker'] = {
             'image': image_name,
@@ -309,7 +310,10 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
             '/etc/localtime:/etc/localtime:ro',
         )
 
-        service_config.setdefault('logging', {'driver': 'syslog'})
+        service_config.setdefault('logging', {'driver': log_driver})
+
+    for service_name, service_ports in project.config.get('docker', {}).get('exposed_ports', {}).items():
+        services[service_name].setdefault('ports', []).extend(service_ports)
 
     return config
 
@@ -355,12 +359,18 @@ def test(build_image, sudo):
 
 @docker.command(name="run-image", help='Runs a cob project in a pre-built docker image')
 @click.argument('image_name')
-@click.option('background', '-d', '--detach', is_flag=True, default=False)
-def run_image(image_name, background):
-    project_name, compose_path = _generate_compose_file_from_image(image_name)
-    cmd = docker_compose_cmd.args(['-p', project_name, '-f', compose_path, 'up'])
-    if background:
+@click.option('-d', '--detach', is_flag=True, default=False)
+@click.option('compose_overrides', '-o', '--overlay-compose-file', default=[], multiple=True)
+@click.option('--http-port', default=None)
+def run_image(image_name, detach, compose_overrides, http_port):
+    project_name, compose_path = _generate_compose_file_from_image(image_name, http_port=http_port)
+    cmd = docker_compose_cmd.args(['-p', project_name, '-f', compose_path])
+    for compose_override in compose_overrides:
+        cmd.args(['-f', compose_override])
+    cmd.args(['up'])
+    if detach:
         cmd = cmd.args(['-d'])
+
     cmd.execv()
 
 
@@ -371,11 +381,15 @@ def stop_image(image_name):
     docker_compose_cmd.args(['-p', project_name, '-f', compose_path, 'down']).execv()
 
 
-def _generate_compose_file_from_image(image_name):
+def _generate_compose_file_from_image(image_name, *, http_port=None):
     project_name = _get_project_name_from_image(image_name)
     cmd = docker_cmd.run(['--rm', image_name, 'cob', 'docker', 'generate-docker-compose-file', '--image-name', image_name, '--http-port', '80'])
+    if _is_journald_system():
+        cmd.args(['--log-driver=journald'])
     if get_etc_config_path(project_name).is_dir():
         cmd.args(['--force-config-override'])
+    if http_port is not None:
+        cmd.args(['--http-port', str(http_port)])
     compose_file_contents = cmd.check_output()
     compose_path = Path('/tmp') / f"__cob_docker_compose_{image_name.replace(':', '_').replace('/', '_')}.yml"
     with compose_path.open('wb') as f:
@@ -384,14 +398,15 @@ def _generate_compose_file_from_image(image_name):
 
 
 @docker.command(name='deploy', help='Deploys an dockerized cob app image to the local systemd-based machine')
+@click.option('--force', is_flag=True, default=False)
 @click.argument('image_name')
-def deploy_image(image_name):
+def deploy_image(image_name, force):
     click.echo(f'Obtaining project information for {image_name}...')
     project_name = _get_project_name_from_image(image_name)
     unit_template = load_template('systemd_unit')
     filename = Path('/etc/systemd/system') / f'{project_name}-docker.service'
     click.echo(f'Writing systemd unit file under {filename}...')
-    if filename.exists():
+    if filename.exists() and not force:
         click.confirm(f'{filename} already exists. Overwrite?', abort=True)
 
     tmp_filename = Path(mkdtemp()) / 'systemd-unit'
@@ -406,3 +421,21 @@ def deploy_image(image_name):
 
 def _get_project_name_from_image(image_name):
     return docker_cmd.run(['--rm', image_name, 'cob', 'info', 'project-name']).check_output(encoding='utf-8').strip()
+
+
+def _is_journald_system():
+    return shutil.which('journalctl') is not None
+
+
+@docker.command(name='tag-latest', help='Tags the latest development image as latest')
+def tag_latest():
+    project = get_project()
+    docker_cmd.tag([
+        f'{project.get_docker_image_name()}:dev',
+        f'{project.get_docker_image_name()}:latest']
+    ).execv()
+
+@docker.command(name='push')
+def push():
+    project = get_project()
+    docker_cmd.push([f'{project.get_docker_image_name()}:latest']).execv()
