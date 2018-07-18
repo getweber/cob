@@ -13,4 +13,5 @@ _logger = logbook.Logger(__name__)
 def testserver(port, debug):
     ensure_project_bootstrapped()
     flask_app = build_app(config_overrides={'TESTING': True, 'DEBUG': debug})
+    logbook.StderrHandler(level=logbook.DEBUG).push_application()
     flask_app.run(port=port, debug=debug)

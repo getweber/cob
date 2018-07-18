@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* :release:`0.19.1 <18-07-2018>`
+* :bug:`-` Added debug log output to ``cob testserver``
 * :release:`0.19.0 <15-07-2018>`
 * :feature:`97` Added ``cob shell`` command, allowing users to interactively access their modules and code through IPython or the builtin Python interpreter shell
 * :feature:`94` Added ``cob docker tag-latest`` to tag the recent image as latest, and ``cob docker push`` to push the latest image
