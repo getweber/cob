@@ -13,6 +13,7 @@ Flask-Loopback
 Jinja2
 gossip
 gunicorn
+IPython
 Logbook
 mitba
 psycopg2
