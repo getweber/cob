@@ -343,11 +343,16 @@ def test(build_image, sudo):
     with open(compose_filename, 'w') as f:
         _dump_yaml(compose_file_dict, stream=f)
     docker_compose_name = f'{project.name}-test'
+
+    test_cmd = "cob test --migrate"
+    if not build_image:
+        test_cmd = f'rsync -rvP --delete --exclude .cob /localdir/ /app/ && {test_cmd}'
+
     cmd = docker_compose_cmd.args([
         '-f', compose_filename, '-p', docker_compose_name, 'run',
         '-w', '/app', '-v', f'{os.path.abspath(".")}:/localdir',
         'test',
-        'bash', '-c', "rsync -rvP --delete --exclude .cob /localdir/ /app/ && cob test --migrate"])
+        'bash', '-c', test_cmd])
     if cmd.popen().wait() != 0:
         raise TestsFailed('Tests failed')
 
