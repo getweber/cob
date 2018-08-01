@@ -1,6 +1,5 @@
 import os
 import click
-import flask_migrate
 import logbook
 import multiprocessing
 from pathlib import Path
@@ -16,7 +15,6 @@ from werkzeug.contrib.fixers import ProxyFix
 import yaml
 
 
-from ..ctx import context
 from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
 from ..exceptions import TestsFailed
