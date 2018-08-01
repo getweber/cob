@@ -2,18 +2,20 @@ import os
 import sys
 
 import emport
-import yaml
+import flask_migrate
+from flask.helpers import send_from_directory
+from flask import abort
 import logbook
+import yaml
 
 from .defs import COB_CONFIG_FILE_NAME
+from .ctx import context
 from .exceptions import NotInProject
 from .service_manager import Services
 from .subsystems.manager import SubsystemsManager
 from .utils.config import merge_config, load_overrides
 from .utils.url import sort_paths_specific_to_generic
 
-from flask.helpers import send_from_directory
-from flask import abort
 
 _projet = None
 
@@ -49,6 +51,14 @@ class Project(object):
         self.services = Services(self)
 
         self._initialized = False
+
+    def setup_db(self):
+        """Either runs migrations or creates all models, if needed
+        """
+        if self.subsystems.models.has_migrations():
+            flask_migrate.upgrade()
+        else:
+            context.db.create_all()
 
     def get_docker_image_name(self):
         return self.config.get('docker', {}).get('image_name', self.name)

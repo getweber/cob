@@ -116,10 +116,7 @@ def start_wsgi():
 
     if project.subsystems.has_database():
         with app.app_context():
-            if project.subsystems.models.has_migrations():
-                flask_migrate.upgrade()
-            else:
-                context.db.create_all()
+            project.setup_db()
 
     workers_count = (multiprocessing.cpu_count() * 2) + 1
 
@@ -352,7 +349,7 @@ def test(build_image, sudo):
         '-f', compose_filename, '-p', docker_compose_name, 'run',
         '-w', '/app', '-v', f'{os.path.abspath(".")}:/localdir',
         'test',
-        'bash', '-c', "rsync -rvP --delete --exclude .cob /localdir/ /app/ && cob test"])
+        'bash', '-c', "rsync -rvP --delete --exclude .cob /localdir/ /app/ && cob test --migrate"])
     if cmd.popen().wait() != 0:
         raise TestsFailed('Tests failed')
 

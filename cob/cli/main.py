@@ -7,6 +7,7 @@ import logbook
 import click
 
 from cob.app import build_app
+from cob.project import get_project
 from cob.exceptions import CobExecutionError
 from cob.bootstrapping import ensure_project_bootstrapped
 
@@ -36,10 +37,14 @@ def bootstrap():
 @click.command(context_settings={
     'ignore_unknown_options': True
 })
+@click.option('--migrate', is_flag=True, default=False)
 @click.argument('pytest_args', nargs=-1, type=click.UNPROCESSED)
-def test(pytest_args):
+def test(pytest_args, migrate):
     ensure_project_bootstrapped()
     python_executable = os.path.abspath('.cob/env/bin/python')
+    if migrate:
+        with build_app().app_context():
+            get_project().setup_db()
     os.execv(python_executable, [python_executable, '-m', 'pytest'] + list(pytest_args))
 
 
