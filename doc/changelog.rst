@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* :release:`0.19.7 <02-08-2018>`
+* :bug:`-` Added ``--no-cache`` option to ``cob docker test`` to support usage in CIs
+* :release:`0.19.6 <01-08-2018>`
+* :bug:`-` Avoid running ``rsync`` in ``cob docker test`` if an image is built during the process
 * :release:`0.19.1 <18-07-2018>`
 * :bug:`-` Added debug log output to ``cob testserver``
 * :release:`0.19.0 <15-07-2018>`
