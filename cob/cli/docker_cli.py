@@ -90,12 +90,14 @@ def _build_cob_sdist(filename):
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
 @click.option('--extra-build-args', '-e', default="", help="Arguments to pass to docker build")
 @click.option('--release', is_flag=True, default=False)
-def docker_build(sudo, extra_build_args="", use_exec=True, image_name=None, release=False):
+def docker_build(sudo, extra_build_args="", use_exec=True, image_name=None, release=False, use_cache=True):
     project = get_project()
     if image_name is None:
         image_name = f'{project.get_docker_image_name()}:{"latest" if release else "dev"}'.format(project.name, 'latest' if release else 'dev')
     generate_dockerfile.callback()
     cmd = docker_cmd.build(['-t', image_name, '-f', '.Dockerfile', '.', *extra_build_args.split()]).force_sudo(sudo)
+    if not use_cache:
+        cmd = cmd.args(['--no-cache'])
     _logger.debug('Running Command: {}', cmd)
     cmd.run(use_exec=use_exec)
 
@@ -324,12 +326,13 @@ def _dump_yaml(config, *, stream=None):
 
 @docker.command()
 @click.option('build_image', '--no-build', is_flag=True, default=True)
+@click.option('use_cache', '--no-cache', is_flag=True, default=True)
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
-def test(build_image, sudo):
+def test(build_image, sudo, use_cache):
     project = get_project()
     image_name = f"{project.get_docker_image_name()}:dev"
     if build_image:
-        docker_build.callback(sudo=sudo, use_exec=False, image_name=image_name)
+        docker_build.callback(sudo=sudo, use_exec=False, image_name=image_name, use_cache=use_cache)
     compose_file_dict = _generate_compose_file_dict(image_name=image_name)
     compose_file_dict['services'].pop('nginx')
     test_config = compose_file_dict['services'].pop('wsgi')
