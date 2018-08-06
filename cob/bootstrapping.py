@@ -1,6 +1,5 @@
 import functools
 import os
-import halo
 import subprocess
 import sys
 import tempfile
@@ -131,10 +130,11 @@ Logs can be found:
 """
 
 def _execute_long_command(cmd, message):
+    from halo import Halo
     with tempfile.NamedTemporaryFile(delete=False) as fp_out, \
          tempfile.NamedTemporaryFile(delete=False) as fp_err, \
          subprocess.Popen(cmd, stdout=fp_out, stderr=fp_err) as proc, \
-         halo.Halo(text=message, spinner='dots') as spinner:
+         Halo(text=message, spinner='dots') as spinner:
         _logger.trace(message)
         retcode = proc.wait()
         if retcode != 0:
