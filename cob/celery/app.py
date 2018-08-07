@@ -1,6 +1,7 @@
 from celery import Celery
 from celery.loaders.base import BaseLoader
 
+from logbook.compat import LoggingHandler
 
 class CobLoader(BaseLoader):
 
@@ -8,6 +9,7 @@ class CobLoader(BaseLoader):
         from ..app import build_app
 
         # this will make the tasks grains to be properly loaded and discovered
+        LoggingHandler(level=logbook.DEBUG).push_application()
         build_app()
 
 
