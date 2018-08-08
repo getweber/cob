@@ -1,6 +1,7 @@
 from celery import Celery
 from celery.loaders.base import BaseLoader
 
+import logbook
 from logbook.compat import LoggingHandler
 
 class CobLoader(BaseLoader):
