@@ -351,13 +351,19 @@ def test(build_image, sudo, use_cache):
     if not build_image:
         test_cmd = f'rsync -rvP --delete --exclude .cob /localdir/ /app/ && {test_cmd}'
 
+
+    cmd_args = ['-f', compose_filename, '-p', docker_compose_name]
     cmd = docker_compose_cmd.args([
-        '-f', compose_filename, '-p', docker_compose_name, 'run',
+        *cmd_args, 'run',
         '-w', '/app', '-v', f'{os.path.abspath(".")}:/localdir',
         'test',
         'bash', '-c', test_cmd])
-    if cmd.popen().wait() != 0:
-        raise TestsFailed('Tests failed')
+    try:
+        if cmd.popen().wait() != 0:
+            raise TestsFailed('Tests failed')
+    finally:
+        docker_compose_cmd.args([
+            *cmd_args, 'stop']).popen().wait()
 
 
 @docker.command(name="run-image", help='Runs a cob project in a pre-built docker image')

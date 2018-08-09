@@ -55,10 +55,11 @@ class Project(object):
     def setup_db(self):
         """Either runs migrations or creates all models, if needed
         """
-        if self.subsystems.models.has_migrations():
-            flask_migrate.upgrade()
-        else:
-            context.db.create_all()
+        if self.subsystems.has_subsystem('models'):
+            if self.subsystems.models.has_migrations():
+                flask_migrate.upgrade()
+            else:
+                context.db.create_all()
 
     def get_docker_image_name(self):
         return self.config.get('docker', {}).get('image_name', self.name)
