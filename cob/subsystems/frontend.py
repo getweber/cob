@@ -3,6 +3,9 @@ import os
 from .base import SubsystemBase
 from ..locations import Location
 
+
+_DEFAULT_NODE_VERSION = 8
+
 class FrontendSubsystem(SubsystemBase): # pylint: disable=abstract-method
     pass
 
@@ -12,7 +15,7 @@ class EmberSubsystem(FrontendSubsystem):
 
     def get_docker_preamble_steps(self):
         returned = [
-            'FROM node:7 as frontend-builder',
+            f'FROM node:{self.project.config.get("frontend", {}).get("node_version", _DEFAULT_NODE_VERSION)} as frontend-builder',
             'RUN npm install -g ember-cli',
         ]
 
