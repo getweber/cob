@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* :release:`0.20.0 <08-10-2018>`
+* :feature:`105` Allow configuring node versions being used during docker image building
 * :release:`0.19.7 <02-08-2018>`
 * :bug:`-` Added ``--no-cache`` option to ``cob docker test`` to support usage in CIs
 * :release:`0.19.6 <01-08-2018>`
