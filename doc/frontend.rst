@@ -61,3 +61,14 @@ Developing with Front-end Compilation
 Developing back-end and front-end code in tandem requires some additional ergonomics. Cob supports the ``tmux`` command for running a complete development environment inside tmux.
 
 After creating your grains, run ``cob develop`` to start your tmux development session.
+
+
+Working with Custom Node Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cob installs Node 8.x by default on its docker images, but it can be instructed to use other versions as well. To override the node version being used, override it in your project's configuration::
+
+  # .cob-project.yml
+  ...
+  frontend:
+      node_version: 8
