@@ -2,7 +2,7 @@
 tmuxp
 
 celery<4.2.0
-click
+click<7.0
 emport>=1.2.0
 gossip
 halo
