@@ -1,7 +1,7 @@
 Changelog
 =========
 
-* :release:`0.21.0 <31-10-2018>`
+* :release:`0.21.1 <31-10-2018>`
 * :feature:`-` Added ``-H`` parameter to ``cob testserver``, specifying the address to bind
 * :release:`0.20.0 <08-10-2018>`
 * :feature:`105` Allow configuring node versions being used during docker image building
