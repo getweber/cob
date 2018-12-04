@@ -7,7 +7,7 @@ import click
 import logbook
 import yaml
 
-from .defs import COB_CONFIG_FILE_NAME
+from .defs import COB_CONFIG_FILE_NAME, PYPI_INDEX_ENV_VAR
 from .utils.develop import is_develop, cob_root
 from .project import get_project
 
@@ -15,7 +15,6 @@ _logger = logbook.Logger(__name__)
 
 _PREVENT_REENTRY_ENV_VAR = 'COB_NO_REENTRY'
 _USE_PRE_ENV_VAR = 'COB_USE_PRE'
-_PYPI_INDEX_ENV_VAR = 'COB_INDEX_URL'
 _COB_REFRESH_ENV = 'COB_REFRESH_ENV'
 _COB_VERSION_ENV_VAR = 'COB_VERSION'
 _VIRTUALENV_PATH = '.cob/env'
@@ -70,11 +69,14 @@ def _ensure_virtualenv():
             args[-1] += f'=={version}'
         if os.environ.get(_USE_PRE_ENV_VAR):
             args.append('--pre')
-        if _PYPI_INDEX_ENV_VAR in os.environ:
-            args.extend(['-i'], os.environ[_PYPI_INDEX_ENV_VAR])
+        if PYPI_INDEX_ENV_VAR in os.environ:
+            args.extend(['-i'], os.environ[PYPI_INDEX_ENV_VAR])
         _virtualenv_pip_install(args)
 
+    pypi_index_url = get_project().get_pypi_index_url()
     deps = sorted(get_project().get_deps())
+    if pypi_index_url:
+        deps.extend(['-i', pypi_index_url])
     _logger.trace('Installing dependencies: {}', deps)
     if deps:
         _virtualenv_pip_install(['-U', *deps])
