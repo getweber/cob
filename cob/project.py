@@ -8,7 +8,7 @@ from flask import abort
 import logbook
 import yaml
 
-from .defs import COB_CONFIG_FILE_NAME
+from .defs import COB_CONFIG_FILE_NAME, PYPI_INDEX_ENV_VAR
 from .ctx import context
 from .exceptions import NotInProject
 from .service_manager import Services
@@ -74,6 +74,9 @@ class Project(object):
 
     def get_deps(self):
         return set(self.config.get('deps') or ())
+
+    def get_pypi_index_url(self):
+        return self.config.get('pypi_index_url') or os.environ.get(PYPI_INDEX_ENV_VAR)
 
     def initialize(self):
         if self._initialized:
