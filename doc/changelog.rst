@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* :release:`0.21.2 <06-12-2018>`
+* :bug:`-` Properly handle pypi index url environment variables
 * :release:`0.21.1 <31-10-2018>`
 * :feature:`-` Added ``-H`` parameter to ``cob testserver``, specifying the address to bind
 * :release:`0.20.0 <08-10-2018>`
