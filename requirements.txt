@@ -5,7 +5,6 @@ celery<4.2.0
 click<7.0
 emport>=1.2.0
 gossip
-halo
 Flask
 Flask-Migrate
 Flask-SQLAlchemy
@@ -22,3 +21,4 @@ pytest
 redis
 sentinels
 virtualenv
+yaspin
