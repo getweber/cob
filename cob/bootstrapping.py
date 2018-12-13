@@ -132,11 +132,11 @@ Logs can be found:
 """
 
 def _execute_long_command(cmd, message):
-    from halo import Halo
+    from yaspin import yaspin
     with tempfile.NamedTemporaryFile(delete=False) as fp_out, \
          tempfile.NamedTemporaryFile(delete=False) as fp_err, \
          subprocess.Popen(cmd, stdout=fp_out, stderr=fp_err) as proc, \
-         Halo(text=message, spinner='dots') as spinner:
+         yaspin(text=message) as spinner:
         _logger.trace(message)
         retcode = proc.wait()
         if retcode != 0:
@@ -147,7 +147,7 @@ def _execute_long_command(cmd, message):
                 click.echo(click.style(line.decode('utf8'), fg='red'), file=sys.stderr)
             raise click.ClickException(_LONG_EXECUTION_ERROR.format(rc=retcode, cmd=' '.join(cmd).strip(),
                                                                     stdout=fp_out.name, stderr=fp_err.name))
-        spinner.succeed()
+        spinner.ok()
 
 def _virtualenv_pip_install(argv):
     msg = 'Installing {} in virtualenv'.format(', '.join(arg for arg in argv if not arg.startswith('-')))

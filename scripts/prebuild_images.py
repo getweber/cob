@@ -1,5 +1,4 @@
 import click
-from halo import Halo
 import logbook
 import pathlib
 import subprocess
@@ -7,6 +6,7 @@ import os
 import sys
 import tempfile
 import yaml
+from yaspin import yaspin
 
 
 _logger = logbook.Logger(__name__)
@@ -57,7 +57,7 @@ def main():
             )
     success = True
 
-    with Halo('Waiting for projects to build'):
+    with yaspin(text='Waiting for projects to build'):
         for p, log in zip(processes, logs):
             project = log.stem
             result = p.wait()
