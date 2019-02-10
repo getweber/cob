@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* :release:`0.21.4 <10-02-2019>`
+* :release:`0.21.3 <13-12-2018>`
 * :release:`0.21.2 <06-12-2018>`
 * :bug:`-` Properly handle pypi index url environment variables
 * :release:`0.21.1 <31-10-2018>`
