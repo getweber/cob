@@ -1,5 +1,5 @@
 # tmuxp uses strict requirement versioning so it comes first
-tmuxp
+tmuxp>=1.5.0,<2
 
 celery<4.2.0
 click>=7.0,<8
