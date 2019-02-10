@@ -2,7 +2,7 @@
 tmuxp
 
 celery<4.2.0
-click<7.0
+click>=7.0,<8
 emport>=1.2.0
 gossip
 Flask
