@@ -33,7 +33,7 @@
 import pkg_resources
 
 extensions = [
-    'sphinx.ext.autodoc', 'alabaster', 'releases',
+    'sphinx.ext.autodoc', 'alabaster', 'releases', 'sphinx_click.ext',
 ]
 
 releases_issue_uri = "https://github.com/getweber/cob/issues/%s"

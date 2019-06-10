@@ -24,7 +24,7 @@ Cob is greatly inspired by *Ember CLI*, which also aimed at solving a similar pr
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    getting_started
    basic_grains
@@ -41,6 +41,7 @@ Contents:
    developing
    environment
    api
+   commands
    changelog
 
 
