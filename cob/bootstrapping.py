@@ -122,7 +122,7 @@ def _get_installed_deps():
     if not os.path.isfile(_INSTALLED_DEPS):
         return set()
     with open(_INSTALLED_DEPS) as f:
-        return set(yaml.load(f.read()))
+        return set(yaml.full_load(f.read()))
 
 _LONG_EXECUTION_ERROR = """Execution failed with {rc}
 Command: {cmd}

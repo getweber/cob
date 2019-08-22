@@ -38,7 +38,7 @@ def load_overrides(root, *, environ=None):
                 if yaml_file.stem.startswith(('_', '.')) or yaml_file.suffix != '.yml':
                     continue
                 with yaml_file.open() as f:
-                    root = merge_config(root, yaml.load(f))
+                    root = merge_config(root, yaml.full_load(f))
     return root
 
 

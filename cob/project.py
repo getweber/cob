@@ -42,7 +42,7 @@ class Project(object):
             raise NotInProject(f'You do not seem to be in a Cob project directory (Currently in {self.root})')
 
         with open(config_filename) as f:
-            config = merge_config(DEFAULT_CONFIG, yaml.load(f))
+            config = merge_config(DEFAULT_CONFIG, yaml.full_load(f))
 
         self.config = load_overrides(config)
 

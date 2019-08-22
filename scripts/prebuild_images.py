@@ -36,7 +36,7 @@ def main():
         proj_yaml = project_dir / '.cob-project.yml'
         if proj_yaml.exists():
             with proj_yaml.open() as f:
-                name = yaml.load(f.read()).get('name')
+                name = yaml.full_load(f.read()).get('name')
                 if name is None:
                     sys.exit(f'Project {project_dir.stem} does not have a name configured')
                 if name in project_names:
