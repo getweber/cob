@@ -28,3 +28,7 @@ You can install additional dependencies through the ``deps`` section of the ``.c
   deps:
     - Flask-Security
     - Flask-SQLAlchemy>=0.1.0
+
+Env Variables Cob Will Use
+---------------------------
+PYPI_INDEX_URL - incase you need to use pypi other than https://pypi.org/simple.

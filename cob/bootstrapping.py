@@ -23,7 +23,6 @@ _INSTALLED_DEPS = '.cob/_installed_deps.yml'
 def ensure_project_bootstrapped(*, reenter=True):
     if not os.path.isfile(COB_CONFIG_FILE_NAME):
         raise RuntimeError('Project is not a cob project')
-
     if _PREVENT_REENTRY_ENV_VAR in os.environ:
         _logger.trace('{} found in environ. Not reentering.', _PREVENT_REENTRY_ENV_VAR)
         return
@@ -62,7 +61,7 @@ def _ensure_virtualenv():
         else:
             _virtualenv_pip_install([sdist_path])
     else:
-        _logger.trace('Installing cob form Pypi')
+        _logger.trace('Installing cob from Pypi')
         args = ['-U', 'cob']
         if os.environ.get(_COB_VERSION_ENV_VAR):
             version = os.environ[_COB_VERSION_ENV_VAR]
@@ -70,7 +69,7 @@ def _ensure_virtualenv():
         if os.environ.get(_USE_PRE_ENV_VAR):
             args.append('--pre')
         if PYPI_INDEX_ENV_VAR in os.environ:
-            args.extend(['-i'], os.environ[PYPI_INDEX_ENV_VAR])
+            args.extend(['-i', os.environ[PYPI_INDEX_ENV_VAR]])
         _virtualenv_pip_install(args)
 
     pypi_index_url = get_project().get_pypi_index_url()
