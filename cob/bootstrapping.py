@@ -7,11 +7,12 @@ import click
 import logbook
 import yaml
 
-from .defs import COB_CONFIG_FILE_NAME, PYPI_INDEX_ENV_VAR
+from .defs import COB_CONFIG_FILE_NAME
 from .utils.develop import is_develop, cob_root
 from .project import get_project
 
 _logger = logbook.Logger(__name__)
+config = get_project().config
 
 _PREVENT_REENTRY_ENV_VAR = 'COB_NO_REENTRY'
 _USE_PRE_ENV_VAR = 'COB_USE_PRE'
@@ -23,6 +24,7 @@ _INSTALLED_DEPS = '.cob/_installed_deps.yml'
 def ensure_project_bootstrapped(*, reenter=True):
     if not os.path.isfile(COB_CONFIG_FILE_NAME):
         raise RuntimeError('Project is not a cob project')
+
     if _PREVENT_REENTRY_ENV_VAR in os.environ:
         _logger.trace('{} found in environ. Not reentering.', _PREVENT_REENTRY_ENV_VAR)
         return
@@ -66,16 +68,10 @@ def _ensure_virtualenv():
         if os.environ.get(_COB_VERSION_ENV_VAR):
             version = os.environ[_COB_VERSION_ENV_VAR]
             args[-1] += f'=={version}'
-        if os.environ.get(_USE_PRE_ENV_VAR):
-            args.append('--pre')
-        if PYPI_INDEX_ENV_VAR in os.environ:
-            args.extend(['-i', os.environ[PYPI_INDEX_ENV_VAR]])
+
         _virtualenv_pip_install(args)
 
-    pypi_index_url = get_project().get_pypi_index_url()
     deps = sorted(get_project().get_deps())
-    if pypi_index_url:
-        deps.extend(['-i', pypi_index_url])
     _logger.trace('Installing dependencies: {}', deps)
     if deps:
         _virtualenv_pip_install(['-U', *deps])
@@ -91,6 +87,14 @@ def _create_virtualenv(path):
         interpreter = sys.executable
 
     _execute_long_command([interpreter, '-m', 'virtualenv', path], 'Creating virtualenv')
+    _alter_virtualenv_if_needed()
+
+
+def _alter_virtualenv_if_needed():
+    '''In case a specific pip/setuptools or other basic virtualenv pkgs are needed inside the virtualenv '''
+    if config.get('specific_virtualenv_pkgs'):
+        click.echo("Altering Virtualenv")
+        _virtualenv_pip_install(['-U', *config['specific_virtualenv_pkgs'].split()])
 
 def _locate_original_interpreter():
     if not os.environ.get('COB_FORCE_CURRENT_INTERPRETER'):
@@ -150,7 +154,15 @@ def _execute_long_command(cmd, message):
 
 def _virtualenv_pip_install(argv):
     msg = 'Installing {} in virtualenv'.format(', '.join(arg for arg in argv if not arg.startswith('-')))
-    _execute_long_command([os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'pip', 'install', *argv], msg)
+    _command_lst = [os.path.join(_VIRTUALENV_PATH, 'bin', 'python'), '-m', 'pip', 'install', *argv]
+    pypi_index_url = get_project().get_pypi_index_url()
+    if pypi_index_url:
+        msg += f' - Using PYPI INDEX {pypi_index_url}'
+        _command_lst.extend(['-i', pypi_index_url])
+    if os.environ.get(_USE_PRE_ENV_VAR):
+        msg += f' - Looking for pre-release/development versions'
+        _command_lst.append('--pre')
+    _execute_long_command(_command_lst, msg)
 
 def _reenter():
     if _is_in_project_virtualenv():
