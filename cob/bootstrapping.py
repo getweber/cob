@@ -12,7 +12,6 @@ from .utils.develop import is_develop, cob_root
 from .project import get_project
 
 _logger = logbook.Logger(__name__)
-config = get_project().config
 
 _PREVENT_REENTRY_ENV_VAR = 'COB_NO_REENTRY'
 _USE_PRE_ENV_VAR = 'COB_USE_PRE'
@@ -92,6 +91,7 @@ def _create_virtualenv(path):
 
 def _alter_virtualenv_if_needed():
     '''In case a specific pip/setuptools or other basic virtualenv pkgs are needed inside the virtualenv '''
+    config = get_project().config
     if config.get('specific_virtualenv_pkgs'):
         click.echo("Altering Virtualenv")
         _virtualenv_pip_install(['-U', *config['specific_virtualenv_pkgs'].split()])
