@@ -26,8 +26,8 @@ You can access ``some_value`` through the ``config`` project attribute:
 
 Cob Config Options
 ------------------
-pypi_index_url - For use with pypi other than https://pypi.org/simple
-specific_virtualenv_pkgs - a string of the form 'pip==19.0.1 setuptools==40.6.3'. this will tell cob to udpate pip/setuptools versions inside cob's virtualenv before installing dependencies.
+* ``pypi_index_url`` - For use with pypi other than https://pypi.org/simple
+* ``specific_virtualenv_pkgs`` - a string of the form 'pip==19.0.1 setuptools==40.6.3'. this will tell cob to udpate pip/setuptools versions inside cob's virtualenv before installing dependencies.
 
 
 Managing Dependencies
