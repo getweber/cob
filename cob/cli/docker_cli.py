@@ -57,11 +57,14 @@ def generate_dockerfile():
     else:
         sdist_file_name = None
 
+    _specific_vers = proj.config.get('specific_virtualenv_pkgs', 'pip setuptools')
+
     with open(".Dockerfile", "w") as f:
         f.write(template.render(
             project=proj,
             deployment_base_image='python:3.6-jessie',
             python_version='3.6',
+            specific_vers=_specific_vers,
             is_develop=is_develop(),
             cob_sdist_filename=os.path.basename(sdist_file_name) if sdist_file_name else None,
             cob_root=cob_root() if is_develop() else None,

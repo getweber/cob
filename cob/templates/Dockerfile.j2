@@ -21,8 +21,7 @@ RUN echo "deb-src http://nginx.org/packages/mainline/debian/ jessie nginx" | tee
 RUN apt-get update
 RUN apt-get install -y nginx
 
-
-RUN $PYTHON_EXECUTABLE -m pip install -U virtualenv pip setuptools
+RUN $PYTHON_EXECUTABLE -m pip install -U virtualenv {{specific_vers}}
 
 ADD . /app
 RUN rm -rf /app/.cob

@@ -28,3 +28,10 @@ You can install additional dependencies through the ``deps`` section of the ``.c
   deps:
     - Flask-Security
     - Flask-SQLAlchemy>=0.1.0
+
+Environment Variables
+---------------------
+PYPI_INDEX_URL - Makes cob use an alternate pypi registry/index.
+COB_VERSION - Allows setting a specific version of Cob to be used.
+COB_USE_PRE - make cob run `pip install --pre`. affects testserver virtualenv, docker build during deployment.
+COB_DEVELOP - Indicates a development version of cob is used, affecting bootstrapping, dockerfile.

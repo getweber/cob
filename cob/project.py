@@ -76,7 +76,10 @@ class Project(object):
         return set(self.config.get('deps') or ())
 
     def get_pypi_index_url(self):
-        return self.config.get('pypi_index_url') or os.environ.get(PYPI_INDEX_ENV_VAR)
+        _index = self.config.get(PYPI_INDEX_ENV_VAR.lower()) or os.environ.get(PYPI_INDEX_ENV_VAR)
+        if _index:
+            _logger.trace(f'Using PYPI INDEX URL {_index}')
+        return _index
 
     def initialize(self):
         if self._initialized:
