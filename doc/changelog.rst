@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`122` Adding docker compose override files to ``cob docker deploy --compose-override``. The new flag can be used multiple times.
 * :release:`0.21.4 <10-02-2019>`
 * :release:`0.21.3 <13-12-2018>`
 * :release:`0.21.2 <06-12-2018>`
