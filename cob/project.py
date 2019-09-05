@@ -42,7 +42,7 @@ class Project(object):
             raise NotInProject(f'You do not seem to be in a Cob project directory (Currently in {self.root})')
 
         with open(config_filename) as f:
-            config = merge_config(DEFAULT_CONFIG, yaml.load(f))
+            config = merge_config(DEFAULT_CONFIG, yaml.full_load(f))
 
         self.config = load_overrides(config)
 
@@ -76,7 +76,10 @@ class Project(object):
         return set(self.config.get('deps') or ())
 
     def get_pypi_index_url(self):
-        return self.config.get('pypi_index_url') or os.environ.get(PYPI_INDEX_ENV_VAR)
+        _index = self.config.get(PYPI_INDEX_ENV_VAR.lower()) or os.environ.get(PYPI_INDEX_ENV_VAR)
+        if _index:
+            _logger.trace(f'Using PYPI INDEX URL {_index}')
+        return _index
 
     def initialize(self):
         if self._initialized:

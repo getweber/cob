@@ -16,7 +16,7 @@ IPython
 Logbook
 mitba
 psycopg2
-PyYAML<4
+PyYAML>5.1
 pytest
 redis
 sentinels

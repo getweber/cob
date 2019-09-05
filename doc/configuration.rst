@@ -24,6 +24,11 @@ You can access ``some_value`` through the ``config`` project attribute:
 
 .. note:: Some keys in the project config have special meaning, like the project name stored in the ``name`` key or ``flask_config`` described below. To avoid name clashes, it is wise to store all of your specific configuration under a specific key as a nested structure, such as ``config`` or ``project-config``
 
+Cob Config Options
+------------------
+* ``pypi_index_url`` - For use with pypi other than https://pypi.org/simple
+* ``specific_virtualenv_pkgs`` - a string of the form 'pip==19.0.1 setuptools==40.6.3'. this will tell cob to udpate pip/setuptools versions inside cob's virtualenv before installing dependencies.
+
 
 Managing Dependencies
 ---------------------

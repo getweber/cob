@@ -18,7 +18,7 @@ def main():
     assert tests
 
     with _TRAVIS_YML.open() as f:
-        config = yaml.load(f.read())
+        config = yaml.full_load(f.read())
 
     num_workers = len([x for x in config['jobs']['include'] if str(x['script']).strip().startswith('WORKER=')])
     assert num_workers > 0

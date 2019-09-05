@@ -22,7 +22,7 @@ def parse_front_matter(fileobj):
             if line.strip() == '---':
                 break
             s += line
-        return yaml.load(s)
+        return yaml.full_load(s)
 
     return None
 

@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* :release:`0.22.0 <04-09-2019>`
+* :feautre:`121` Improve environment/config customization
+* :feature:`116` Update PyAML version
+* :feature:`-` Added automation documentaion for commands
 * :release:`0.21.4 <10-02-2019>`
 * :release:`0.21.3 <13-12-2018>`
 * :release:`0.21.2 <06-12-2018>`

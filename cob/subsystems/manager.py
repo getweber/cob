@@ -70,7 +70,7 @@ class SubsystemsManager(object):
         yml = os.path.join(path, '.cob.yml')
         if os.path.isfile(yml):
             with open(yml) as f:
-                return yaml.load(f.read())
+                return yaml.full_load(f.read())
 
         if os.path.isfile(path):
             with open(path) as f:

@@ -2,6 +2,10 @@ language: python
 sudo: required
 python:
 - '3.6'
+
+services:
+  - docker
+
 env:
   global:
   - COB_FORCE_CURRENT_INTERPRETER=1
@@ -15,10 +19,8 @@ before_install:
 - wget https://bootstrap.pypa.io/get-pip.py
 - sudo $(which python) ./get-pip.py
 - sudo $(which python) -m pip install -U pip setuptools virtualenv
-- curl https://releases.rancher.com/install-docker/17.10.sh | sudo bash -
 - sudo rm /usr/local/bin/docker-compose
-- curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname
-  -s`-`uname -m` > docker-compose
+- curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
 - chmod +x docker-compose
 - sudo mv docker-compose /usr/local/bin
 - docker-compose --version
