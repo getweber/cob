@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :feature:`122` Adding docker compose override files to ``cob docker deploy --compose-override``. The new flag can be used multiple times.
 * :release:`0.22.0 <04-09-2019>`
 * :feautre:`121` Improve environment/config customization
 * :feature:`116` Update PyAML version

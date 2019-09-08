@@ -7,7 +7,7 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=yes
 ExecStartPre=-{{cob}} docker stop-image {{image_name}}
-ExecStart={{cob}} docker run-image {{image_name}} -d
+ExecStart={{cob}} docker run-image {{image_name}} {% for cfile in compose_overrides %} -o {{cfile}} {% endfor %} -d
 ExecStop={{cob}} docker stop-image {{image_name}}
 
 [Install]
