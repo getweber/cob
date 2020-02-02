@@ -10,6 +10,6 @@ def webapp(request):  # pylint: disable=unused-argument
         yield _webapp
 
 
-def pytest_configure(config):
+def pytest_configure(config):  # pylint: disable=unused-argument
     if is_cob_project():
         build_app(use_cached=True)
