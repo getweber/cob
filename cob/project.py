@@ -29,6 +29,12 @@ DEFAULT_CONFIG = {
 }
 
 
+def is_cob_project(root='.'):
+    root = os.path.abspath(root)
+    config_filename = os.path.join(root, COB_CONFIG_FILE_NAME)
+    return os.path.isfile(config_filename)
+
+
 class Project(object):
 
     def __init__(self, root='.'):
@@ -51,6 +57,7 @@ class Project(object):
         self.services = Services(self)
 
         self._initialized = False
+        self._configured = False
 
     def setup_db(self):
         """Either runs migrations or creates all models, if needed
@@ -93,10 +100,13 @@ class Project(object):
         self._initialized = True
 
     def configure_app(self, app):
+        if self._configured:
+            return
         self.initialize()
         app.config.update(self.config.get('flask_config', {}))
         self.subsystems.configure_app(app)
         self._configure_static_locations(app)
+        self._configured = True
 
     def get_sorted_locations(self):
         return sort_paths_specific_to_generic(

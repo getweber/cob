@@ -40,15 +40,14 @@ your request yourself:
 If you'd like to import a module from your project inside your tests, use:
 
 .. code-block:: python
-        def test_something(webapp):
-            from _cob import <module_name>
-            ...
 
+        from _cob import <module_name>
 
 For example:
 
 .. code-block:: python
-        # file: models.py
+
+        # models.py
 
         # cob: type=models
         from cob import db
@@ -66,10 +65,10 @@ For example:
 
 .. code-block:: python
 
-        # file: tests/test_models.py
+        # tests/test_models.py
+        from _cob import models
 
-        def test_person(webapp):
-            from _cob import models
+        def test_person():
             p = models.Person(first_name="First", last_name="Last")
             assert p.full_name == "First Last"
 
