@@ -11,7 +11,7 @@ import sys
 from tempfile import mkdtemp
 
 import gunicorn.app.base
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 import yaml
 
 
