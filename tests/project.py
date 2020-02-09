@@ -54,6 +54,10 @@ class Project(object):
     def on(self, path):
         return ProjectPath(self, path)
 
+    def test(self):
+        res = self._run_cob(['test', '--migrate']).wait()
+        assert res == 0, "tests failed"
+
     def _build(self):
         if self._name in _built_dockers or conftest.config.getoption('--prebuilt'):
             _logger.debug('Docker image for {._name} already built', self)
