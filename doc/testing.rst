@@ -36,6 +36,43 @@ your request yourself:
                     resp = webapp.post('/some/nonexistent/url')
                     assert resp.status_code == requests.codes.not_found
 
+
+If you'd like to import a module from your project inside your tests, use:
+
+.. code-block:: python
+
+        from _cob import <module_name>
+
+For example:
+
+.. code-block:: python
+
+        # models.py
+
+        # cob: type=models
+        from cob import db
+
+
+        class Person(db.Model):
+            id = db.Column(db.Integer, primary_key=True)
+            first_name = db.Column(db.String)
+            last_name = db.Column(db.String)
+
+            @property
+            def full_name(self):
+                return f"{self.first_name} {self.last_name}"
+
+
+.. code-block:: python
+
+        # tests/test_models.py
+        from _cob import models
+
+        def test_person():
+            p = models.Person(first_name="First", last_name="Last")
+            assert p.full_name == "First Last"
+
+
 Dockerized Testing
 ------------------
 

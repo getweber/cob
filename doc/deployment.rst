@@ -87,3 +87,10 @@ If your target machine is based on *systemd* (e.g. recent Ubuntu Server releases
   $ cob docker deploy your.server.com:4567/myproject:latest
 
 This will pull off the needed information from the Docker image and create appropriate unit files to run your project.
+
+
+
+.. note:: cob uses docker-compose for deployment. a docker-compose-override yml file can be provided which is then used as described in `docker-compose overview <https://docs.docker.com/compose/reference/overview/>`_.
+
+To use the above capability, add ``--compose-override <full path to override file>`` to the above ``cob docker deploy`` command.
+You can use more than one compose-override files by repeating the flag for each file.

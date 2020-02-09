@@ -11,7 +11,7 @@ import sys
 from tempfile import mkdtemp
 
 import gunicorn.app.base
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 import yaml
 
 
@@ -411,19 +411,27 @@ def _generate_compose_file_from_image(image_name, *, http_port=None):
 
 @docker.command(name='deploy', help='Deploys an dockerized cob app image to the local systemd-based machine')
 @click.option('--force', is_flag=True, default=False)
+@click.option('--compose-override', 'compose_overrides', multiple=True)
 @click.argument('image_name')
-def deploy_image(image_name, force):
+def deploy_image(image_name, force, compose_overrides):
     click.echo(f'Obtaining project information for {image_name}...')
     project_name = _get_project_name_from_image(image_name)
     unit_template = load_template('systemd_unit')
     filename = Path('/etc/systemd/system') / f'{project_name}-docker.service'
+
+    for override_file in compose_overrides:
+        docker_compose_override_file = Path(override_file)
+        _logger.debug(f'Checking the existance of a docker compose override file under project root {docker_compose_override_file}')
+        if not docker_compose_override_file.exists():
+            raise click.ClickException(f'File {docker_compose_override_file} does not exist')
+
     click.echo(f'Writing systemd unit file under {filename}...')
     if filename.exists() and not force:
         click.confirm(f'{filename} already exists. Overwrite?', abort=True)
 
     tmp_filename = Path(mkdtemp()) / 'systemd-unit'
     with tmp_filename.open('w') as f: # pylint: disable=no-member
-        f.write(unit_template.render(project_name=project_name, image_name=image_name, cob=f'{sys.executable} -m cob.cli.main'))
+        f.write(unit_template.render(project_name=project_name, image_name=image_name, compose_overrides=compose_overrides, cob=f'{sys.executable} -m cob.cli.main'))
 
     subprocess.check_call(f'sudo -p "Enter password to deploy service" mv {tmp_filename} {filename}', shell=True)
     click.echo(f'Starting systemd service {filename.stem}...')
