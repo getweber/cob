@@ -1,7 +1,11 @@
 Changelog
 =========
 
-* :feature:`122` Adding docker compose override files to ``cob docker deploy --compose-override``. The new flag can be used multiple times.
+* :release:`0.23.1 <12-03-2020>`
+* :bug:`139` Use POSTRES_HOST_AUTH_METHOD for postres configuration
+* :release:`0.23.0 <09-02-2020>`
+* :bug:`- major` Fix Werkzeug's ProxyFix import
+* :feature:`122` Adding docker compose override files to ``cob docker deploy --compose-override``
 * :release:`0.22.0 <04-09-2019>`
 * :feautre:`121` Improve environment/config customization
 * :feature:`116` Update PyAML version
