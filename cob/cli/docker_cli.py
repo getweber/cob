@@ -280,6 +280,7 @@ def _generate_compose_file_dict(*, http_port=None, image_name=None, force_config
             'environment': {
                 'POSTGRES_USER': project.name,
                 'POSTGRES_DB': project.name,
+                'POSTGRES_HOST_AUTH_METHOD': 'trust',
             }
         }
         config['volumes']['db'] = None
