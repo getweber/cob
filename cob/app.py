@@ -1,3 +1,4 @@
+import os
 import logbook
 import gossip
 
@@ -21,6 +22,9 @@ def build_app(*, use_cached=False, config_overrides=None):
 
     if config_overrides is None:
         config_overrides = {}
+
+    if os.environ.get('COB_TESTING'):
+        config_overrides.update({'TESTING': True})
 
     if _building:
         raise RuntimeError('Attempted to create an app while an app was already being initialized!')
