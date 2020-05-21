@@ -332,7 +332,8 @@ def _dump_yaml(config, *, stream=None):
 @click.option('build_image', '--no-build', is_flag=True, default=True)
 @click.option('use_cache', '--no-cache', is_flag=True, default=True)
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
-def test(build_image, sudo, use_cache):
+@click.argument('pytest_args', nargs=-1, type=click.UNPROCESSED)
+def test(build_image, sudo, use_cache, pytest_args):
     project = get_project()
     image_name = f"{project.get_docker_image_name()}:dev"
     if build_image:
@@ -351,7 +352,7 @@ def test(build_image, sudo, use_cache):
         _dump_yaml(compose_file_dict, stream=f)
     docker_compose_name = f'{project.name}-test'
 
-    test_cmd = "cob test --migrate"
+    test_cmd = "cob test --migrate " + ' '.join(pytest_args)
     if not build_image:
         test_cmd = f'rsync -rvP --delete --exclude .cob /localdir/ /app/ && {test_cmd}'
 
