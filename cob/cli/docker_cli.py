@@ -332,8 +332,10 @@ def _dump_yaml(config, *, stream=None):
 @click.option('build_image', '--no-build', is_flag=True, default=True)
 @click.option('use_cache', '--no-cache', is_flag=True, default=True)
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
+@click.option('--use-testing-conf/--no-use-testing-conf', is_flag=True, default=False,
+              help="use specific configuration for testing (not used by default)")
 @click.argument('pytest_args', nargs=-1, type=click.UNPROCESSED)
-def test(build_image, sudo, use_cache, pytest_args):
+def test(build_image, sudo, use_cache, pytest_args, use_testing_conf):
     project = get_project()
     image_name = f"{project.get_docker_image_name()}:dev"
     if build_image:
@@ -346,6 +348,11 @@ def test(build_image, sudo, use_cache, pytest_args):
     test_config['depends_on'] = sorted(set(compose_file_dict['services']) - {'test'})
     test_config['stdin_open'] = True
     compose_file_dict['services']['test'] = test_config
+
+    if use_testing_conf and os.path.isdir(project.tst_cfg_dir):
+        for _, service in compose_file_dict['services'].items():
+            service['volumes'].pop(service['volumes'].index('/etc/cob/conf.d/dhcpawn:/etc/cob/conf.d/dhcpawn'))
+            service['volumes'].append(f'{project.tst_cfg_dir}:/etc/cob/conf.d/dhcpawn')
 
     compose_filename = f'/tmp/__{project.name}-test-docker-compose.yml'
     with open(compose_filename, 'w') as f:
