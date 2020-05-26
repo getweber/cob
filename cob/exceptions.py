@@ -41,3 +41,7 @@ class UnknownSubsystem(CobExecutionError):
 
 class TestsFailed(CobExecutionError):
     pass
+
+
+class DockerComposeValidationFailed(CobExecutionError):
+    pass

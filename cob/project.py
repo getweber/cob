@@ -40,6 +40,8 @@ class Project(object):
     def __init__(self, root='.'):
         super(Project, self).__init__()
         self.root = os.path.abspath(root)
+        self.tests = os.path.abspath(root) + '/tests'
+        self.ocf_dir = self._ocf_dir
         self._static = {}
 
         config_filename = os.path.join(self.root, COB_CONFIG_FILE_NAME)
@@ -58,6 +60,12 @@ class Project(object):
 
         self._initialized = False
         self._configured = False
+
+    @property
+    def _ocf_dir(self):
+        ''' return the location of overlay compose files
+        used during tests sessions'''
+        return self.tests + '/overlay_compose_files'
 
     def setup_db(self):
         """Either runs migrations or creates all models, if needed
