@@ -375,7 +375,7 @@ def test(build_image, sudo, use_cache, pytest_args, use_testing_conf, compose_ov
 
     cmd_args = ['-f', compose_filename, '-p', docker_compose_name]
 
-
+    # ocf_dir = overlay_compose_files directory
     for ocf in compose_overrides:
         if _validate_compose_file(f'{project.ocf_dir}/{ocf}'):
             cmd_args.extend(['-f', f'{project.ocf_dir}/{ocf}'])
