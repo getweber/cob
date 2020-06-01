@@ -86,3 +86,19 @@ docker-compose environment for you, but once run, you can rest assured that the 
 they were in production.
 
 To run the tests in this mode, simply run ``cob docker test``.
+
+If needed, additional options can be used with ``cob docker test``::
+
+  $ cob docker test -o <overlay compose file name> -d <service name to depend on>
+
+- Overlay compose files for testing are meant to help you keep your testing env contained in case your app should communicate with the outside world. so during testing, you can load containers that mimik the extra "outside world services".
+
+- If you used the overlay option, your app might depend on those extra services, so you can declare this dependency by stating the name of the service to depend on.
+
+.. note::
+
+   Both options can be used multiple times so you can have more then one overlay compose file and you can specify as many depended services as needed.
+
+.. note::
+
+   To use the overlay option, all the files you use should reside under tests/overlay_compose_files/.
