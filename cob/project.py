@@ -42,7 +42,6 @@ class Project(object):
         self.root = os.path.abspath(root)
         self.tests = os.path.abspath(root) + '/tests'
         self._static = {}
-        self.tst_cfg_dir = self._tst_cfg_dir
 
         config_filename = os.path.join(self.root, COB_CONFIG_FILE_NAME)
 
@@ -62,9 +61,15 @@ class Project(object):
         self._configured = False
 
     @property
-    def _tst_cfg_dir(self):
+    def tst_cfg_dir(self):
         ''' return the location of project testing configuration'''
         return self.tests + '/conf.d'
+
+    @property
+    def ocf_dir(self):
+        ''' return the location of ocf (=overlay compose files)
+        used during tests sessions'''
+        return self.tests + '/overlay_compose_files'
 
     def setup_db(self):
         """Either runs migrations or creates all models, if needed

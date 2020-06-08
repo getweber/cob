@@ -17,7 +17,7 @@ import yaml
 
 from ..app import build_app
 from ..bootstrapping import ensure_project_bootstrapped
-from ..exceptions import TestsFailed
+from ..exceptions import TestsFailed, DockerComposeValidationFailed
 from ..utils.config import get_etc_config_path
 from ..utils.docker import docker_cmd, docker_compose_cmd
 from ..utils.develop import is_develop, cob_root
@@ -332,10 +332,17 @@ def _dump_yaml(config, *, stream=None):
 @click.option('build_image', '--no-build', is_flag=True, default=True)
 @click.option('use_cache', '--no-cache', is_flag=True, default=True)
 @click.option('--sudo/--no-sudo', is_flag=True, default=None, help="Run docker build with sudo")
+@click.option('compose_overrides', '-o', '--overlay-compose-file', default=[], multiple=True,
+              help="addional docker compose file name to load (can be used multiple times)")
+@click.option('--depend', '-d', default=[],
+              help="a service from overlay compose to depend on (can be used multiple times)",
+              multiple=True)
 @click.option('--use-testing-conf/--no-use-testing-conf', is_flag=True, default=False,
               help="use specific configuration for testing (not used by default)")
 @click.argument('pytest_args', nargs=-1, type=click.UNPROCESSED)
-def test(build_image, sudo, use_cache, pytest_args, use_testing_conf):
+def test(build_image, sudo, use_cache, pytest_args, use_testing_conf, compose_overrides, depend):
+    if depend and not compose_overrides:
+        raise click.ClickException('No dependencies can be added when not providing compose_overrides')
     project = get_project()
     image_name = f"{project.get_docker_image_name()}:dev"
     if build_image:
@@ -346,7 +353,9 @@ def test(build_image, sudo, use_cache, pytest_args, use_testing_conf):
 
     test_config['tty'] = True
     test_config['depends_on'] = sorted(set(compose_file_dict['services']) - {'test'})
+    test_config['depends_on'].extend(depend)
     test_config['stdin_open'] = True
+    test_config['environment']['COB_TESTING'] = 1
     compose_file_dict['services']['test'] = test_config
 
     if use_testing_conf and os.path.isdir(project.tst_cfg_dir):
@@ -365,6 +374,12 @@ def test(build_image, sudo, use_cache, pytest_args, use_testing_conf):
 
 
     cmd_args = ['-f', compose_filename, '-p', docker_compose_name]
+
+    # ocf_dir = overlay_compose_files directory
+    for ocf in compose_overrides:
+        if _validate_compose_file(f'{project.ocf_dir}/{ocf}'):
+            cmd_args.extend(['-f', f'{project.ocf_dir}/{ocf}'])
+
     cmd = docker_compose_cmd.args([
         *cmd_args, 'run',
         '-w', '/app', '-v', f'{os.path.abspath(".")}:/localdir',
@@ -377,6 +392,17 @@ def test(build_image, sudo, use_cache, pytest_args, use_testing_conf):
         docker_compose_cmd.args([
             *cmd_args, 'stop']).popen().wait()
 
+
+
+def _validate_compose_file(compose_file):
+    if not os.path.isfile(compose_file):
+        raise IOError(f'There is no such compose file {compose_file}')
+
+    cmd = docker_compose_cmd.args(['-f', compose_file, 'config', '-q'])
+    if cmd.popen().wait() != 0:
+        raise DockerComposeValidationFailed('Docker Compose validation failed')
+
+    return True
 
 @docker.command(name="run-image", help='Runs a cob project in a pre-built docker image')
 @click.argument('image_name')
