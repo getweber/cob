@@ -1,6 +1,7 @@
 Changelog
 =========
 
+* :release:`0.24.0 <29-06-2020>`
 * :release:`0.23.1 <12-03-2020>`
 * :bug:`139` Use POSTRES_HOST_AUTH_METHOD for postres configuration
 * :release:`0.23.0 <09-02-2020>`
