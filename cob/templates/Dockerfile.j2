@@ -34,6 +34,9 @@ RUN rm -rf /app/.cob
 
 WORKDIR /app
 
+ENV DOCKERIZE_VERSION v0.6.1
+RUN curl -L https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz | tar xz -C /usr/local/bin
+
 ENV COB_DOCKERIZED 1
 {% if is_develop %}
 ENV COB_DEVELOP_SDIST=/app/{{cob_sdist_filename}}
