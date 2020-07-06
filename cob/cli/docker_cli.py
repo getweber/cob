@@ -384,7 +384,9 @@ def test(build_image, sudo, use_cache, pytest_args, use_testing_conf, compose_ov
         *cmd_args, 'run',
         '-w', '/app', '-v', f'{os.path.abspath(".")}:/localdir',
         'test',
-        'bash', '-c', test_cmd])
+        "dockerize", "-timeout", "60s", "-wait", "tcp://db:5432",
+        "bash", "-c", test_cmd
+    ])
     try:
         if cmd.popen().wait() != 0:
             raise TestsFailed('Tests failed')
