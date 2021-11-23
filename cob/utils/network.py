@@ -6,9 +6,6 @@ import logbook
 from urlobject import URLObject as URL
 
 
-_POSTGRES_TCP_PORT = 5432
-_RABBITMQ_TCP_PORT = 5672
-
 _logger = logbook.Logger(__name__)
 
 
@@ -35,10 +32,12 @@ def wait_for_app_services(app):
     if db_uri is not None:
         uri = URL(db_uri)
         if uri.scheme == 'postgresql':
-            wait_for_tcp(uri.netloc.hostname, _POSTGRES_TCP_PORT)
+            wait_for_tcp(uri.netloc.hostname,
+                    app.config.get('POSTGRES_TCP_PORT', 5432))
 
     broker_uri = app.config.get('CELERY_BROKER_URL')
     if broker_uri is not None:
         url = URL(broker_uri)
         if url.scheme == 'amqp':
-            wait_for_tcp(uri.netloc.hostname, _RABBITMQ_TCP_PORT)
+            wait_for_tcp(uri.netloc.hostname,
+                    app.config.get('RABBITMQ_TCP_PORT', 5672))
