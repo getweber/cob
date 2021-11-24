@@ -12,7 +12,8 @@ Flask-Loopback
 Jinja2
 gossip
 gunicorn
-IPython
+IPython<7.17.0; python_version<='3.6'
+IPython; python_version>'3.6'
 Logbook
 mitba
 psycopg2
