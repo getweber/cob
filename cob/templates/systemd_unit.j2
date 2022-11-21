@@ -6,9 +6,9 @@ After=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStartPre=-{{cob}} docker stop-image {{image_name}}
+ExecStartPre=-{{cob}} docker stop-image {{image_name}} {% for cfile in compose_overrides %} -o {{cfile}} {% endfor %}
 ExecStart={{cob}} docker run-image {{image_name}} {% for cfile in compose_overrides %} -o {{cfile}} {% endfor %} -d
-ExecStop={{cob}} docker stop-image {{image_name}}
+ExecStop={{cob}} docker stop-image {{image_name}} {% for cfile in compose_overrides %} -o {{cfile}} {% endfor %}
 
 [Install]
 WantedBy=multi-user.target

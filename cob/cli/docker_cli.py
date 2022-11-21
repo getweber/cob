@@ -425,9 +425,13 @@ def run_image(image_name, detach, compose_overrides, http_port):
 
 @docker.command(name="stop-image")
 @click.argument('image_name')
-def stop_image(image_name):
+@click.option('compose_overrides', '-o', '--overlay-compose-file', default=[], multiple=True)
+def stop_image(image_name, compose_overrides):
     project_name, compose_path = _generate_compose_file_from_image(image_name)
-    docker_compose_cmd.args(['-p', project_name, '-f', compose_path, 'down']).execv()
+    cmd = docker_compose_cmd.args(['-p', project_name, '-f', compose_path, 'down'])
+    for compose_override in compose_overrides:
+        cmd.args(['-f', compose_override])
+    cmd.execv()
 
 
 def _generate_compose_file_from_image(image_name, *, http_port=None):
